@@ -43,7 +43,6 @@ export default function LoginPage() {
     setErrorMessage(null);
     setFieldErrors({});
 
-    // 1. Validasi Client Side dengan Zod
     const validation = loginSchema.safeParse(formData);
     if (!validation.success) {
       const formattedErrors: { email?: string; password?: string } = {};
@@ -56,7 +55,6 @@ export default function LoginPage() {
       return;
     }
 
-    // 2. Autentikasi dengan NextAuth
     setLoading(true);
     try {
       const res = await signIn("credentials", {
@@ -89,9 +87,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen w-full flex bg-[#e5ece9] overflow-hidden">
-      {/* SISI KIRI: Background Image & Text Overlay */}
       <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-end p-12 lg:p-16">
-        {/* Background Image */}
         <Image
           src="/images/pharmacy_bg.png"
           alt="Pharmacy Laboratory"
@@ -99,10 +95,8 @@ export default function LoginPage() {
           priority
           className="object-cover object-center filter blur-[1px] brightness-[0.97]"
         />
-        {/* Soft Tint Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 via-slate-900/10 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-slate-900/40 via-slate-900/10 to-transparent" />
 
-        {/* Text Overlay di Sudut Kiri Bawah */}
         <div className="relative z-10 max-w-md space-y-3">
           <h2 className="text-2xl lg:text-3xl font-bold text-[#10b981] leading-tight">
             Meningkatkan Operasional Farmasi
@@ -114,11 +108,9 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* SISI KANAN: Form Login dengan Sudut Melengkung */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center items-center px-6 sm:px-12 py-10 bg-white lg:rounded-l-[32px] shadow-2xl relative z-20">
-        <div className="w-full max-w-[380px] space-y-6">
+      <div className="w-full lg:w-1/2 flex flex-col justify-center items-center px-6 sm:px-12 py-10 bg-white lg:rounded-l-4xl shadow-2xl relative z-20">
+        <div className="w-full max-w-95 space-y-6">
 
-          {/* Logo ApotekIn */}
           <div className="mb-2">
             <Image
               src="/images/logo.png"
@@ -130,7 +122,6 @@ export default function LoginPage() {
             />
           </div>
 
-          {/* Heading */}
           <div className="space-y-1">
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
               Selamat Datang kembali
@@ -140,7 +131,6 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {/* Error Alert */}
           {errorMessage && (
             <div className="flex items-start gap-2.5 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs animate-in fade-in">
               <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
@@ -148,9 +138,7 @@ export default function LoginPage() {
             </div>
           )}
 
-          {/* Form Login */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Field Email */}
             <div className="space-y-1.5">
               <label
                 htmlFor="email"
@@ -177,7 +165,6 @@ export default function LoginPage() {
               )}
             </div>
 
-            {/* Field Password */}
             <div className="space-y-1.5">
               <label
                 htmlFor="password"
@@ -219,7 +206,6 @@ export default function LoginPage() {
               )}
             </div>
 
-            {/* Remember Me & Lupa Password */}
             <div className="flex items-center justify-between text-xs pt-0.5">
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input
@@ -243,7 +229,6 @@ export default function LoginPage() {
               </button>
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
@@ -263,7 +248,6 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Quick Demo Credentials Helper */}
           <div className="pt-2">
             <button
               type="button"

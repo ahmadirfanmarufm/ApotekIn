@@ -14,7 +14,6 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Email dan password wajib diisi");
         }
 
-        // Demo user verification (Dapat disesuaikan dengan Prisma/Database nanti)
         if (
           credentials.email === "admin@apotekin.com" &&
           credentials.password === "password123"
@@ -27,7 +26,6 @@ export const authOptions: NextAuthOptions = {
           };
         }
 
-        // Jika email/password salah
         throw new Error("Email atau password tidak sesuai");
       },
     }),

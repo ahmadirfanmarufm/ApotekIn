@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import Image from "next/image";
 import { loginSchema } from "@/lib/validations/auth";
 import {
@@ -16,6 +16,13 @@ import {
 
 export default function LoginPage() {
   const router = useRouter();
+  const { status } = useSession();
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.push("/home");
+    }
+  }, [status, router]);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -44,18 +51,26 @@ export default function LoginPage() {
     setFieldErrors({});
 
     const validation = loginSchema.safeParse(formData);
+
     if (!validation.success) {
       const formattedErrors: { email?: string; password?: string } = {};
+
       validation.error.issues.forEach((issue) => {
-        if (issue.path[0] === "email") formattedErrors.email = issue.message;
-        if (issue.path[0] === "password")
+        if (issue.path[0] === "email") {
+          formattedErrors.email = issue.message;
+        }
+
+        if (issue.path[0] === "password") {
           formattedErrors.password = issue.message;
+        }
       });
+
       setFieldErrors(formattedErrors);
       return;
     }
 
     setLoading(true);
+
     try {
       const res = await signIn("credentials", {
         email: formData.email,
@@ -63,15 +78,22 @@ export default function LoginPage() {
         redirect: false,
       });
 
-      if (res?.error) {
-        setErrorMessage("Email atau kata sandi yang Anda masukkan salah.");
-        setLoading(false);
-      } else if (res?.ok) {
-        router.push("/");
-        router.refresh();
+      if (!res) {
+        setErrorMessage("Tidak dapat terhubung ke server.");
+        return;
       }
-    } catch {
+
+      if (res.error) {
+        setErrorMessage("Email atau kata sandi yang Anda masukkan salah.");
+        return;
+      }
+
+      router.replace("/");
+      router.refresh();
+    } catch (error) {
+      console.error(error);
       setErrorMessage("Terjadi kesalahan sistem. Silakan coba lagi nanti.");
+    } finally {
       setLoading(false);
     }
   };
@@ -79,7 +101,7 @@ export default function LoginPage() {
   const fillDemoAccount = () => {
     setFormData({
       email: "admin@apotekin.com",
-      password: "password123",
+      password: "admin123",
     });
     setFieldErrors({});
     setErrorMessage(null);
@@ -110,7 +132,6 @@ export default function LoginPage() {
 
       <div className="w-full lg:w-1/2 flex flex-col justify-center items-center px-6 sm:px-12 py-10 bg-white lg:rounded-l-4xl shadow-2xl relative z-20">
         <div className="w-full max-w-95 space-y-6">
-
           <div className="mb-2">
             <Image
               src="/images/logo.png"
@@ -234,7 +255,7 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full py-2.5 px-4 rounded-lg bg-[#10b981] hover:bg-emerald-600 active:bg-emerald-700 text-white font-medium text-sm shadow-sm flex items-center justify-center gap-2 transition-all disabled:opacity-75 disabled:cursor-not-allowed group mt-2"
             >
-              {loading ? (
+              {loading || status === "loading" ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
                   <span>Memverifikasi...</span>

@@ -1,5 +1,3 @@
-import React from 'react';
-
 export function ActiveSuppliersCard() {
     return (
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between h-full">

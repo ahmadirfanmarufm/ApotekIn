@@ -1,4 +1,3 @@
-import React from 'react';
 import { Button } from "@/components/ui/button";
 import { InventoryHealthCard } from "@/components/dashboard/InventoryHealthCard";
 import { AiSummaryCard } from "@/components/dashboard/AiSummaryCard";
@@ -14,7 +13,6 @@ export default function DashboardPage() {
     return (
         <div className="space-y-6 font-inter text-slate-800 pb-12">
 
-            {/* Header Section */}
             <div className="flex justify-between items-start mb-2">
                 <div>
                     <h1 className="text-3xl font-bold font-manrope text-slate-950">Dasbor Apotek</h1>
@@ -28,7 +26,6 @@ export default function DashboardPage() {
 
             <div className="flex flex-col gap-6">
 
-                {/* Baris Atas */}
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-stretch">
                     <InventoryHealthCard />
                     <div className="lg:col-span-2">
@@ -37,13 +34,11 @@ export default function DashboardPage() {
                     <QuickActionsCard />
                 </div>
 
-                {/* Baris Tengah (Grafik & Prioritas) */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
                     <RevenueChartCard />
                     <PrioritiesList />
                 </div>
 
-                {/* Baris Bawah (4 Kartu Informasi Lengkap) */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
                     <StockAlertsCard />
                     <TopUsageCard />

@@ -1,6 +1,10 @@
-import React from 'react';
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+    children: React.ReactNode;
+    className?: string;
+    variant?: 'default' | 'outline';
+}
 
-export function Button({ children, className = '', variant = 'default', ...props }: any) {
+export function Button({ children , className = '', variant = 'default', ...props }: ButtonProps) {
 
     const baseStyle = "inline-flex items-center justify-center rounded-md text-sm font-medium px-4 py-2 transition-colors";
 

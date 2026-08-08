@@ -1,10 +1,7 @@
-import React from 'react';
-
 export function RevenueChartCard() {
     return (
         <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between h-full">
 
-            {/* Header Grafik & Legenda */}
             <div className="flex justify-between items-start mb-8">
                 <div>
                     <h2 className="text-lg font-bold font-manrope text-slate-900">Pendapatan dan Pengeluaran</h2>
@@ -20,31 +17,25 @@ export function RevenueChartCard() {
                 </div>
             </div>
 
-            {/* Ilustrasi Grafik Batang (CSS Murni) */}
             <div className="flex-1 flex items-end justify-between gap-2 mt-4 pt-4 border-b border-slate-100 pb-2">
-                {/* Grup Oct 01 */}
                 <div className="flex gap-1 items-end h-40">
                     <div className="w-8 md:w-12 bg-blue-100 rounded-t-sm h-[40%] hover:bg-blue-200 transition-colors"></div>
                     <div className="w-8 md:w-12 bg-[#22C55E] rounded-t-sm h-[30%] hover:bg-green-400 transition-colors"></div>
                 </div>
-                {/* Grup Oct 10 */}
                 <div className="flex gap-1 items-end h-40">
                     <div className="w-8 md:w-12 bg-blue-100 rounded-t-sm h-[60%] hover:bg-blue-200 transition-colors"></div>
                     <div className="w-8 md:w-12 bg-[#22C55E] rounded-t-sm h-[85%] hover:bg-green-400 transition-colors"></div>
                 </div>
-                {/* Grup Oct 20 */}
                 <div className="flex gap-1 items-end h-40">
                     <div className="w-8 md:w-12 bg-blue-100 rounded-t-sm h-[45%] hover:bg-blue-200 transition-colors"></div>
                     <div className="w-8 md:w-12 bg-[#22C55E] rounded-t-sm h-[35%] hover:bg-green-400 transition-colors"></div>
                 </div>
-                {/* Grup Oct 30 */}
                 <div className="flex gap-1 items-end h-40">
                     <div className="w-8 md:w-12 bg-blue-100 rounded-t-sm h-[70%] hover:bg-blue-200 transition-colors"></div>
                     <div className="w-8 md:w-12 bg-[#22C55E] rounded-t-sm h-[90%] hover:bg-green-400 transition-colors"></div>
                 </div>
             </div>
 
-            {/* Label Sumbu X (Tanggal) */}
             <div className="flex justify-between text-xs text-slate-400 font-medium pt-3">
                 <span>Oct 01</span>
                 <span>Oct 10</span>

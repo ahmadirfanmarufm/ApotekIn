@@ -10,24 +10,17 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error("Email dan password wajib diisi");
-        }
+        const res = await fetch(`${process.env.NEXTAUTH_URL}/api/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(credentials),
+        });
 
-        if (
-          credentials.email === "admin@apotekin.com" &&
-          credentials.password === "password123"
-        ) {
-          return {
-            id: "1",
-            name: "Apoteker Utama",
-            email: credentials.email,
-            role: "ADMIN",
-          };
-        }
+        const data = await res.json();
+        if (!res.ok || !data.token) return null;
 
-        throw new Error("Email atau password tidak sesuai");
-      },
+        return { ...data.user, accessToken: data.token };
+      }
     }),
   ],
   session: {
@@ -41,6 +34,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.role = (user as { role?: string }).role;
+        token.accessToken = (user as { accessToken?: string }).accessToken;
       }
       return token;
     },
@@ -49,8 +43,9 @@ export const authOptions: NextAuthOptions = {
         (session.user as { id?: string }).id = token.id as string;
         (session.user as { role?: string }).role = token.role as string;
       }
+      (session.user as { accessToken?: string }).accessToken = token.accessToken as string;
       return session;
     },
   },
-  secret: process.env.NEXTAUTH_SECRET || "apotekin_secret_key_2026",
+  secret: process.env.NEXTAUTH_SECRET,
 };

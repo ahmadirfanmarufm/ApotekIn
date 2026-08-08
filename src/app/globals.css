@@ -11,7 +11,7 @@
   --card-background: #ffffff;
   --border-color: #e2e8f0;
   --muted-color: #64748b;
-  --font-inter: "Inter", sans-serif;
+  --font-inter-family: "Inter", sans-serif;
 }
 
 @theme inline {
@@ -24,8 +24,8 @@
   --color-card-background: var(--card-background);
   --color-border: var(--border-color);
   --color-muted: var(--muted-color);
-  --primary-text: var(--primary-text);
-  --font-inter: var(--font-inter);
+  --color-primary-text: var(--primary-text);
+  --font-inter: var(--font-inter-family);
 }
 
 body {

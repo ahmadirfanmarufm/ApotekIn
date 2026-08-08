@@ -11,6 +11,8 @@ async function main() {
       username: "admin",
       fullName: "Admin User",
       password: hashedPassword,
+      email: "admin@apotekin.com",
+      phone: "081234567890",
       age: 20,
       role: "SUPERADMIN",
     }

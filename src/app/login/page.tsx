@@ -20,7 +20,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (status === "authenticated") {
-      router.push("/home");
+      router.push("/dashboard");
     }
   }, [status, router]);
 

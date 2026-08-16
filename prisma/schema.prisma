@@ -124,6 +124,7 @@ model Item {
   minStock    Int          @default(10)
   maxStock    Int          @default(100)
   description String?      @db.Text
+  imageUrl    String?
   isActive    Boolean      @default(true)
   branchId    String
   createdAt   DateTime     @default(now())

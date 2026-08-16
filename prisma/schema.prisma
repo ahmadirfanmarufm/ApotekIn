@@ -12,21 +12,285 @@ datasource db {
   provider = "postgresql"
 }
 
-enum ROLE {
-  SUPERADMIN
-  KARYAWAN
+enum Role {
+  ADMINISTRATOR
+  APOTEKER_PENANGGUNG_JAWAB
+  TENAGA_TEKNIS_KEFARMASIAN
+  ADMIN_LOGISTIK
+  OWNER
 }
 
-model User { 
-  id Int @id @default(autoincrement())
-  username String @unique
-  fullName String
-  password String
-  email String @unique
-  phone String @unique
-  age Int
-  role ROLE
-  lastLoginAt DateTime?
+enum ItemCategory {
+  OBAT_OTC
+  BAHAN_RACIKAN
+  NON_OBAT
+}
+
+enum POStatus {
+  PENDING
+  RECEIVED
+  CANCELLED
+}
+
+enum AuditStatus {
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum NotificationType {
+  CRITICAL_STOCK
+  EXPIRED_WARNING
+  ACTION_RECOMMENDATION
+  SYSTEM_INFO
+}
+
+enum InsightType {
+  EXECUTIVE_SUMMARY
+  WEEKLY_SUMMARY
+  MONTHLY_SUMMARY
+  STOCK_PREDICTION
+  SUPPLIER_RECOMMENDATION
+}
+
+model Branch {
+  id        String   @id @default(uuid())
+  name      String
+  code      String   @unique
+  address   String?  @db.Text
+  phone     String?
+  isPrimary Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  users          User[]
+  items          Item[]
+  purchaseOrders PurchaseOrder[]
+  stockOuts      StockOut[]
+  stockAudits    StockAudit[]
+  aiInsights     AiInsight[]
+
+  @@map("branches")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  fullName     String
+  role         Role
+  phone        String?
+  isActive     Boolean  @default(true)
+  branchId     String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  branch         Branch          @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  purchaseOrders PurchaseOrder[] @relation("PO_CreatedBy")
+  stockOuts      StockOut[]      @relation("StockOut_CreatedBy")
+  stockAudits    StockAudit[]    @relation("Audit_ConductedBy")
+  notifications  Notification[]
+
+  @@index([branchId])
+  @@map("users")
+}
+
+model Supplier {
+  id            String   @id @default(uuid())
+  code          String   @unique
+  name          String
+  contactPerson String?
+  email         String?
+  phone         String
+  address       String?  @db.Text
+  leadTimeDays  Int      @default(1)
+  healthScore   Float    @default(100.0)
+  aiSummary     String?  @db.Text
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  purchaseOrders PurchaseOrder[]
+
+  @@map("suppliers")
+}
+
+model Item {
+  id          String       @id @default(uuid())
+  code        String       @unique
+  name        String
+  category    ItemCategory
+  unit        String
+  minStock    Int          @default(10)
+  maxStock    Int          @default(100)
+  description String?      @db.Text
+  isActive    Boolean      @default(true)
+  branchId    String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  branch             Branch              @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  batches            Batch[]
+  purchaseOrderItems PurchaseOrderItem[]
+  stockAuditDetails  StockAuditDetail[]
+
+  @@index([branchId])
+  @@index([category])
+  @@map("items")
+}
+
+model Batch {
+  id              String   @id @default(uuid())
+  batchNumber     String
+  itemId          String
+  quantity        Int
+  initialQuantity Int
+  expiryDate      DateTime @db.Date
+  buyPrice        Decimal  @db.Decimal(12, 2)
+  sellPrice       Decimal  @db.Decimal(12, 2)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  item          Item           @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  stockOutItems StockOutItem[]
+
+  @@index([itemId, expiryDate])
+  @@map("batches")
+}
+
+model PurchaseOrder {
+  id          String    @id @default(uuid())
+  poNumber    String    @unique
+  supplierId  String
+  branchId    String
+  createdById String
+  status      POStatus  @default(PENDING)
+  totalAmount Decimal   @default(0) @db.Decimal(12, 2)
+  receivedAt  DateTime?
+  notes       String?   @db.Text
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  supplier  Supplier            @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  branch    Branch              @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  createdBy User                @relation("PO_CreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  items     PurchaseOrderItem[]
+
+  @@index([supplierId])
+  @@index([branchId])
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderItem {
+  id              String   @id @default(uuid())
+  purchaseOrderId String
+  itemId          String
+  batchNumber     String
+  quantity        Int
+  expiryDate      DateTime @db.Date
+  unitPrice       Decimal  @db.Decimal(12, 2)
+  createdAt       DateTime @default(now())
+
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  item          Item          @relation(fields: [itemId], references: [id], onDelete: Restrict)
+
+  @@map("purchase_order_items")
+}
+
+model StockOut {
+  id          String   @id @default(uuid())
+  referenceNo String   @unique
+  branchId    String
+  createdById String
+  totalAmount Decimal  @default(0) @db.Decimal(12, 2)
+  notes       String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  branch    Branch         @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  createdBy User           @relation("StockOut_CreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  items     StockOutItem[]
+
+  @@index([branchId])
+  @@map("stock_outs")
+}
+
+model StockOutItem {
+  id         String   @id @default(uuid())
+  stockOutId String
+  batchId    String
+  quantity   Int
+  unitPrice  Decimal  @db.Decimal(12, 2)
+  createdAt  DateTime @default(now())
+
+  stockOut StockOut @relation(fields: [stockOutId], references: [id], onDelete: Cascade)
+  batch    Batch    @relation(fields: [batchId], references: [id], onDelete: Restrict)
+
+  @@map("stock_out_items")
+}
+
+model StockAudit {
+  id            String      @id @default(uuid())
+  auditNumber   String      @unique
+  branchId      String
+  conductedById String
+  status        AuditStatus @default(IN_PROGRESS)
+  notes         String?     @db.Text
+  completedAt   DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  branch      Branch             @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  conductedBy User               @relation("Audit_ConductedBy", fields: [conductedById], references: [id], onDelete: Restrict)
+  details     StockAuditDetail[]
+
+  @@index([branchId])
+  @@map("stock_audits")
+}
+
+model StockAuditDetail {
+  id            String   @id @default(uuid())
+  stockAuditId  String
+  itemId        String
+  systemStock   Int
+  physicalStock Int
+  difference    Int // physicalStock - systemStock
+  reason        String?  @db.Text
+  createdAt     DateTime @default(now())
+
+  stockAudit StockAudit @relation(fields: [stockAuditId], references: [id], onDelete: Cascade)
+  item       Item       @relation(fields: [itemId], references: [id], onDelete: Restrict)
+
+  @@map("stock_audit_details")
+}
+
+model AiInsight {
+  id        String      @id @default(uuid())
+  branchId  String
+  type      InsightType
+  title     String
+  summary   String      @db.Text
+  data      Json?
+  createdAt DateTime    @default(now())
+
+  branch Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@index([branchId])
+  @@map("ai_insights")
+}
+
+model Notification {
+  id         String           @id @default(uuid())
+  userId     String
+  title      String
+  message    String           @db.Text
+  type       NotificationType
+  isRead     Boolean          @default(false)
+  actionLink String?
+  createdAt  DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@map("notifications")
 }

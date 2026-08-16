@@ -33,7 +33,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const valid = await bcrypt.compare(password, user.password);
+    const valid = await bcrypt.compare(password, user.passwordHash);
 
     if (!valid) {
       return NextResponse.json(
@@ -59,7 +59,7 @@ export async function POST(req: Request) {
       user: {
         id: user.id,
         email: user.email,
-        name: user.username
+        name: user.fullName
       },
       token,
     })

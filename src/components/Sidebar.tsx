@@ -129,7 +129,6 @@ export function Sidebar() {
     return (
         <aside className="fixed left-0 top-0 z-20 flex h-screen w-64 flex-col justify-between border-r border-slate-200 bg-white p-6">
             <div className="flex flex-1 flex-col overflow-hidden">
-                {/* Logo */}
                 <div className="mb-8 mt-2 flex shrink-0 items-center justify-start px-2">
                     <Image
                         src="/images/logo.png"
@@ -141,7 +140,6 @@ export function Sidebar() {
                     />
                 </div>
 
-                {/* Navigation */}
                 <nav className="flex-1 space-y-1.5 overflow-y-auto pr-1">
                     {navItems.map((item) => {
                         const Icon = item.icon;
@@ -158,9 +156,6 @@ export function Sidebar() {
                         const isOpen =
                             openSubmenu === item.label;
 
-                        /*
-                         * Items with children
-                         */
                         if (hasChildren) {
                             return (
                                 <div
@@ -232,9 +227,6 @@ export function Sidebar() {
                             );
                         }
 
-                        /*
-                         * Items without children
-                         */
                         return (
                             <Link
                                 key={item.label}
@@ -254,7 +246,6 @@ export function Sidebar() {
                 </nav>
             </div>
 
-            {/* Logout */}
             <div className="mt-2 shrink-0 border-t border-slate-100 pt-4">
                 <button
                     type="button"

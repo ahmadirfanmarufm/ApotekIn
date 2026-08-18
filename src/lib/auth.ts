@@ -32,6 +32,7 @@ export const authOptions: NextAuthOptions = {
             fullName: true,
             role: true,
             isActive: true,
+            avatarUrl: true,
           },
         });
 
@@ -50,6 +51,7 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.fullName,
           role: user.role,
+          image: user.avatarUrl,
         };
       },
     }),
@@ -61,12 +63,33 @@ export const authOptions: NextAuthOptions = {
     signIn: "/login",
   },
   callbacks: {
-    async jwt({ token, user }: { token: JWT; user?: User }) {
+    async jwt({
+      token,
+      user,
+      trigger,
+      session,
+    }: {
+      token: JWT;
+      user?: User;
+      trigger?: "signIn" | "signUp" | "update";
+      session?: Partial<Session>;
+    }) {
+      if (trigger === "update" && session?.user) {
+        if (session.user.image !== undefined) {
+          token.picture = session.user.image;
+        }
+        if (session.user.name) {
+          token.name = session.user.name;
+        }
+      }
+
       if (user) {
         token.id = user.id;
         token.name = user.name;
         token.role = (user as { role?: string }).role;
+        token.picture = user.image;
       }
+
       return token;
     },
     async session({ session, token }: { session: Session; token: JWT }) {
@@ -74,6 +97,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string;
         session.user.name = token.name ?? session.user.name;
         session.user.role = token.role as string;
+        session.user.image = (token.picture as string) || null;
       }
       return session;
     },

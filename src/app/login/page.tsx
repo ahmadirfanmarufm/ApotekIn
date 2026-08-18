@@ -105,7 +105,7 @@ export default function LoginPage() {
   const fillDemoAccount = () => {
     setFormData({
       email: "admin@apotekin.com",
-      password: "admin123",
+      password: "password123",
     });
     setFieldErrors({});
     setErrorMessage(null);

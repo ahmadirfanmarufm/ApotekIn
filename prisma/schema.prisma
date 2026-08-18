@@ -53,26 +53,6 @@ enum InsightType {
   SUPPLIER_RECOMMENDATION
 }
 
-model Branch {
-  id        String   @id @default(uuid())
-  name      String
-  code      String   @unique
-  address   String?  @db.Text
-  phone     String?
-  isPrimary Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  users          User[]
-  items          Item[]
-  purchaseOrders PurchaseOrder[]
-  stockOuts      StockOut[]
-  stockAudits    StockAudit[]
-  aiInsights     AiInsight[]
-
-  @@map("branches")
-}
-
 model User {
   id           String   @id @default(uuid())
   email        String   @unique
@@ -80,18 +60,17 @@ model User {
   fullName     String
   role         Role
   phone        String?
+  noSIPA       String?
+  avatarUrl    String?
   isActive     Boolean  @default(true)
-  branchId     String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  branch         Branch          @relation(fields: [branchId], references: [id], onDelete: Restrict)
   purchaseOrders PurchaseOrder[] @relation("PO_CreatedBy")
   stockOuts      StockOut[]      @relation("StockOut_CreatedBy")
   stockAudits    StockAudit[]    @relation("Audit_ConductedBy")
   notifications  Notification[]
 
-  @@index([branchId])
   @@map("users")
 }
 
@@ -126,16 +105,13 @@ model Item {
   description String?      @db.Text
   imageUrl    String?
   isActive    Boolean      @default(true)
-  branchId    String
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
-  branch             Branch              @relation(fields: [branchId], references: [id], onDelete: Restrict)
   batches            Batch[]
   purchaseOrderItems PurchaseOrderItem[]
   stockAuditDetails  StockAuditDetail[]
 
-  @@index([branchId])
   @@index([category])
   @@map("items")
 }
@@ -163,7 +139,6 @@ model PurchaseOrder {
   id          String    @id @default(uuid())
   poNumber    String    @unique
   supplierId  String
-  branchId    String
   createdById String
   status      POStatus  @default(PENDING)
   totalAmount Decimal   @default(0) @db.Decimal(12, 2)
@@ -173,12 +148,10 @@ model PurchaseOrder {
   updatedAt   DateTime  @updatedAt
 
   supplier  Supplier            @relation(fields: [supplierId], references: [id], onDelete: Restrict)
-  branch    Branch              @relation(fields: [branchId], references: [id], onDelete: Restrict)
   createdBy User                @relation("PO_CreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
   items     PurchaseOrderItem[]
 
   @@index([supplierId])
-  @@index([branchId])
   @@map("purchase_orders")
 }
 
@@ -201,18 +174,15 @@ model PurchaseOrderItem {
 model StockOut {
   id          String   @id @default(uuid())
   referenceNo String   @unique
-  branchId    String
   createdById String
   totalAmount Decimal  @default(0) @db.Decimal(12, 2)
   notes       String?  @db.Text
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  branch    Branch         @relation(fields: [branchId], references: [id], onDelete: Restrict)
   createdBy User           @relation("StockOut_CreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
   items     StockOutItem[]
 
-  @@index([branchId])
   @@map("stock_outs")
 }
 
@@ -233,7 +203,6 @@ model StockOutItem {
 model StockAudit {
   id            String      @id @default(uuid())
   auditNumber   String      @unique
-  branchId      String
   conductedById String
   status        AuditStatus @default(IN_PROGRESS)
   notes         String?     @db.Text
@@ -241,11 +210,9 @@ model StockAudit {
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
-  branch      Branch             @relation(fields: [branchId], references: [id], onDelete: Restrict)
   conductedBy User               @relation("Audit_ConductedBy", fields: [conductedById], references: [id], onDelete: Restrict)
   details     StockAuditDetail[]
 
-  @@index([branchId])
   @@map("stock_audits")
 }
 
@@ -255,7 +222,7 @@ model StockAuditDetail {
   itemId        String
   systemStock   Int
   physicalStock Int
-  difference    Int // physicalStock - systemStock
+  difference    Int
   reason        String?  @db.Text
   createdAt     DateTime @default(now())
 
@@ -267,16 +234,12 @@ model StockAuditDetail {
 
 model AiInsight {
   id        String      @id @default(uuid())
-  branchId  String
   type      InsightType
   title     String
   summary   String      @db.Text
   data      Json?
   createdAt DateTime    @default(now())
 
-  branch Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
-
-  @@index([branchId])
   @@map("ai_insights")
 }
 

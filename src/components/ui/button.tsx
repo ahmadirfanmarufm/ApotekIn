@@ -14,7 +14,7 @@ export function Button({
 }: ButtonProps) {
 
     const baseStyle =
-        "inline-flex items-center justify-center gap-2 rounded-md font-medium transition-colors disabled:pointer-events-none disabled:opacity-50";
+        "inline-flex items-center justify-center gap-2 rounded-md font-medium transition-colors disabled:pointer-events-none disabled:opacity-50 cursor-pointer";
 
     const sizeStyle = {
         sm: "h-9 px-3 text-xs",

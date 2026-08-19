@@ -48,4 +48,6 @@ prisma/generated
 .claude/
 .agents/
 
+.continue/
+
 Laporan.MD  

@@ -90,7 +90,7 @@ const navItems: NavItem[] = [
     icon: BarChart3,
   },
   {
-    label: "User Management",
+    label: "Manage Users",
     href: "/user-management",
     icon: Users,
   },

@@ -6,46 +6,46 @@ import {
   AuditStatus,
   NotificationType,
   InsightType,
-} from '@/prisma/config';
-import bcrypt from 'bcryptjs';
+} from "@/prisma/config";
+import bcrypt from "bcryptjs";
 
 async function main() {
-  console.log('Starting Database Seeding for ApotekIn...\n');
+  console.log("Starting Database Seeding for ApotekIn...\n");
 
   const usersData = [
     {
-      email: 'admin@apotekin.com',
-      fullName: 'Damar Syahada Kusuma',
+      email: "admin@apotekin.com",
+      fullName: "Damar Syahada Kusuma",
       role: Role.ADMINISTRATOR,
-      phone: '081234567890',
+      phone: "081234567890",
     },
     {
-      email: 'apj@apotekin.com',
-      fullName: 'Apoteker Penanggung Jawab, S.Farm',
+      email: "apj@apotekin.com",
+      fullName: "Apoteker Penanggung Jawab, S.Farm",
       role: Role.APOTEKER_PENANGGUNG_JAWAB,
-      phone: '081234567891',
+      phone: "081234567891",
     },
     {
-      email: 'ttk@apotekin.com',
-      fullName: 'Raihan Yassar (TTK)',
+      email: "ttk@apotekin.com",
+      fullName: "Raihan Yassar (TTK)",
       role: Role.TENAGA_TEKNIS_KEFARMASIAN,
-      phone: '081234567892',
+      phone: "081234567892",
     },
     {
-      email: 'logistik@apotekin.com',
-      fullName: 'Ahmad Irfan (Admin Logistik)',
+      email: "logistik@apotekin.com",
+      fullName: "Ahmad Irfan (Admin Logistik)",
       role: Role.ADMIN_LOGISTIK,
-      phone: '081234567893',
+      phone: "081234567893",
     },
     {
-      email: 'owner@apotekin.com',
-      fullName: 'Bapak Owner Apotek',
+      email: "owner@apotekin.com",
+      fullName: "Bapak Owner Apotek",
       role: Role.OWNER,
-      phone: '081234567894',
+      phone: "081234567894",
     },
   ];
 
-  const passwordHash = await bcrypt.hash('password123', 10);
+  const passwordHash = await bcrypt.hash("password123", 10);
 
   const createdUsers = [];
 
@@ -71,123 +71,111 @@ async function main() {
 
   const supplierKimia = await prisma.supplier.upsert({
     where: {
-      code: 'PBF-KFA-01',
+      code: "PBF-KFA-01",
     },
     update: {},
     create: {
-      code: 'PBF-KFA-01',
-      name: 'PT Kimia Farma Trading & Distribution',
-      contactPerson: 'Budi Santoso',
-      phone: '021-3841234',
-      email: 'order@kftd.co.id',
-      address: 'Jl. Banten No. 12, Bandung',
-      leadTimeDays: 2,
-      healthScore: 98.5,
-      aiSummary:
-        'Supplier sangat konsisten dengan pengiriman tepat waktu (lead time 2 hari).',
+      code: "PBF-KFA-01",
+      name: "PT Kimia Farma Trading & Distribution",
+      contactPerson: "Budi Santoso",
+      phone: "021-3841234",
+      email: "order@kftd.co.id",
+      address: "Jl. Banten No. 12, Bandung",
     },
   });
 
   const supplierAnugrah = await prisma.supplier.upsert({
     where: {
-      code: 'PBF-API-02',
+      code: "PBF-API-02",
     },
     update: {},
     create: {
-      code: 'PBF-API-02',
-      name: 'PT Anugrah Pharmindo Lestari',
-      contactPerson: 'Siti Rahma',
-      phone: '021-5201234',
-      email: 'sales@apl.co.id',
-      address: 'Jl. Soekarno Hatta No. 450, Bandung',
-      leadTimeDays: 3,
-      healthScore: 92.0,
-      aiSummary:
-        'Kadang mengalami keterlambatan 1 hari saat peak season.',
+      code: "PBF-API-02",
+      name: "PT Anugrah Pharmindo Lestari",
+      contactPerson: "Siti Rahma",
+      phone: "021-5201234",
+      email: "sales@apl.co.id",
+      address: "Jl. Soekarno Hatta No. 450, Bandung",
     },
   });
 
-  console.log('Suppliers Created');
+  console.log("Suppliers Created");
 
   const itemParacetamol = await prisma.item.upsert({
     where: {
-      code: 'OBT-OTC-001',
+      code: "OBT-OTC-001",
     },
     update: {},
     create: {
-      code: 'OBT-OTC-001',
-      name: 'Paracetamol 500mg Tablet',
+      code: "OBT-OTC-001",
+      name: "Paracetamol 500mg Tablet",
       category: ItemCategory.OBAT_OTC,
-      unit: 'Strip',
+      unit: "Strip",
       minStock: 20,
       maxStock: 200,
-      description: 'Analgesik dan antipiretik penurun demam.',
+      description: "Analgesik dan antipiretik penurun demam.",
     },
   });
 
   const itemAmoxicillin = await prisma.item.upsert({
     where: {
-      code: 'OBT-OTC-002',
+      code: "OBT-OTC-002",
     },
     update: {},
     create: {
-      code: 'OBT-OTC-002',
-      name: 'Amoxicillin Dry Syrup 125mg/5ml',
+      code: "OBT-OTC-002",
+      name: "Amoxicillin Dry Syrup 125mg/5ml",
       category: ItemCategory.OBAT_OTC,
-      unit: 'Botol',
+      unit: "Botol",
       minStock: 15,
       maxStock: 100,
-      description: 'Antibiotik Golongan Penisilin.',
+      description: "Antibiotik Golongan Penisilin.",
     },
   });
 
   const itemParacetamolPowder = await prisma.item.upsert({
     where: {
-      code: 'BHN-RAC-001',
+      code: "BHN-RAC-001",
     },
     update: {},
     create: {
-      code: 'BHN-RAC-001',
-      name: 'Paracetamol Serbuk Murni (Bahan Peracikan)',
+      code: "BHN-RAC-001",
+      name: "Paracetamol Serbuk Murni (Bahan Peracikan)",
       category: ItemCategory.BAHAN_RACIKAN,
-      unit: 'Gram',
+      unit: "Gram",
       minStock: 100,
       maxStock: 1000,
-      description: 'Bahan baku serbuk puyer racikan anak.',
+      description: "Bahan baku serbuk puyer racikan anak.",
     },
   });
 
   const itemAlcohol = await prisma.item.upsert({
     where: {
-      code: 'NON-OBT-001',
+      code: "NON-OBT-001",
     },
     update: {},
     create: {
-      code: 'NON-OBT-001',
-      name: 'Alkohol 70% Antiseptik 100ml',
+      code: "NON-OBT-001",
+      name: "Alkohol 70% Antiseptik 100ml",
       category: ItemCategory.NON_OBAT,
-      unit: 'Botol',
+      unit: "Botol",
       minStock: 10,
       maxStock: 50,
-      description: 'Cairan antiseptik pembersih luka/peralatan.',
+      description: "Cairan antiseptik pembersih luka/peralatan.",
     },
   });
 
-  console.log('Inventory Items Created across 3 categories');
+  console.log("Inventory Items Created across 3 categories");
 
   const today = new Date();
 
   const batchPcm1 = await prisma.batch.create({
     data: {
-      batchNumber: 'BCH-PCM-202501',
+      batchNumber: "BCH-PCM-202501",
       itemId: itemParacetamol.id,
       quantity: 15,
       initialQuantity: 100,
-      expiryDate: new Date(
-        today.getFullYear(),
-        today.getMonth() + 1,
-        15,
-      ),
+      expiryDate: new Date(today.getFullYear(), today.getMonth() + 1, 15),
       buyPrice: 3500,
       sellPrice: 6000,
     },
@@ -195,15 +183,11 @@ async function main() {
 
   await prisma.batch.create({
     data: {
-      batchNumber: 'BCH-PCM-202602',
+      batchNumber: "BCH-PCM-202602",
       itemId: itemParacetamol.id,
       quantity: 100,
       initialQuantity: 100,
-      expiryDate: new Date(
-        today.getFullYear() + 2,
-        today.getMonth(),
-        10,
-      ),
+      expiryDate: new Date(today.getFullYear() + 2, today.getMonth(), 10),
       buyPrice: 3800,
       sellPrice: 6500,
     },
@@ -211,21 +195,17 @@ async function main() {
 
   await prisma.batch.create({
     data: {
-      batchNumber: 'BCH-AMX-202505',
+      batchNumber: "BCH-AMX-202505",
       itemId: itemAmoxicillin.id,
       quantity: 8,
       initialQuantity: 50,
-      expiryDate: new Date(
-        today.getFullYear() + 1,
-        5,
-        20,
-      ),
+      expiryDate: new Date(today.getFullYear() + 1, 5, 20),
       buyPrice: 8000,
       sellPrice: 13000,
     },
   });
 
-  console.log('Multi-Batches Created for FEFO testing');
+  console.log("Multi-Batches Created for FEFO testing");
 
   const ttkUser = createdUsers.find(
     (user) => user.role === Role.TENAGA_TEKNIS_KEFARMASIAN,
@@ -241,24 +221,20 @@ async function main() {
 
   await prisma.purchaseOrder.create({
     data: {
-      poNumber: 'PO-202608-001',
+      poNumber: "PO-202608-001",
       supplierId: supplierKimia.id,
       createdById: logistikUser.id,
       status: POStatus.RECEIVED,
       totalAmount: 380000,
       receivedAt: new Date(),
-      notes: 'Penerimaan barang rutin awal bulan.',
+      notes: "Penerimaan barang rutin awal bulan.",
       items: {
         create: [
           {
             itemId: itemParacetamol.id,
-            batchNumber: 'BCH-PCM-202602',
+            batchNumber: "BCH-PCM-202602",
             quantity: 100,
-            expiryDate: new Date(
-              today.getFullYear() + 2,
-              today.getMonth(),
-              10,
-            ),
+            expiryDate: new Date(today.getFullYear() + 2, today.getMonth(), 10),
             unitPrice: 3800,
           },
         ],
@@ -268,10 +244,10 @@ async function main() {
 
   await prisma.stockOut.create({
     data: {
-      referenceNo: 'TRX-20260813-001',
+      referenceNo: "TRX-20260813-001",
       createdById: ttkUser.id,
       totalAmount: 30000,
-      notes: 'Penjualan resep obat bebas.',
+      notes: "Penjualan resep obat bebas.",
       items: {
         create: [
           {
@@ -284,14 +260,14 @@ async function main() {
     },
   });
 
-  console.log('Stock In & Stock Out Transactions Created');
+  console.log("Stock In & Stock Out Transactions Created");
 
   await prisma.stockAudit.create({
     data: {
-      auditNumber: 'AUDIT-2026-08',
+      auditNumber: "AUDIT-2026-08",
       conductedById: apjUser.id,
       status: AuditStatus.COMPLETED,
-      notes: 'Audit rutin stok obat sirup dan racikan.',
+      notes: "Audit rutin stok obat sirup dan racikan.",
       completedAt: new Date(),
       details: {
         create: [
@@ -300,28 +276,27 @@ async function main() {
             systemStock: 10,
             physicalStock: 8,
             difference: -2,
-            reason:
-              '1 botol bocor/rusak, 1 botol selisih catat.',
+            reason: "1 botol bocor/rusak, 1 botol selisih catat.",
           },
         ],
       },
     },
   });
 
-  console.log('Stock Audit Sample Created');
+  console.log("Stock Audit Sample Created");
 
   await prisma.aiInsight.create({
     data: {
       type: InsightType.EXECUTIVE_SUMMARY,
-      title: 'Ringkasan Kesehatan Inventaris Minggu Ini',
+      title: "Ringkasan Kesehatan Inventaris Minggu Ini",
       summary:
-        'Kondisi inventaris dalam status Sehat (Health Score 88%). Terdapat 1 obat dengan stok kritis (Amoxicillin Dry Syrup) dan 1 batch Paracetamol mendekati expired dalam 30 hari.',
+        "Kondisi inventaris dalam status Sehat (Health Score 88%). Terdapat 1 obat dengan stok kritis (Amoxicillin Dry Syrup) dan 1 batch Paracetamol mendekati expired dalam 30 hari.",
       data: {
         healthScore: 88,
         criticalCount: 1,
         nearExpiryCount: 1,
         recommendedAction:
-          'Lakukan Purchase Order ulang untuk Amoxicillin Dry Syrup ke PT Kimia Farma.',
+          "Lakukan Purchase Order ulang untuk Amoxicillin Dry Syrup ke PT Kimia Farma.",
       },
     },
   });
@@ -329,21 +304,21 @@ async function main() {
   await prisma.notification.create({
     data: {
       userId: logistikUser.id,
-      title: 'Alert Stok Kritis!',
+      title: "Alert Stok Kritis!",
       message:
-        'Stok Amoxicillin Dry Syrup sisa 8 botol (Batas Minimum: 15 botol). Segera buat PO.',
+        "Stok Amoxicillin Dry Syrup sisa 8 botol (Batas Minimum: 15 botol). Segera buat PO.",
       type: NotificationType.CRITICAL_STOCK,
-      actionLink: '/inventory/manage-otc',
+      actionLink: "/inventory/manage-otc",
     },
   });
 
-  console.log('AI Insights & Notifications Created\n');
-  console.log('Seeding Completed Successfully!');
+  console.log("AI Insights & Notifications Created\n");
+  console.log("Seeding Completed Successfully!");
 }
 
 main()
   .catch((error) => {
-    console.error('Seeding Failed:', error);
+    console.error("Seeding Failed:", error);
     process.exit(1);
   })
   .finally(async () => {

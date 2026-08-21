@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Plus, Filter, Search, Printer, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import { POModal } from '@/components/purchase-order/POModal';
 

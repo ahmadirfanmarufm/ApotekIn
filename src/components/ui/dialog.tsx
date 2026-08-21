@@ -29,6 +29,64 @@ export function Dialog({
     );
 }
 
+interface DialogTriggerProps
+    extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+    asChild?: boolean;
+}
+
+export function DialogTrigger({
+    asChild = false,
+    children,
+    onClick,
+    ...props
+}: DialogTriggerProps) {
+    const context = React.useContext(DialogContext);
+
+    if (!context) {
+        throw new Error(
+            "DialogTrigger harus digunakan di dalam Dialog."
+        );
+    }
+
+    const { onOpenChange } = context;
+
+    if (asChild && React.isValidElement(children)) {
+        const child = children as React.ReactElement<{
+            onClick?: React.MouseEventHandler<HTMLElement>;
+        }>;
+
+        return React.cloneElement(child, {
+            ...props,
+            onClick: (event: React.MouseEvent<HTMLElement>) => {
+                child.props.onClick?.(event);
+
+                if (!event.defaultPrevented) {
+                    onClick?.(
+                        event as unknown as React.MouseEvent<HTMLButtonElement>
+                    );
+                    onOpenChange(true);
+                }
+            },
+        });
+    }
+
+    return (
+        <button
+            type="button"
+            {...props}
+            onClick={(event) => {
+                onClick?.(event);
+
+                if (!event.defaultPrevented) {
+                    onOpenChange(true);
+                }
+            }}
+        >
+            {children}
+        </button>
+    );
+}
+
 interface DialogContentProps {
     children: React.ReactNode;
     className?: string;
@@ -57,10 +115,10 @@ export function DialogContent({
             }
         };
 
-        document.addEventListener("keydown", handleEscape);
-
         const originalOverflow = document.body.style.overflow;
         document.body.style.overflow = "hidden";
+
+        document.addEventListener("keydown", handleEscape);
 
         return () => {
             document.removeEventListener("keydown", handleEscape);
@@ -72,7 +130,6 @@ export function DialogContent({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
-            {/* Overlay */}
             <button
                 type="button"
                 aria-label="Tutup dialog"
@@ -80,11 +137,11 @@ export function DialogContent({
                 className="absolute inset-0 bg-slate-950/40 backdrop-blur-[2px]"
             />
 
-            {/* Content */}
             <div
                 role="dialog"
                 aria-modal="true"
-                className={`relative z-10 w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-2xl ${className}`}
+                aria-labelledby="dialog-title"
+                className={`relative z-10 max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-2xl ${className}`}
             >
                 {children}
 
@@ -112,8 +169,7 @@ export function DialogHeader({
         <div
             className={`
                 border-b border-slate-100
-                px-5 py-4
-                sm:px-6
+                py-4
                 ${className}
             `}
         >
@@ -131,6 +187,7 @@ export function DialogTitle({
 }) {
     return (
         <h2
+            id="dialog-title"
             className={`
                 font-manrope
                 text-lg
@@ -180,11 +237,9 @@ export function DialogFooter({
                 gap-3
                 border-t
                 border-slate-100
-                px-5
                 py-4
                 sm:flex-row
                 sm:justify-end
-                sm:px-6
                 ${className}
             `}
         >

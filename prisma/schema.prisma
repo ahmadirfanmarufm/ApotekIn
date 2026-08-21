@@ -83,9 +83,9 @@ model Supplier {
   email         String?
   phone         String
   address       String?  @db.Text
-  leadTimeDays  Int      @default(1)
-  healthScore   Float    @default(100.0)
-  aiSummary     String?  @db.Text
+  onDelivery    Int      @default(0)
+  Delivered     Int      @default(0)
+  TotalDelivery Int      @default(0)
   isActive      Boolean  @default(true)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt

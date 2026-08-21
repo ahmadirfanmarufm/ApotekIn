@@ -93,6 +93,7 @@ export function SupplierCard({
 
       <div className="flex items-center gap-2 pt-1">
         <Button
+          size="icon"
           onClick={handleCreatePO}
           className="flex-1 gap-2 border-0 bg-emerald-100/70 font-semibold text-emerald-800 shadow-none hover:bg-emerald-200"
         >
@@ -104,7 +105,7 @@ export function SupplierCard({
           trigger={
             <Button
               size="icon"
-              className="border-0 bg-emerald-100/70 text-emerald-800 shadow-none hover:bg-emerald-200"
+              className="border-0 w-2 h-2 bg-emerald-100/70 text-emerald-800 shadow-none hover:bg-emerald-200"
             >
               <MoreVertical className="h-4 w-4" />
             </Button>

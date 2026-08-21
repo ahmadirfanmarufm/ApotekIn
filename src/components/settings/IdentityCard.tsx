@@ -258,8 +258,9 @@ export function IdentityCard({ user }: IdentityCardProps) {
           <Image
             src={currentAvatarUrl || "/images/no-avatar.webp"}
             alt="Profile Image"
-            fill
             className="object-cover"
+            width={100}
+            height={100}
             unoptimized={!!currentAvatarUrl}
           />
         </div>

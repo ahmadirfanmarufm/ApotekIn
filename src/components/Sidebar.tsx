@@ -159,7 +159,7 @@ export function Sidebar() {
                     type="button"
                     onClick={() => toggleSubmenu(item.label)}
                     aria-expanded={isOpen}
-                    className={`flex w-full items-center justify-between rounded-xl px-3.5 py-3 font-medium transition-colors ${
+                    className={`flex w-full items-center justify-between rounded-xl px-3.5 py-3 font-medium transition-colors cursor-pointer ${
                       isChildActive
                         ? "bg-emerald-50 font-semibold text-emerald-600"
                         : "text-slate-600 hover:bg-slate-50"
@@ -226,7 +226,7 @@ export function Sidebar() {
         <button
           type="button"
           onClick={handleLogout}
-          className="flex w-full items-center gap-3.5 rounded-xl px-3.5 py-3 font-medium text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
+          className="flex w-full items-center gap-3.5 rounded-xl px-3.5 py-3 font-medium text-red-600 transition-colors hover:bg-red-50 hover:text-red-700 cursor-pointer"
         >
           <LogOut className="h-5 w-5 shrink-0" />
 

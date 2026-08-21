@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  useState,
-  ChangeEvent,
-  FormEvent,
-} from "react";
+import { useEffect, useState, ChangeEvent, FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,10 +12,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import {
-  Supplier,
-  SupplierFormData,
-} from "@/types/supplier";
+import { Supplier, SupplierFormData } from "@/types/supplier";
 import {
   createSupplier,
   updateSupplier,
@@ -64,16 +57,18 @@ export function SupplierDialog({
   supplierToEdit,
   onSuccess,
 }: SupplierDialogProps) {
-  const [formData, setFormData] = useState<SupplierFormData>(
-    () => mapSupplierToFormData(supplierToEdit),
+  const [formData, setFormData] = useState<SupplierFormData>(() =>
+    mapSupplierToFormData(supplierToEdit),
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleOpenChange = (nextOpen: boolean) => {
-    if (nextOpen) {
+  useEffect(() => {
+    if (open) {
       setFormData(mapSupplierToFormData(supplierToEdit));
     }
+  }, [open, supplierToEdit]);
 
+  const handleOpenChange = (nextOpen: boolean) => {
     onOpenChange(nextOpen);
   };
 
@@ -88,9 +83,7 @@ export function SupplierDialog({
     }));
   };
 
-  const handleSubmit = async (
-    e: FormEvent<HTMLFormElement>,
-  ) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
 
@@ -117,21 +110,15 @@ export function SupplierDialog({
       <DialogContent className="sm:max-w-125 px-6">
         <DialogHeader>
           <DialogTitle>
-            {supplierToEdit
-              ? "Edit Supplier"
-              : "Tambah Supplier Baru"}
+            {supplierToEdit ? "Edit Supplier" : "Tambah Supplier Baru"}
           </DialogTitle>
         </DialogHeader>
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-4 py-2"
-        >
+        <form onSubmit={handleSubmit} className="space-y-4 py-2">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="code">
-                Kode Supplier{" "}
-                <span className="text-red-500">*</span>
+                Kode Supplier <span className="text-red-500">*</span>
               </Label>
 
               <Input
@@ -146,8 +133,7 @@ export function SupplierDialog({
 
             <div className="space-y-2">
               <Label htmlFor="phone">
-                Nomor Telepon{" "}
-                <span className="text-red-500">*</span>
+                Nomor Telepon <span className="text-red-500">*</span>
               </Label>
 
               <Input
@@ -164,8 +150,7 @@ export function SupplierDialog({
 
           <div className="space-y-2">
             <Label htmlFor="name">
-              Nama Supplier{" "}
-              <span className="text-red-500">*</span>
+              Nama Supplier <span className="text-red-500">*</span>
             </Label>
 
             <Input
@@ -180,9 +165,7 @@ export function SupplierDialog({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="contactPerson">
-                Contact Person
-              </Label>
+              <Label htmlFor="contactPerson">Contact Person</Label>
 
               <Input
                 id="contactPerson"
@@ -230,10 +213,7 @@ export function SupplierDialog({
               Batal
             </Button>
 
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-            >
+            <Button type="submit" disabled={isSubmitting}>
               {isSubmitting
                 ? "Menyimpan..."
                 : supplierToEdit

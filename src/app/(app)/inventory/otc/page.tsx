@@ -18,7 +18,7 @@ export default async function OtcInventoryPage() {
             },
         },
         orderBy: {
-            name: "asc",
+            createdAt: "desc",
         },
     });
 

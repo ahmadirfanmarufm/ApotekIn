@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import Image from "next/image";
 import { loginSchema } from "@/lib/validations/auth";
@@ -16,13 +17,15 @@ import {
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { status } = useSession();
+  const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard";
 
   useEffect(() => {
     if (status === "authenticated") {
-      router.push("/dashboard");
+      router.replace(callbackUrl);
     }
-  }, [status, router]);
+  }, [status, router, callbackUrl]);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -76,6 +79,7 @@ export default function LoginPage() {
         email: formData.email,
         password: formData.password,
         redirect: false,
+        callbackUrl,
       });
 
       if (!res) {
@@ -88,7 +92,7 @@ export default function LoginPage() {
         return;
       }
 
-      router.replace("/");
+      router.replace(callbackUrl);
       router.refresh();
     } catch (error) {
       console.error(error);
@@ -101,7 +105,7 @@ export default function LoginPage() {
   const fillDemoAccount = () => {
     setFormData({
       email: "admin@apotekin.com",
-      password: "admin123",
+      password: "password123",
     });
     setFieldErrors({});
     setErrorMessage(null);

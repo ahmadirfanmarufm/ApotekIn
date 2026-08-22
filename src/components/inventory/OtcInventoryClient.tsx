@@ -13,12 +13,10 @@ interface OtcInventoryClientProps {
     items: OtcInventoryItem[];
 }
 
-export function OtcInventoryClient({
-    items,
-}: OtcInventoryClientProps) {
+export function OtcInventoryClient({ items }: OtcInventoryClientProps) {
 
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedItem, setSelectedItem] = useState<any | null>(null);
+    const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
 
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [itemToDelete, setItemToDelete] = useState<any | null>(null);
@@ -27,13 +25,15 @@ export function OtcInventoryClient({
 
     const [error, setError] = useState<string | null>(null);
 
+    const selectedItem = items.find((item) => item.id === selectedItemId) ?? null;
+
     const handleAdd = () => {
-        setSelectedItem(null);
+        setSelectedItemId(null);
         setIsModalOpen(true);
     };
 
-    const handleEdit = (item: any) => {
-        setSelectedItem(item);
+    const handleEdit = (item: OtcInventoryItem) => {
+        setSelectedItemId(item.id);
         setIsModalOpen(true);
     };
 
@@ -91,16 +91,7 @@ export function OtcInventoryClient({
     return (
         <div className="space-y-6 pb-12">
 
-            <div
-                className="
-                    flex
-                    flex-col
-                    gap-4
-                    sm:flex-row
-                    sm:items-center
-                    sm:justify-between
-                "
-            >
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 
                 <div>
                     <h1 className="font-manrope text-3xl font-bold text-slate-950">

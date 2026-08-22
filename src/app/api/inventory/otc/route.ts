@@ -44,13 +44,13 @@ export async function POST(request: Request) {
             maxStock,
             description,
             imageUrl,
+            batch,
         } = body;
 
-        if (!name || !unit) {
+        if (!name?.trim() || !unit?.trim()) {
             return NextResponse.json(
                 {
-                    message:
-                        "Nama, kode, dan satuan obat wajib diisi.",
+                    message: "Nama dan satuan obat wajib diisi.",
                 },
                 { status: 400 }
             );
@@ -59,31 +59,67 @@ export async function POST(request: Request) {
         if (Number(maxStock) <= Number(minStock)) {
             return NextResponse.json(
                 {
-                    message:
-                        "Stok maksimum harus lebih besar dari stok minimum.",
+                    message: "Stok maksimum harus lebih besar dari stok minimum.",
                 },
                 { status: 400 }
             );
         }
 
-        /*
-         * Sementara menggunakan branch utama.
-         * Nantinya branchId sebaiknya diambil dari session user.
-         */
-        const branch = await prisma.branch.findFirst({
-            where: {
-                isPrimary: true,
-            },
-        });
 
-        if (!branch) {
-            return NextResponse.json(
-                {
-                    message:
-                        "Branch utama belum tersedia.",
-                },
-                { status: 404 }
-            );
+        if (batch) {
+            if (!batch.batchNumber?.trim()) {
+                return NextResponse.json(
+                    {
+                        message: "Nomor batch wajib diisi.",
+                    },
+                    { status: 400 }
+                );
+            }
+
+            if (Number(batch.quantity) <= 0) {
+                return NextResponse.json(
+                    {
+                        message: "Jumlah stok batch harus lebih dari 0.",
+                    },
+                    { status: 400 }
+                );
+            }
+
+            if (!batch.expiryDate) {
+                return NextResponse.json(
+                    {
+                        message: "Tanggal kedaluwarsa batch wajib diisi.",
+                    },
+                    { status: 400 }
+                );
+            }
+
+            if (Number(batch.buyPrice) < 0) {
+                return NextResponse.json(
+                    {
+                        message: "Harga beli tidak boleh negatif.",
+                    },
+                    { status: 400 }
+                );
+            }
+
+            if (Number(batch.sellPrice) < 0) {
+                return NextResponse.json(
+                    {
+                        message: "Harga jual tidak boleh negatif.",
+                    },
+                    { status: 400 }
+                );
+            }
+
+            if (Number(batch.sellPrice) < Number(batch.buyPrice)) {
+                return NextResponse.json(
+                    {
+                        message: "Harga jual tidak boleh lebih kecil dari harga beli.",
+                    },
+                    { status: 400 }
+                );
+            }
         }
 
         const code = await generateOtcCode();
@@ -91,14 +127,30 @@ export async function POST(request: Request) {
         const item = await prisma.item.create({
             data: {
                 name: name.trim(),
-                code: code,
+                code,
                 category: ItemCategory.OBAT_OTC,
-                unit,
+                unit: unit.trim(),
                 minStock: Number(minStock),
                 maxStock: Number(maxStock),
                 description: description?.trim() || null,
-                imageUrl: imageUrl || null,
-                branchId: branch.id,
+                imageUrl: imageUrl?.trim() || null,
+
+                ...(batch && {
+                    batches: {
+                        create: {
+                            batchNumber: batch.batchNumber.trim(),
+                            quantity: Number(batch.quantity),
+                            initialQuantity: Number(batch.quantity),
+                            expiryDate: new Date(batch.expiryDate),
+                            buyPrice: Number(batch.buyPrice),
+                            sellPrice: Number(batch.sellPrice),
+                        },
+                    },
+                }),
+            },
+
+            include: {
+                batches: true,
             },
         });
 
@@ -114,8 +166,7 @@ export async function POST(request: Request) {
 
         return NextResponse.json(
             {
-                message:
-                    "Terjadi kesalahan saat menambahkan obat.",
+                message: "Terjadi kesalahan saat menambahkan obat.",
             },
             { status: 500 }
         );

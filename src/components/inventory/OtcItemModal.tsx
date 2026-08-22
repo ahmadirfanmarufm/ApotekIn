@@ -14,7 +14,24 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
-import { Plus, Trash2, Pencil } from "lucide-react";
+import { Plus, Trash2, Pencil, CalendarDays } from "lucide-react";
+import { OtcFormData } from "@/types/inventory";
+
+const emptyForm: OtcFormData = {
+    name: "",
+    code: "",
+    unit: "",
+    minStock: "10",
+    maxStock: "100",
+    description: "",
+    imageUrl: "",
+
+    batchNumber: "",
+    quantity: "",
+    expiryDate: "",
+    buyPrice: "",
+    sellPrice: "",
+};
 
 interface OtcItemModalProps {
     open: boolean;
@@ -22,11 +39,7 @@ interface OtcItemModalProps {
     item?: any | null;
 }
 
-export function OtcItemModal({
-    open,
-    onOpenChange,
-    item,
-}: OtcItemModalProps) {
+export function OtcItemModal({ open, onOpenChange, item, }: OtcItemModalProps) {
     const isEdit = Boolean(item);
 
     const router = useRouter();
@@ -34,38 +47,80 @@ export function OtcItemModal({
     const [batchModalOpen, setBatchModalOpen] = useState(false);
     const [selectedBatch, setSelectedBatch] = useState<any | null>(null);
 
-    const [name, setName] = useState("");
-    const [code, setCode] = useState("");
-    const [unit, setUnit] = useState("");
-    const [minStock, setMinStock] = useState("");
-    const [maxStock, setMaxStock] = useState("");
-    const [description, setDescription] = useState("");
-    const [imageUrl, setImageUrl] = useState("");
+    const [form, setForm] = useState<OtcFormData>(emptyForm);
 
     useEffect(() => {
+        if (!open) return;
 
         if (item) {
-            setName(item.name ?? "");
-            setCode(item.code ?? "");
-            setUnit(item.unit ?? "");
-            setMinStock(String(item.minStock ?? ""));
-            setMaxStock(String(item.maxStock ?? ""));
-            setDescription(item.description ?? "");
-            setImageUrl(item.imageUrl ?? "");
-        } else {
-            setName("");
-            setCode("");
-            setUnit("");
-            setMinStock("");
-            setMaxStock("");
-            setDescription("");
-            setImageUrl("");
-        }
+            setForm({
+                name: item.name ?? "",
+                code: item.code ?? "",
+                unit: item.unit ?? "",
+                minStock: String(item.minStock ?? 10),
+                maxStock: String(item.maxStock ?? 100),
+                description: item.description ?? "",
+                imageUrl: item.imageUrl ?? "",
 
+                batchNumber: "",
+                quantity: "",
+                expiryDate: "",
+                buyPrice: "",
+                sellPrice: "",
+            });
+        } else {
+            setForm(emptyForm);
+        }
     }, [item, open]);
 
     const handleSubmit = async () => {
         try {
+            if (!form.name.trim()) {
+                throw new Error("Nama obat wajib diisi.");
+            }
+
+            if (!form.unit.trim()) {
+                throw new Error("Satuan obat wajib diisi.");
+            }
+
+            if (Number(form.minStock) < 0) {
+                throw new Error("Minimum stok tidak boleh negatif.");
+            }
+
+            if (Number(form.maxStock) <= Number(form.minStock)) {
+                throw new Error(
+                    "Stok maksimum harus lebih besar dari stok minimum."
+                );
+            }
+
+            if (!isEdit) {
+                if (!form.batchNumber.trim()) {
+                    throw new Error("Nomor batch wajib diisi.");
+                }
+
+                if (!form.quantity || Number(form.quantity) <= 0) {
+                    throw new Error("Jumlah stok batch harus lebih dari 0.");
+                }
+
+                if (!form.expiryDate) {
+                    throw new Error("Tanggal kedaluwarsa wajib diisi.");
+                }
+
+                if (Number(form.buyPrice) < 0) {
+                    throw new Error("Harga beli tidak boleh negatif.");
+                }
+
+                if (Number(form.sellPrice) < 0) {
+                    throw new Error("Harga jual tidak boleh negatif.");
+                }
+
+                if (Number(form.sellPrice) < Number(form.buyPrice)) {
+                    throw new Error(
+                        "Harga jual tidak boleh lebih kecil dari harga beli."
+                    );
+                }
+            }
+
             const url = isEdit
                 ? `/api/inventory/otc/${item.id}`
                 : `/api/inventory/otc`;
@@ -73,12 +128,22 @@ export function OtcItemModal({
             const method = isEdit ? "PUT" : "POST";
 
             const body = {
-                name,
-                unit,
-                minStock: Number(minStock),
-                maxStock: Number(maxStock),
-                description,
-                imageUrl,
+                name: form.name.trim(),
+                unit: form.unit.trim(),
+                minStock: Number(form.minStock),
+                maxStock: Number(form.maxStock),
+                description: form.description?.trim() || "",
+                imageUrl: form.imageUrl?.trim() || "",
+
+                ...( !isEdit && {
+                    batch: {
+                        batchNumber: form.batchNumber.trim(),
+                        quantity: Number(form.quantity),
+                        expiryDate: form.expiryDate,
+                        buyPrice: Number(form.buyPrice),
+                        sellPrice: Number(form.sellPrice),
+                    },
+                }),
             };
 
             const response = await fetch(url, {
@@ -93,21 +158,28 @@ export function OtcItemModal({
 
             if (!response.ok) {
                 throw new Error(
-                    data.message ||
-                        "Gagal menyimpan obat."
+                    data.message || "Gagal menyimpan obat."
                 );
             }
 
             onOpenChange(false);
             router.refresh();
-
         } catch (error) {
+            console.error("OTC SUBMIT ERROR:", error);
+
             alert(
                 error instanceof Error
                     ? error.message
                     : "Terjadi kesalahan."
             );
         }
+    };
+
+    const updateField = (field: keyof OtcFormData, value: string) => {
+        setForm((previous) => ({
+            ...previous,
+            [field]: value,
+        }));
     };
 
     const handleAddBatch = () => {
@@ -156,10 +228,7 @@ export function OtcItemModal({
     };
 
     return (
-        <Dialog
-            open={open}
-            onOpenChange={onOpenChange}
-        >
+        <Dialog open={open} onOpenChange={onOpenChange}>
 
             <DialogContent
                 className="
@@ -202,8 +271,8 @@ export function OtcItemModal({
                                 </label>
 
                                 <Input
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
+                                    value={form.name}
+                                    onChange={(e) => updateField("name", e.target.value)}
                                     placeholder="Contoh: Paracetamol 500mg"
                                 />
                             </div>
@@ -214,7 +283,7 @@ export function OtcItemModal({
                                 </label>
 
                                 <Input
-                                    value={item?.code ?? "Akan dibuat otomatis"}
+                                    value={form.code ?? "Akan dibuat otomatis"}
                                     disabled
                                     readOnly
                                     className="cursor-not-allowed bg-slate-100 text-slate-500"
@@ -233,8 +302,8 @@ export function OtcItemModal({
                                 </label>
 
                                 <Input
-                                    value={unit}
-                                    onChange={(e) => setUnit(e.target.value)}
+                                    value={form.unit}
+                                    onChange={(e) => updateField("unit", e.target.value)}
                                     placeholder="Strip / Botol / Box"
                                 />
                             </div>
@@ -246,8 +315,8 @@ export function OtcItemModal({
 
                                 <Input
                                     type="number"
-                                    value={minStock}
-                                    onChange={(e) => setMinStock(e.target.value)}
+                                    value={form.minStock}
+                                    onChange={(e) => updateField("minStock", e.target.value)}
                                 />
                             </div>
 
@@ -258,8 +327,8 @@ export function OtcItemModal({
 
                                 <Input
                                     type="number"
-                                    value={maxStock}
-                                    onChange={(e) => setMaxStock(e.target.value)}
+                                    value={form.maxStock}
+                                    onChange={(e) => updateField("maxStock", e.target.value)}
                                 />
                             </div>
 
@@ -269,8 +338,8 @@ export function OtcItemModal({
                                 </label>
 
                                 <Input
-                                    value={imageUrl}
-                                    onChange={(e) => setImageUrl(e.target.value)}
+                                    value={form.imageUrl}
+                                    onChange={(e) => updateField("imageUrl", e.target.value)}
                                     placeholder="https://..."
                                 />
                             </div>
@@ -281,9 +350,9 @@ export function OtcItemModal({
                                 </label>
 
                                 <Textarea
-                                    value={description}
+                                    value={form.description}
                                     onChange={(e) =>
-                                        setDescription(e.target.value)
+                                        updateField("description", e.target.value)
                                     }
                                     placeholder="Deskripsi singkat obat..."
                                     rows={3}
@@ -292,6 +361,126 @@ export function OtcItemModal({
 
                         </div>
                     </div>
+
+                    {!isEdit && (
+                        <section className="rounded-2xl border border-violet-100 bg-violet-50/40 p-4 sm:p-5">
+                            <div className="mb-4">
+                                <h3 className="text-sm font-bold text-slate-800">
+                                    Batch Awal
+                                </h3>
+
+                                <p className="mt-1 text-xs leading-5 text-slate-400">
+                                    Masukkan stok batch pertama saat obat
+                                    dicatat ke dalam sistem.
+                                </p>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <div>
+                                    <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                                        Nomor Batch
+                                    </label>
+
+                                    <input
+                                        value={form.batchNumber}
+                                        onChange={(e) =>
+                                            updateField(
+                                                "batchNumber",
+                                                e.target.value
+                                            )
+                                        }
+                                        placeholder="BTH-2026-001"
+                                        className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                                        Jumlah Stok
+                                    </label>
+
+                                    <div className="relative">
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            value={form.quantity}
+                                            onChange={(e) =>
+                                                updateField(
+                                                    "quantity",
+                                                    e.target.value
+                                                )
+                                            }
+                                            placeholder="100"
+                                            className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 pr-16 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
+                                        />
+
+                                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">
+                                            {form.unit || "unit"}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-slate-700">
+                                        <CalendarDays size={15} />
+                                        Kedaluwarsa
+                                    </label>
+
+                                    <input
+                                        type="date"
+                                        value={form.expiryDate}
+                                        onChange={(e) =>
+                                            updateField(
+                                                "expiryDate",
+                                                e.target.value
+                                            )
+                                        }
+                                        className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                                        Harga Beli
+                                    </label>
+
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        value={form.buyPrice}
+                                        onChange={(e) =>
+                                            updateField(
+                                                "buyPrice",
+                                                e.target.value
+                                            )
+                                        }
+                                        placeholder="0"
+                                        className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
+                                    />
+                                </div>
+
+                                <div className="sm:col-span-2">
+                                    <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                                        Harga Jual
+                                    </label>
+
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        value={form.sellPrice}
+                                        onChange={(e) =>
+                                            updateField(
+                                                "sellPrice",
+                                                e.target.value
+                                            )
+                                        }
+                                        placeholder="0"
+                                        className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
+                                    />
+                                </div>
+                            </div>
+                        </section>
+                    )}
 
                     {/* Batch */}
 
@@ -350,7 +539,7 @@ export function OtcItemModal({
                                                 <p className="mt-1 text-sm text-slate-500">
                                                     Stok:{" "}
                                                     <span className="font-medium text-slate-700">
-                                                        {batch.quantity} {unit}
+                                                        {batch.quantity} {form.unit}
                                                     </span>
                                                 </p>
 
@@ -436,9 +625,11 @@ export function OtcItemModal({
                     open={batchModalOpen}
                     onOpenChange={setBatchModalOpen}
                     itemId={item.id}
-                    itemUnit={unit}
+                    itemUnit={form.unit}
                     batch={selectedBatch}
                     onSaved={() => {
+                        setBatchModalOpen(false);
+                        setSelectedBatch(null);
                         router.refresh();
                     }}
                 />

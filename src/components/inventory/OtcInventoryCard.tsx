@@ -237,7 +237,7 @@ export function OtcInventoryCard({item, onEdit, onDelete}: OtcInventoryCardProps
                     <button
                         type="button"
                         onClick={onEdit}
-                        className="inline-flex items-center gap-2 rounded-xl bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
+                        className="inline-flex items-center hover:cursor-pointer gap-2 rounded-xl bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
                     >
                         <Pencil size={15} />
                         Edit
@@ -246,7 +246,7 @@ export function OtcInventoryCard({item, onEdit, onDelete}: OtcInventoryCardProps
                     <button
                         type="button"
                         onClick={onDelete}
-                        className="inline-flex items-center gap-2 rounded-xl border-red-100 bg-red-50 px-4 py-2.5 text-sm font-medium text-red-500 transition hover:bg-red-100"
+                        className="inline-flex items-center hover:cursor-pointer gap-2 rounded-xl border-red-100 bg-red-50 px-4 py-2.5 text-sm font-medium text-red-500 transition hover:bg-red-100"
                     >
                         <Trash2 size={15} />
                         Hapus

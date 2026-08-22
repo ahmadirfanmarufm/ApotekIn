@@ -25,17 +25,10 @@ export async function POST(
             sellPrice,
         } = body;
 
-        if (
-            !batchNumber ||
-            quantity === undefined ||
-            !expiryDate ||
-            buyPrice === undefined ||
-            sellPrice === undefined
-        ) {
+        if (!batchNumber || quantity === undefined || !expiryDate || buyPrice === undefined || sellPrice === undefined) {
             return NextResponse.json(
                 {
-                    message:
-                        "Nomor batch, jumlah stok, tanggal kedaluwarsa, harga beli, dan harga jual wajib diisi.",
+                    message: "Nomor batch, jumlah stok, tanggal kedaluwarsa, harga beli, dan harga jual wajib diisi.",
                 },
                 { status: 400 }
             );
@@ -127,8 +120,7 @@ export async function POST(
 
         return NextResponse.json(
             {
-                message:
-                    "Terjadi kesalahan saat menambahkan batch.",
+                message: "Terjadi kesalahan saat menambahkan batch.",
             },
             { status: 500 }
         );

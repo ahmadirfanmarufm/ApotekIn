@@ -1,5 +1,10 @@
-import { NextAuthOptions } from "next-auth";
+import { getServerSession } from "next-auth/next";
+import type { NextAuthOptions, Session, User } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import type { JWT } from "next-auth/jwt";
+import bcrypt from "bcryptjs";
+import { prisma } from "@/prisma/config";
+import { loginSchema } from "@/lib/validations/auth";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -10,17 +15,52 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        const res = await fetch(`${process.env.NEXTAUTH_URL}/api/auth/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(credentials),
+        const validation = loginSchema.safeParse(credentials);
+
+        if (!validation.success) {
+          return null;
+        }
+
+        const { email, password } = validation.data;
+
+        const user = await prisma.user.findUnique({
+          where: { email },
+          select: {
+            id: true,
+            email: true,
+            passwordHash: true,
+            fullName: true,
+            role: true,
+            isActive: true,
+            avatarUrl: true,
+          },
         });
 
-        const data = await res.json();
-        if (!res.ok || !data.token) return null;
+        if (!user || !user.isActive) {
+          return null;
+        }
 
-        return { ...data.user, accessToken: data.token };
-      }
+        const valid = await bcrypt.compare(password, user.passwordHash);
+
+        if (!valid) {
+          return null;
+        }
+
+        const now = new Date();
+
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { lastLogin: now }
+        })
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.fullName,
+          role: user.role,
+          image: user.avatarUrl,
+        };
+      },
     }),
   ],
   session: {
@@ -30,22 +70,46 @@ export const authOptions: NextAuthOptions = {
     signIn: "/login",
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({
+      token,
+      user,
+      trigger,
+      session,
+    }: {
+      token: JWT;
+      user?: User;
+      trigger?: "signIn" | "signUp" | "update";
+      session?: Partial<Session>;
+    }) {
+      if (trigger === "update" && session?.user) {
+        if (session.user.image !== undefined) {
+          token.picture = session.user.image;
+        }
+        if (session.user.name) {
+          token.name = session.user.name;
+        }
+      }
+
       if (user) {
         token.id = user.id;
+        token.name = user.name;
         token.role = (user as { role?: string }).role;
-        token.accessToken = (user as { accessToken?: string }).accessToken;
+        token.picture = user.image;
       }
+
       return token;
     },
-    async session({ session, token }) {
+    async session({ session, token }: { session: Session; token: JWT }) {
       if (session.user) {
-        (session.user as { id?: string }).id = token.id as string;
-        (session.user as { role?: string }).role = token.role as string;
+        session.user.id = token.id as string;
+        session.user.name = token.name ?? session.user.name;
+        session.user.role = token.role as string;
+        session.user.image = (token.picture as string) || null;
       }
-      (session.user as { accessToken?: string }).accessToken = token.accessToken as string;
       return session;
     },
   },
   secret: process.env.NEXTAUTH_SECRET,
 };
+
+export const auth = () => getServerSession(authOptions);

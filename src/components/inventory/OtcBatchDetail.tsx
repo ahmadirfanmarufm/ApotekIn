@@ -13,8 +13,10 @@ import {
     ShoppingCart,
     Truck,
 } from "lucide-react";
+import { OtcItemModal } from "./OtcItemModal";
+import { useState } from "react";
 
-type OtcBatchDetailItem = {
+export type OtcBatchDetailItem = {
     id: string;
     name: string;
     code: string;
@@ -98,9 +100,15 @@ const getDaysRemaining = (date: string) => {
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
 };
 
-export function OtcBatchDetail({
-    item,
-}: OtcBatchDetailProps) {
+export function OtcBatchDetail({ item }: OtcBatchDetailProps) {
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedItem, setSelectedItem] = useState<any | null>(null);
+
+    const handleEdit = (item: any) => {
+        setSelectedItem(item);
+        setIsModalOpen(true);
+    };
+
     const totalStock = item.batches.reduce(
         (total, batch) => total + batch.quantity,
         0
@@ -186,13 +194,14 @@ export function OtcBatchDetail({
                         Restock
                     </Link>
 
-                    <Link
-                        href={`/inventory/otc/${item.id}/edit`}
-                        className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+                    <button
+                        type="button"
+                        onClick={() => handleEdit(item)}
+                        className="inline-flex items-center hover:cursor-pointer justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
                     >
                         <Pencil size={16} />
                         Edit
-                    </Link>
+                    </button>
 
                 </div>
             </div>
@@ -810,6 +819,12 @@ export function OtcBatchDetail({
                 </div>
 
             </div>
+
+            <OtcItemModal
+                open={isModalOpen}
+                onOpenChange={setIsModalOpen}
+                item={selectedItem}
+            />
 
         </div>
     );

@@ -8,10 +8,7 @@ interface RouteContext {
     }>;
 }
 
-export async function PUT(
-    request: Request,
-    context: RouteContext
-) {
+export async function PUT(request: Request, context: RouteContext) {
     try {
         const { id } = await context.params;
 
@@ -30,8 +27,7 @@ export async function PUT(
         if (!name|| !unit) {
             return NextResponse.json(
                 {
-                    message:
-                        "Nama, kode, dan satuan obat wajib diisi.",
+                    message: "Nama, kode, dan satuan obat wajib diisi.",
                 },
                 { status: 400 }
             );
@@ -98,10 +94,7 @@ export async function PUT(
     }
 }
 
-export async function DELETE(
-    request: Request,
-    context: RouteContext
-) {
+export async function DELETE(request: Request, context: RouteContext) {
     try {
         const { id } = await context.params;
 
@@ -149,8 +142,7 @@ export async function DELETE(
 
         return NextResponse.json(
             {
-                message:
-                    "Terjadi kesalahan saat menghapus obat OTC.",
+                message: "Terjadi kesalahan saat menghapus obat OTC.",
             },
             { status: 500 }
         );

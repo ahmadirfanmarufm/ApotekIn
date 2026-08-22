@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Plus } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 import { Supplier } from "@/types/supplier";
 import { SupplierMetrics } from "@/components/supplier/supplier-metrics";
 import { SupplierCard } from "@/components/supplier/supplier-card";
@@ -20,6 +20,8 @@ export default function SupplierPage() {
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(
     null,
   );
+
+  const [isLoading, setIsLoading] = useState(true);
 
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -41,6 +43,8 @@ export default function SupplierPage() {
     const controller = new AbortController();
 
     const loadSuppliers = async () => {
+      setIsLoading(true);
+
       try {
         const params = new URLSearchParams();
         if (debouncedSearch) {
@@ -71,6 +75,10 @@ export default function SupplierPage() {
 
         console.error("Failed to fetch suppliers:", error);
         setSuppliers([]);
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
+        }
       }
     };
 
@@ -129,7 +137,44 @@ export default function SupplierPage() {
         onSuccess={refresh}
       />
 
-      {suppliers.length === 0 ? (
+      {isLoading ? (
+        <div className="flex items-center justify-center gap-2 text-sm text-slate-500">
+          <Loader2 className="h-4 w-4 animate-spin text-emerald-600" />
+          Memuat data supplier...
+        </div>
+      ) : null}
+
+      {isLoading ? (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <div
+              key={index}
+              className="flex h-64 animate-pulse flex-col justify-between space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs"
+            >
+              <div className="flex items-center gap-3">
+                <div className="h-14 w-14 shrink-0 rounded-xl bg-slate-200" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 w-3/4 rounded bg-slate-200" />
+                  <div className="h-3 w-1/2 rounded bg-slate-100" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                <div className="h-14 rounded-xl bg-slate-100" />
+                <div className="h-14 rounded-xl bg-slate-100" />
+                <div className="h-14 rounded-xl bg-slate-100" />
+              </div>
+
+              <div className="h-14 rounded-xl bg-slate-100" />
+
+              <div className="flex items-center gap-2 pt-1">
+                <div className="h-9 flex-1 rounded-md bg-slate-200" />
+                <div className="h-9 w-9 rounded-md bg-slate-200" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : suppliers.length === 0 ? (
         <EmptyState
           title={
             debouncedSearch

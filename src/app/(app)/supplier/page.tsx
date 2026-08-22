@@ -2,25 +2,25 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Plus } from "lucide-react";
 import { Supplier } from "@/types/supplier";
 import { SupplierMetrics } from "@/components/supplier/supplier-metrics";
 import { SupplierCard } from "@/components/supplier/supplier-card";
 import { SupplierDialog } from "@/components/supplier/supplier-dialog";
+import { SupplierSearch } from "@/components/supplier/supplier-search";
+
+const SEARCH_DEBOUNCE_MS = 300;
 
 export default function SupplierPage() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [searchInput, setSearchInput] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(
     null,
   );
 
-  /**
-   * Digunakan untuk memicu refetch setelah:
-   * - create
-   * - update
-   * - delete
-   */
   const [refreshKey, setRefreshKey] = useState(0);
 
   const refresh = useCallback(() => {
@@ -28,15 +28,34 @@ export default function SupplierPage() {
   }, []);
 
   useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setDebouncedSearch(searchInput.trim());
+    }, SEARCH_DEBOUNCE_MS);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [searchInput]);
+
+  useEffect(() => {
     const controller = new AbortController();
 
     const loadSuppliers = async () => {
       try {
-        const res = await fetch("/api/supplier", {
-          method: "GET",
-          cache: "no-store",
-          signal: controller.signal,
-        });
+        const params = new URLSearchParams();
+        if (debouncedSearch) {
+          params.set("search", debouncedSearch);
+        }
+
+        const query = params.toString();
+        const res = await fetch(
+          query ? `/api/supplier?${query}` : "/api/supplier",
+          {
+            method: "GET",
+            cache: "no-store",
+            signal: controller.signal,
+          },
+        );
 
         const json = await res.json();
 
@@ -60,7 +79,7 @@ export default function SupplierPage() {
     return () => {
       controller.abort();
     };
-  }, [refreshKey]);
+  }, [refreshKey, debouncedSearch]);
 
   const handleOpenAddDialog = () => {
     setSelectedSupplier(null);
@@ -101,6 +120,8 @@ export default function SupplierPage() {
         totalDeliveredCount={totalDelivered}
       />
 
+      <SupplierSearch value={searchInput} onChange={setSearchInput} />
+
       <SupplierDialog
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
@@ -108,18 +129,33 @@ export default function SupplierPage() {
         onSuccess={refresh}
       />
 
-      <div className="max-h-[calc(100vh-440px)] overflow-y-auto pr-2">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {suppliers.map((supplier) => (
-            <SupplierCard
-              key={supplier.id}
-              supplier={supplier}
-              onEdit={handleOpenEditDialog}
-              onRefresh={refresh}
-            />
-          ))}
+      {suppliers.length === 0 ? (
+        <EmptyState
+          title={
+            debouncedSearch
+              ? "Supplier tidak ditemukan"
+              : "Belum ada supplier"
+          }
+          description={
+            debouncedSearch
+              ? `Tidak ada supplier yang cocok dengan “${debouncedSearch}”.`
+              : "Tambahkan supplier untuk mulai mengelola pengadaan."
+          }
+        />
+      ) : (
+        <div className="max-h-[calc(100vh-440px)] overflow-y-auto pr-2">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {suppliers.map((supplier) => (
+              <SupplierCard
+                key={supplier.id}
+                supplier={supplier}
+                onEdit={handleOpenEditDialog}
+                onRefresh={refresh}
+              />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

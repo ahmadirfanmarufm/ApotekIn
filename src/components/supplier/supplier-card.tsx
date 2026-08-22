@@ -11,7 +11,6 @@ import {
   Trash2,
 } from "lucide-react";
 import { Supplier } from "@/types/supplier";
-import { deleteSupplier } from "@/app/(app)/supplier/_actions/supplier-actions";
 import { Dropdown, DropdownItem } from "@/components/ui/dropdown-menu";
 
 interface SupplierCardProps {
@@ -33,11 +32,14 @@ export function SupplierCard({
 
   const handleDelete = async () => {
     if (confirm(`Apakah Anda yakin ingin menghapus ${supplier.name}?`)) {
-      const res = await deleteSupplier(supplier.id);
-      if (res.success) {
+      const res = await fetch(`/api/supplier/${supplier.id}`, {
+        method: "DELETE",
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
         onRefresh();
       } else {
-        alert(res.error);
+        alert(json.message || "Gagal menghapus supplier.");
       }
     }
   };

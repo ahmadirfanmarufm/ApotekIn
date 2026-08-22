@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { Supplier } from "@/types/supplier";
-import { getSuppliers } from "./_actions/supplier-actions";
 import { SupplierMetrics } from "@/components/supplier/supplier-metrics";
 import { SupplierCard } from "@/components/supplier/supplier-card";
 import { SupplierDialog } from "@/components/supplier/supplier-dialog";
@@ -16,16 +15,52 @@ export default function SupplierPage() {
     null,
   );
 
-  const fetchSuppliers = useCallback(async () => {
-    const res = await getSuppliers();
-    if (res.success && res.data) {
-      setSuppliers(res.data);
-    }
+  /**
+   * Digunakan untuk memicu refetch setelah:
+   * - create
+   * - update
+   * - delete
+   */
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const refresh = useCallback(() => {
+    setRefreshKey((key) => key + 1);
   }, []);
 
   useEffect(() => {
-    fetchSuppliers();
-  }, [fetchSuppliers]);
+    const controller = new AbortController();
+
+    const loadSuppliers = async () => {
+      try {
+        const res = await fetch("/api/supplier", {
+          method: "GET",
+          cache: "no-store",
+          signal: controller.signal,
+        });
+
+        const json = await res.json();
+
+        if (!res.ok || !json.success) {
+          throw new Error(json.message ?? "Gagal mengambil data supplier.");
+        }
+
+        setSuppliers(json.data ?? []);
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
+        }
+
+        console.error("Failed to fetch suppliers:", error);
+        setSuppliers([]);
+      }
+    };
+
+    void loadSuppliers();
+
+    return () => {
+      controller.abort();
+    };
+  }, [refreshKey]);
 
   const handleOpenAddDialog = () => {
     setSelectedSupplier(null);
@@ -70,7 +105,7 @@ export default function SupplierPage() {
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
         supplierToEdit={selectedSupplier}
-        onSuccess={fetchSuppliers}
+        onSuccess={refresh}
       />
 
       <div className="max-h-[calc(100vh-440px)] overflow-y-auto pr-2">
@@ -80,7 +115,7 @@ export default function SupplierPage() {
               key={supplier.id}
               supplier={supplier}
               onEdit={handleOpenEditDialog}
-              onRefresh={fetchSuppliers}
+              onRefresh={refresh}
             />
           ))}
         </div>

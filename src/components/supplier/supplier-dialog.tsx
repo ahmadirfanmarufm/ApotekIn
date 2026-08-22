@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, ChangeEvent, FormEvent } from "react";
+import { useState, ChangeEvent, FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,10 +13,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Supplier, SupplierFormData } from "@/types/supplier";
-import {
-  createSupplier,
-  updateSupplier,
-} from "@/app/(app)/supplier/_actions/supplier-actions";
 
 interface SupplierDialogProps {
   open: boolean;
@@ -62,11 +58,14 @@ export function SupplierDialog({
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+
     if (open) {
       setFormData(mapSupplierToFormData(supplierToEdit));
     }
-  }, [open, supplierToEdit]);
+  }
 
   const handleOpenChange = (nextOpen: boolean) => {
     onOpenChange(nextOpen);
@@ -88,12 +87,19 @@ export function SupplierDialog({
     setIsSubmitting(true);
 
     try {
-      const res = supplierToEdit
-        ? await updateSupplier(supplierToEdit.id, formData)
-        : await createSupplier(formData);
+      const res = await fetch(
+        supplierToEdit ? `/api/supplier/${supplierToEdit.id}` : "/api/supplier",
+        {
+          method: supplierToEdit ? "PATCH" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        },
+      );
 
-      if (!res.success) {
-        alert(res.error);
+      const json = await res.json();
+
+      if (!res.ok || !json.success) {
+        alert(json.message || "Terjadi kesalahan saat menyimpan supplier.");
         return;
       }
 

@@ -7,8 +7,8 @@ import {
   Phone,
   Package,
   MoreVertical,
-  Pencil,
   Trash2,
+  Edit,
 } from "lucide-react";
 import { Supplier } from "@/types/supplier";
 import { Dropdown, DropdownItem } from "@/components/ui/dropdown-menu";
@@ -114,7 +114,7 @@ export function SupplierCard({
           }
         >
           <DropdownItem onClick={() => onEdit(supplier)}>
-            <Pencil className="h-3.5 w-3.5 text-slate-600" />
+            <Edit className="h-3.5 w-3.5 text-slate-600" />
             <span className="text-slate-700">Edit</span>
           </DropdownItem>
           <DropdownItem

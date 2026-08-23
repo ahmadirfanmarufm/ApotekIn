@@ -21,16 +21,16 @@ export function FinancialAnalysisSection({ onViewPL }: FinancialAnalysisSectionP
           <div className="flex items-center justify-between">
             <span className="text-sm font-semibold text-slate-600">Margin Kotor</span>
             <span className="text-lg font-bold text-emerald-600 font-manrope">
-              $42,850
+              Rp42.850.000
             </span>
           </div>
           <div className="flex items-center justify-between border-t border-slate-100 pt-3">
             <span className="text-sm font-medium text-slate-600">Biaya Pengadaan</span>
-            <span className="text-sm font-bold text-slate-900">$18,200</span>
+            <span className="text-sm font-bold text-slate-900">Rp18.200.000</span>
           </div>
           <div className="flex items-center justify-between border-t border-slate-100 pt-3">
             <span className="text-sm font-medium text-slate-600">Biaya Penyimpanan</span>
-            <span className="text-sm font-bold text-slate-900">$2,100</span>
+            <span className="text-sm font-bold text-slate-900">Rp2.100.000</span>
           </div>
         </div>
       </div>
@@ -43,7 +43,7 @@ export function FinancialAnalysisSection({ onViewPL }: FinancialAnalysisSectionP
             <span>Rekomendasi AI</span>
           </div>
           <p className="text-xs text-slate-700 leading-relaxed font-medium">
-            Mengalihkan anggaran sebesar $4.000 ke suplemen Vitamin C dapat
+            Mengalihkan anggaran sebesar Rp4.000.000 ke suplemen Vitamin C dapat
             menghasilkan peningkatan ROI sebesar 18% berdasarkan tren flu musiman.
           </p>
         </div>

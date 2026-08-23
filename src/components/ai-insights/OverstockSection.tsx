@@ -35,7 +35,6 @@ export function OverstockSection({
   return (
     <div className="flex h-full flex-col justify-between rounded-2xl border border-blue-100 bg-blue-50/20 p-6 shadow-sm">
       <div>
-        {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
             <Package className="h-5 w-5 text-blue-600" />
@@ -48,7 +47,6 @@ export function OverstockSection({
           </Badge>
         </div>
 
-        {/* Item List */}
         <div className="space-y-3 mb-6">
           {overstockItems.map((item) => (
             <div
@@ -91,11 +89,10 @@ export function OverstockSection({
         </div>
       </div>
 
-      {/* Footer Text */}
       <div className="border-t border-blue-100 pt-3 text-center">
         <p className="text-xs italic text-slate-500 font-medium">
           Estimasi pemulihan modal:{" "}
-          <span className="font-bold text-slate-700 font-manrope">$1.450,00</span>
+          <span className="font-bold text-slate-700 font-manrope">Rp1.450.000</span>
         </p>
       </div>
     </div>

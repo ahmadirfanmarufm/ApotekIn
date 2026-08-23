@@ -38,9 +38,9 @@ export default function AiInsightsPage() {
       title: "Analisis Keuangan Lanjutan (P&L)",
       html: `
         <div className="text-left text-sm space-y-2 py-2">
-          <p><strong>Margin Kotor:</strong> $42,850.00 (+14.2% YoY)</p>
-          <p><strong>Biaya Pengadaan:</strong> $18,200.00</p>
-          <p><strong>Biaya Penyimpanan:</strong> $2,100.00</p>
+          <p><strong>Margin Kotor:</strong> Rp42.850.000 (+14.2% YoY)</p>
+          <p><strong>Biaya Pengadaan:</strong> Rp18.200.000</p>
+          <p><strong>Biaya Penyimpanan:</strong> Rp2.100.000</p>
           <p><strong>Proyeksi ROI Efisiensi AI:</strong> +18% jika pengalihan anggaran suplemen disetujui.</p>
         </div>
       `,
@@ -142,7 +142,7 @@ export default function AiInsightsPage() {
   const handleReviewProposal = (supplierName: string) => {
     Swal.fire({
       title: `Proposal ${supplierName}`,
-      text: `Diskrip penawaran: Diskon khusus bahan cold-chain dan fasilitas potongan harga hingga $450/bulan.`,
+      text: `Diskrip penawaran: Diskon khusus bahan cold-chain dan fasilitas potongan harga hingga Rp450.000/bulan.`,
       icon: "info",
       confirmButtonText: "Terima Proposal",
       showCancelButton: true,

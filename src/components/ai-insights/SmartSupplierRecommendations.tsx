@@ -21,7 +21,7 @@ export function SmartSupplierRecommendations({
       rating: "4.9",
       tag: "Top Partner",
       description:
-        "Offering bulk rebate on cold-chain items. Switch now to save $450/month.",
+        "Offering bulk rebate on cold-chain items. Switch now to save Rp450.000/bulan.",
       actionText: "Tinjauan Proposal",
       actionHandler: onReviewProposal,
       icon: Truck,

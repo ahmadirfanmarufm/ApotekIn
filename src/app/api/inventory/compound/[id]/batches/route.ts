@@ -8,10 +8,7 @@ interface RouteContext {
     }>;
 }
 
-export async function POST(
-    request: Request,
-    context: RouteContext
-) {
+export async function POST(request: Request, context: RouteContext) {
     try {
         const { id } = await context.params;
 
@@ -34,18 +31,19 @@ export async function POST(
             );
         }
 
-        const item = await prisma.item.findFirst({
-            where: {
-                id,
-                category: ItemCategory.OBAT_OTC,
-                isActive: true,
-            },
-        });
+        const item =
+            await prisma.item.findFirst({
+                where: {
+                    id,
+                    category: ItemCategory.BAHAN_RACIKAN,
+                    isActive: true,
+                },
+            });
 
         if (!item) {
             return NextResponse.json(
                 {
-                    message: "Obat OTC tidak ditemukan.",
+                    message: "Bahan racikan tidak ditemukan.",
                 },
                 { status: 404 }
             );
@@ -72,41 +70,54 @@ export async function POST(
         if (Number(sellPrice) < Number(buyPrice)) {
             return NextResponse.json(
                 {
-                    message:
-                        "Harga jual tidak boleh lebih kecil dari harga beli.",
+                    message: "Harga jual tidak boleh lebih kecil dari harga beli.",
                 },
                 { status: 400 }
             );
         }
 
-        const existingBatch = await prisma.batch.findFirst({
-            where: {
-                itemId: id,
-                batchNumber: batchNumber.trim(),
-            },
-        });
+        const parsedExpiryDate = new Date(expiryDate);
+
+        if (Number.isNaN(parsedExpiryDate.getTime())) {
+            return NextResponse.json(
+                {
+                    message: "Tanggal kedaluwarsa tidak valid.",
+                },
+                { status: 400 }
+            );
+        }
+
+        const normalizedBatchNumber = batchNumber.trim().toUpperCase();
+
+        const existingBatch =
+            await prisma.batch.findFirst({
+                where: {
+                    itemId: id,
+                    batchNumber: normalizedBatchNumber,
+                },
+            });
 
         if (existingBatch) {
             return NextResponse.json(
                 {
-                    message:
-                        "Nomor batch tersebut sudah digunakan untuk obat ini.",
+                    message: "Nomor batch tersebut sudah digunakan untuk bahan ini.",
                 },
                 { status: 409 }
             );
         }
 
-        const batch = await prisma.batch.create({
-            data: {
-                itemId: id,
-                batchNumber: batchNumber.trim().toUpperCase(),
-                quantity: Number(quantity),
-                initialQuantity: Number(quantity),
-                expiryDate: new Date(expiryDate),
-                buyPrice: Number(buyPrice),
-                sellPrice: Number(sellPrice),
-            },
-        });
+        const batch =
+            await prisma.batch.create({
+                data: {
+                    itemId: id,
+                    batchNumber: normalizedBatchNumber,
+                    quantity: Number(quantity),
+                    initialQuantity: Number(quantity),
+                    expiryDate: parsedExpiryDate,
+                    buyPrice: Number(buyPrice),
+                    sellPrice: Number(sellPrice),
+                },
+            });
 
         return NextResponse.json(
             {
@@ -116,7 +127,7 @@ export async function POST(
             { status: 201 }
         );
     } catch (error) {
-        console.error("CREATE OTC BATCH ERROR:", error);
+        console.error("CREATE COMPOUND BATCH ERROR:", error);
 
         return NextResponse.json(
             {

@@ -1,9 +1,10 @@
 import { prisma } from "@/prisma/config";
 import { ItemCategory } from "@/prisma/config";
-import { OtcInventoryClient } from "@/components/inventory/OtcInventoryClient";
 import type { OtcInventoryItem } from "@/types/inventory";
+import type { CompoundInventoryItem } from "@/types/inventory";
+import { CompoundInventoryClient } from "@/components/inventory/CompoundInventoryClient";
 
-export default async function OtcInventoryPage() {
+export default async function CompoundInventoryPage() {
 
     const items = await prisma.item.findMany({
         where: {
@@ -18,11 +19,11 @@ export default async function OtcInventoryPage() {
             },
         },
         orderBy: {
-            createdAt: "desc",
+            name: "asc",
         },
     });
 
-    const serializedItems: OtcInventoryItem[] = items.map((item) => ({
+    const serializedItems: CompoundInventoryItem[] = items.map((item) => ({
         id: item.id,
         name: item.name,
         code: item.code,
@@ -44,7 +45,7 @@ export default async function OtcInventoryPage() {
     }));
 
     return (
-        <OtcInventoryClient
+        <CompoundInventoryClient
             items={serializedItems}
         />
     );

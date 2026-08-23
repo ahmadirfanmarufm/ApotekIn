@@ -1,13 +1,12 @@
 import { prisma } from "@/prisma/config";
 import { ItemCategory } from "@/prisma/config";
-import { OtcInventoryClient } from "@/components/inventory/OtcInventoryClient";
-import type { OtcInventoryItem } from "@/types/inventory";
+import type { NonMedicineInventoryItem } from "@/types/inventory";
+import { NonMedicineInventoryClient } from "@/components/inventory/NonMedicineClient";
 
-export default async function OtcInventoryPage() {
-
+export default async function NonMedicineInventoryPage() {
     const items = await prisma.item.findMany({
         where: {
-            category: ItemCategory.OBAT_OTC,
+            category: ItemCategory.NON_OBAT,
             isActive: true,
         },
         include: {
@@ -18,11 +17,11 @@ export default async function OtcInventoryPage() {
             },
         },
         orderBy: {
-            createdAt: "desc",
+            name: "asc",
         },
     });
 
-    const serializedItems: OtcInventoryItem[] = items.map((item) => ({
+    const serializedItems: NonMedicineInventoryItem[] = items.map((item) => ({
         id: item.id,
         name: item.name,
         code: item.code,
@@ -44,8 +43,6 @@ export default async function OtcInventoryPage() {
     }));
 
     return (
-        <OtcInventoryClient
-            items={serializedItems}
-        />
+        <NonMedicineInventoryClient items={serializedItems}/>
     );
 }

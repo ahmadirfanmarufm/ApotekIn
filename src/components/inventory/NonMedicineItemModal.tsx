@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { OtcBatchModal } from "./OtcBatchModal";
 import {
     Dialog,
     DialogContent,
@@ -15,9 +14,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { Plus, Trash2, Pencil, CalendarDays } from "lucide-react";
-import { OtcFormData } from "@/types/inventory";
+import { NonMedicineFormData } from "@/types/inventory";
+import { NonMedicineBatchModal } from "./NonMedicineBatchModal";
 
-const emptyForm: OtcFormData = {
+const emptyForm: NonMedicineFormData = {
     name: "",
     code: "",
     unit: "",
@@ -33,13 +33,13 @@ const emptyForm: OtcFormData = {
     sellPrice: "",
 };
 
-interface OtcItemModalProps {
+interface NonMedicineItemModalProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     item?: any | null;
 }
 
-export function OtcItemModal({ open, onOpenChange, item, }: OtcItemModalProps) {
+export function NonMedicineItemModal({ open, onOpenChange, item, }: NonMedicineItemModalProps) {
     const isEdit = Boolean(item);
 
     const router = useRouter();
@@ -47,7 +47,7 @@ export function OtcItemModal({ open, onOpenChange, item, }: OtcItemModalProps) {
     const [batchModalOpen, setBatchModalOpen] = useState(false);
     const [selectedBatch, setSelectedBatch] = useState<any | null>(null);
 
-    const [form, setForm] = useState<OtcFormData>(emptyForm);
+    const [form, setForm] = useState<NonMedicineFormData>(emptyForm);
 
     useEffect(() => {
         if (!open) return;
@@ -122,8 +122,8 @@ export function OtcItemModal({ open, onOpenChange, item, }: OtcItemModalProps) {
             }
 
             const url = isEdit
-                ? `/api/inventory/otc/${item.id}`
-                : `/api/inventory/otc`;
+                ? `/api/inventory/nonmedicine/${item.id}`
+                : `/api/inventory/nonmedicine`;
 
             const method = isEdit ? "PUT" : "POST";
 
@@ -165,7 +165,7 @@ export function OtcItemModal({ open, onOpenChange, item, }: OtcItemModalProps) {
             onOpenChange(false);
             router.refresh();
         } catch (error) {
-            console.error("OTC SUBMIT ERROR:", error);
+            console.error("NON MEDICINE SUBMIT ERROR:", error);
 
             alert(
                 error instanceof Error
@@ -175,7 +175,7 @@ export function OtcItemModal({ open, onOpenChange, item, }: OtcItemModalProps) {
         }
     };
 
-    const updateField = (field: keyof OtcFormData, value: string) => {
+    const updateField = (field: keyof NonMedicineFormData, value: string) => {
         setForm((previous) => ({
             ...previous,
             [field]: value,
@@ -203,7 +203,7 @@ export function OtcItemModal({ open, onOpenChange, item, }: OtcItemModalProps) {
 
         try {
             const response = await fetch(
-                `/api/inventory/otc/${item.id}/batches/${batchId}`,
+                `/api/inventory/nonmedicine/${item.id}/batches/${batchId}`,
                 {
                     method: "DELETE",
                 }
@@ -243,21 +243,18 @@ export function OtcItemModal({ open, onOpenChange, item, }: OtcItemModalProps) {
 
                 <DialogHeader className="border-b border-slate-100 px-6 py-5">
                     <DialogTitle className="font-manrope text-xl font-bold text-slate-900">
-                        {isEdit ? "Edit Obat OTC" : "Tambah Obat OTC"}
+                        {isEdit ? "Edit Non Obat" : "Tambah Non Obat"}
                     </DialogTitle>
 
                     <DialogDescription>
                         {isEdit
-                            ? "Perbarui informasi obat dan pengaturan stok."
-                            : "Tambahkan obat baru ke inventaris OTC."
+                            ? "Perbarui informasi item dan pengaturan stok."
+                            : "Tambahkan item baru ke inventaris non obat."
                         }
                     </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-6 px-6 py-6">
-
-                    {/* Informasi Obat */}
-
                     <div>
                         <h3 className="mb-4 font-semibold text-slate-900">
                             Informasi Obat
@@ -621,7 +618,7 @@ export function OtcItemModal({ open, onOpenChange, item, }: OtcItemModalProps) {
             </DialogContent>
 
             {isEdit && item && (
-                <OtcBatchModal
+                <NonMedicineBatchModal
                     open={batchModalOpen}
                     onOpenChange={setBatchModalOpen}
                     itemId={item.id}

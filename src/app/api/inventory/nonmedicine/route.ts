@@ -2,11 +2,11 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/prisma/config";
 import { ItemCategory } from "@/prisma/config";
 
-async function generateOtcCode() {
+async function generateNonMedicineCode() {
     const items = await prisma.item.findMany({
         where: {
             code: {
-                startsWith: "OBT-OTC-",
+                startsWith: "NON-OBT-",
             },
         },
         select: {
@@ -17,7 +17,7 @@ async function generateOtcCode() {
     let maxNumber = 0;
 
     for (const item of items) {
-        const match = item.code.match(/^OBT-OTC-(\d+)$/);
+        const match = item.code.match(/^NON-OBT-(\d+)$/);
 
         if (match) {
             const number = Number(match[1]);
@@ -30,7 +30,7 @@ async function generateOtcCode() {
 
     const nextNumber = maxNumber + 1;
 
-    return `OBT-OTC-${String(nextNumber).padStart(3, "0")}`;
+    return `NON-OBT-${String(nextNumber).padStart(3, "0")}`;
 }
 
 export async function POST(request: Request) {
@@ -122,13 +122,13 @@ export async function POST(request: Request) {
             }
         }
 
-        const code = await generateOtcCode();
+        const code = await generateNonMedicineCode();
 
         const item = await prisma.item.create({
             data: {
                 name: name.trim(),
                 code,
-                category: ItemCategory.OBAT_OTC,
+                category: ItemCategory.NON_OBAT,
                 unit: unit.trim(),
                 minStock: Number(minStock),
                 maxStock: Number(maxStock),
@@ -156,17 +156,17 @@ export async function POST(request: Request) {
 
         return NextResponse.json(
             {
-                message: "Obat OTC berhasil ditambahkan.",
+                message: "Non Obat berhasil ditambahkan.",
                 item,
             },
             { status: 201 }
         );
     } catch (error) {
-        console.error("CREATE OTC ERROR:", error);
+        console.error("CREATE NON MEDICINE ERROR:", error);
 
         return NextResponse.json(
             {
-                message: "Terjadi kesalahan saat menambahkan obat.",
+                message: "Terjadi kesalahan saat menambahkan non obat.",
             },
             { status: 500 }
         );

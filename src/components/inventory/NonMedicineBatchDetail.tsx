@@ -13,10 +13,10 @@ import {
     ShoppingCart,
     Truck,
 } from "lucide-react";
-import { OtcItemModal } from "./OtcItemModal";
 import { useState } from "react";
+import { NonMedicineItemModal } from "./NonMedicineItemModal";
 
-export type OtcBatchDetailItem = {
+export type NonMedicineBatchDetailItem = {
     id: string;
     name: string;
     code: string;
@@ -71,8 +71,8 @@ export type OtcBatchDetailItem = {
     }[];
 };
 
-interface OtcBatchDetailProps {
-    item: OtcBatchDetailItem;
+interface NonMedicineBatchDetailProps {
+    item: NonMedicineBatchDetailItem;
 }
 
 const formatDate = (date: string) => {
@@ -100,7 +100,7 @@ const getDaysRemaining = (date: string) => {
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
 };
 
-export function OtcBatchDetail({ item }: OtcBatchDetailProps) {
+export function NonMedicineBatchDetail({ item }: NonMedicineBatchDetailProps) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState<any | null>(null);
 
@@ -155,7 +155,7 @@ export function OtcBatchDetail({ item }: OtcBatchDetailProps) {
                 <div className="flex items-start gap-4">
 
                     <Link
-                        href="/inventory/otc"
+                        href="/inventory/nonmedicine"
                         className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-50 hover:text-slate-800"
                     >
                         <ArrowLeft size={18} />
@@ -179,7 +179,7 @@ export function OtcBatchDetail({ item }: OtcBatchDetailProps) {
                         </div>
 
                         <p className="mt-1 text-sm text-slate-400">
-                            {item.code} • Obat OTC
+                            {item.code} • Non Obat
                         </p>
                     </div>
                 </div>
@@ -197,7 +197,7 @@ export function OtcBatchDetail({ item }: OtcBatchDetailProps) {
                     <button
                         type="button"
                         onClick={() => handleEdit(item)}
-                        className="inline-flex items-center hover:cursor-pointer justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+                        className="inline-flex items-center justify-center hover:cursor-pointer gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
                     >
                         <Pencil size={16} />
                         Edit
@@ -820,7 +820,7 @@ export function OtcBatchDetail({ item }: OtcBatchDetailProps) {
 
             </div>
 
-            <OtcItemModal
+            <NonMedicineItemModal
                 open={isModalOpen}
                 onOpenChange={setIsModalOpen}
                 item={selectedItem}

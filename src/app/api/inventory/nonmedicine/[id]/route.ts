@@ -36,8 +36,7 @@ export async function PUT(request: Request, context: RouteContext) {
         if (Number(maxStock) <= Number(minStock)) {
             return NextResponse.json(
                 {
-                    message:
-                        "Stok maksimum harus lebih besar dari stok minimum.",
+                    message: "Stok maksimum harus lebih besar dari stok minimum.",
                 },
                 { status: 400 }
             );
@@ -46,14 +45,14 @@ export async function PUT(request: Request, context: RouteContext) {
         const item = await prisma.item.findFirst({
             where: {
                 id,
-                category: ItemCategory.OBAT_OTC,
+                category: ItemCategory.NON_OBAT,
             },
         });
 
         if (!item) {
             return NextResponse.json(
                 {
-                    message: "Obat OTC tidak ditemukan.",
+                    message: "Non Obat tidak ditemukan.",
                 },
                 { status: 404 }
             );
@@ -78,16 +77,16 @@ export async function PUT(request: Request, context: RouteContext) {
         });
 
         return NextResponse.json({
-            message: "Obat OTC berhasil diperbarui.",
+            message: "Non obat berhasil diperbarui.",
             item: updatedItem,
         });
     } catch (error) {
-        console.error("UPDATE OTC ERROR:", error);
+        console.error("UPDATE NON MEDICINE ERROR:", error);
 
         return NextResponse.json(
             {
                 message:
-                    "Terjadi kesalahan saat memperbarui obat.",
+                    "Terjadi kesalahan saat memperbarui non obat.",
             },
             { status: 500 }
         );
@@ -101,14 +100,14 @@ export async function DELETE(request: Request, context: RouteContext) {
         const item = await prisma.item.findFirst({
             where: {
                 id,
-                category: ItemCategory.OBAT_OTC,
+                category: ItemCategory.NON_OBAT,
             },
         });
 
         if (!item) {
             return NextResponse.json(
                 {
-                    message: "Obat OTC tidak ditemukan.",
+                    message: "Non Obat tidak ditemukan.",
                 },
                 { status: 404 }
             );
@@ -117,7 +116,7 @@ export async function DELETE(request: Request, context: RouteContext) {
         if (!item.isActive) {
             return NextResponse.json(
                 {
-                    message: "Obat OTC sudah tidak aktif.",
+                    message: "Non Obat sudah tidak aktif.",
                 },
                 { status: 400 }
             );
@@ -133,16 +132,16 @@ export async function DELETE(request: Request, context: RouteContext) {
         });
 
         return NextResponse.json({
-            message: "Obat OTC berhasil dihapus dari inventory aktif.",
+            message: "Non Obat berhasil dihapus dari inventory aktif.",
             item: deletedItem,
         });
 
     } catch (error) {
-        console.error("DELETE OTC ERROR:", error);
+        console.error("DELETE NON MEDICINE ERROR:", error);
 
         return NextResponse.json(
             {
-                message: "Terjadi kesalahan saat menghapus obat OTC.",
+                message: "Terjadi kesalahan saat menghapus non obat.",
             },
             { status: 500 }
         );

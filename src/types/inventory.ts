@@ -1,13 +1,3 @@
-export interface OtcBatch {
-    id: string;
-    batchNumber: string;
-    quantity: number;
-    initialQuantity: number;
-    expiryDate: string;
-    buyPrice: string;
-    sellPrice: string;
-}
-
 export interface OtcPurchaseOrder {
     id: string;
     poNumber: string;
@@ -62,4 +52,106 @@ export interface OtcInventoryItem {
     description: string | null;
 
     batches: OtcBatch[];
+}
+
+export interface OtcBatch {
+    id: string;
+    batchNumber: string;
+    quantity: number;
+    initialQuantity: number;
+    expiryDate: string;
+    buyPrice: string;
+    sellPrice: string;
+}
+
+export interface OtcFormData {
+    name: string;
+    code: string;
+    unit: string;
+    minStock: string;
+    maxStock: string;
+    description: string;
+    imageUrl: string;
+
+    batchNumber: string;
+    quantity: string;
+    expiryDate: string;
+    buyPrice: string;
+    sellPrice: string;
+}
+
+export interface CompoundInventoryItem {
+    id: string;
+    name: string;
+    code: string;
+    unit: string;
+    minStock: number;
+    maxStock: number;
+    description: string | null;
+
+    batches: CompoundBatch[];
+}
+
+export interface CompoundBatch {
+    id: string;
+    batchNumber: string;
+    quantity: number;
+    initialQuantity: number;
+    expiryDate: string;
+    buyPrice: string;
+    sellPrice: string;
+}
+
+export interface CompoundFormData {
+    name: string;
+    code: string;
+    unit: string;
+    minStock: string;
+    maxStock: string;
+    description: string;
+
+    batchNumber: string;
+    quantity: string;
+    expiryDate: string;
+    buyPrice: string;
+    sellPrice: string;
+}
+
+export interface NonMedicineInventoryItem {
+    id: string;
+    name: string;
+    code: string;
+    unit: string;
+    minStock: number;
+    maxStock: number;
+    imageUrl: string | null;
+    description: string | null;
+
+    batches: OtcBatch[];
+}
+
+export interface NonMedicineBatch {
+    id: string;
+    batchNumber: string;
+    quantity: number;
+    initialQuantity: number;
+    expiryDate: string;
+    buyPrice: string;
+    sellPrice: string;
+}
+
+export interface NonMedicineFormData {
+    name: string;
+    code: string;
+    unit: string;
+    minStock: string;
+    maxStock: string;
+    description: string;
+    imageUrl: string;
+
+    batchNumber: string;
+    quantity: string;
+    expiryDate: string;
+    buyPrice: string;
+    sellPrice: string;
 }

@@ -8,10 +8,7 @@ interface RouteContext {
     }>;
 }
 
-export async function POST(
-    request: Request,
-    context: RouteContext
-) {
+export async function POST(request: Request, context: RouteContext) {
     try {
         const { id } = await context.params;
 
@@ -37,7 +34,7 @@ export async function POST(
         const item = await prisma.item.findFirst({
             where: {
                 id,
-                category: ItemCategory.OBAT_OTC,
+                category: ItemCategory.NON_OBAT,
                 isActive: true,
             },
         });
@@ -45,7 +42,7 @@ export async function POST(
         if (!item) {
             return NextResponse.json(
                 {
-                    message: "Obat OTC tidak ditemukan.",
+                    message: "Non Obat tidak ditemukan.",
                 },
                 { status: 404 }
             );
@@ -116,7 +113,7 @@ export async function POST(
             { status: 201 }
         );
     } catch (error) {
-        console.error("CREATE OTC BATCH ERROR:", error);
+        console.error("CREATE NON MEDICINE BATCH ERROR:", error);
 
         return NextResponse.json(
             {

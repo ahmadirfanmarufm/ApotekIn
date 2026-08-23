@@ -3,32 +3,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ShoppingCart, Pencil, ChevronRight, Trash2 } from "lucide-react";
+import type { NonMedicineInventoryItem } from "@/types/inventory";
 
-type OtcInventoryItem = {
-    id: string;
-    name: string;
-    code: string;
-    unit: string;
-    minStock: number;
-    maxStock: number;
-    imageUrl: string | null;
-
-    batches: {
-        id: string;
-        batchNumber: string;
-        quantity: number;
-        initialQuantity: number;
-        expiryDate: string;
-    }[];
-};
-
-interface OtcInventoryCardProps {
-    item: OtcInventoryItem;
+interface NonMedicineInventoryCardProps {
+    item: NonMedicineInventoryItem;
     onEdit: () => void;
     onDelete: () => void;
 }
 
-export function OtcInventoryCard({item, onEdit, onDelete}: OtcInventoryCardProps) {
+export function NonMedicineInventoryCard({item, onEdit, onDelete}: NonMedicineInventoryCardProps) {
     const totalStock = item.batches.reduce(
         (total, batch) => total + batch.quantity,
         0
@@ -90,7 +73,7 @@ export function OtcInventoryCard({item, onEdit, onDelete}: OtcInventoryCardProps
                         <div className="mt-3 flex flex-wrap gap-2">
 
                             <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
-                                OTC
+                                NON OBAT
                             </span>
 
                         </div>
@@ -253,7 +236,7 @@ export function OtcInventoryCard({item, onEdit, onDelete}: OtcInventoryCardProps
                     </button>
 
                     <Link
-                        href={`/inventory/otc/${item.id}`}
+                        href={`/inventory/nonmedicine/${item.id}`}
                         className="ml-auto inline-flex items-center gap-1 text-sm font-semibold text-slate-500 hover:text-slate-800"
                     >
                         Batch Detail

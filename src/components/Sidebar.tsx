@@ -48,11 +48,11 @@ const navItems: NavItem[] = [
       },
       {
         label: "Resep",
-        href: "/inventory/prescription",
+        href: "/inventory/compound",
       },
       {
         label: "Non Obat",
-        href: "/inventory/non-medicine",
+        href: "/inventory/nonmedicine",
       },
       {
         label: "Stock Masuk",

@@ -4,16 +4,16 @@ import { useState } from "react";
 import { Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { OtcInventoryCard } from "./OtcInventoryCard";
-import { OtcItemModal } from "./OtcItemModal";
 import { ConfirmDeleteModal } from "./ConfirmDeleteModal";
-import type { OtcInventoryItem } from "@/types/inventory";
+import type { NonMedicineInventoryItem } from "@/types/inventory";
+import { NonMedicineItemModal } from "./NonMedicineItemModal";
+import { NonMedicineInventoryCard } from "./NonMedicineCard";
 
-interface OtcInventoryClientProps {
-    items: OtcInventoryItem[];
+interface NonMedicineInventoryClientProps {
+    items: NonMedicineInventoryItem[];
 }
 
-export function OtcInventoryClient({ items }: OtcInventoryClientProps) {
+export function NonMedicineInventoryClient({ items }: NonMedicineInventoryClientProps) {
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
@@ -32,7 +32,7 @@ export function OtcInventoryClient({ items }: OtcInventoryClientProps) {
         setIsModalOpen(true);
     };
 
-    const handleEdit = (item: OtcInventoryItem) => {
+    const handleEdit = (item: NonMedicineInventoryItem) => {
         setSelectedItemId(item.id);
         setIsModalOpen(true);
     };
@@ -53,7 +53,7 @@ export function OtcInventoryClient({ items }: OtcInventoryClientProps) {
             setError(null);
 
             const response = await fetch(
-                `/api/inventory/otc/${itemToDelete.id}`,
+                `/api/inventory/nonmedicine/${itemToDelete.id}`,
                 {
                     method: "DELETE",
                 }
@@ -64,7 +64,7 @@ export function OtcInventoryClient({ items }: OtcInventoryClientProps) {
             if (!response.ok) {
                 throw new Error(
                     data.message ||
-                    "Gagal menghapus obat OTC."
+                    "Gagal menghapus non obat."
                 );
             }
 
@@ -75,12 +75,12 @@ export function OtcInventoryClient({ items }: OtcInventoryClientProps) {
 
         } catch (error) {
 
-            console.error("DELETE OTC ERROR:", error);
+            console.error("DELETE NON MEDICINE ERROR:", error);
 
             setError(
                 error instanceof Error
                     ? error.message
-                    : "Terjadi kesalahan saat menghapus obat."
+                    : "Terjadi kesalahan saat menghapus non obat."
             );
 
         } finally {
@@ -95,7 +95,7 @@ export function OtcInventoryClient({ items }: OtcInventoryClientProps) {
 
                 <div>
                     <h1 className="font-manrope text-3xl font-bold text-slate-950">
-                        Obat OTC
+                        Non Obat
                     </h1>
 
                     <p className="mt-1 text-slate-500">
@@ -125,7 +125,7 @@ export function OtcInventoryClient({ items }: OtcInventoryClientProps) {
             <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
 
                 {items.map((item) => (
-                    <OtcInventoryCard
+                    <NonMedicineInventoryCard
                         key={item.id}
                         item={item}
                         onEdit={() => handleEdit(item)}
@@ -135,7 +135,7 @@ export function OtcInventoryClient({ items }: OtcInventoryClientProps) {
 
             </div>
 
-            <OtcItemModal
+            <NonMedicineItemModal
                 open={isModalOpen}
                 onOpenChange={setIsModalOpen}
                 item={selectedItem}

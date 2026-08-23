@@ -5,10 +5,11 @@ import bcrypt from "bcryptjs";
 import { UpdateUserSchema } from "@/lib/validations/user-management";
 import { Role } from "@/prisma/config";
 
-export async function PATCH(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+type RouteProps = {
+  params: Promise<{ id: string }>;
+};
+
+export async function PATCH(req: Request, { params }: RouteProps) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json(
@@ -18,7 +19,7 @@ export async function PATCH(
   }
 
   try {
-    const userId = params.id;
+    const { id: userId } = await params;
     const body = await req.json();
 
     const validatedFields = UpdateUserSchema.safeParse(body);
@@ -83,10 +84,7 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(req: Request, { params }: RouteProps) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json(
@@ -96,7 +94,7 @@ export async function DELETE(
   }
 
   try {
-    const userId = params.id;
+    const { id: userId } = await params;
 
     const existingUser = await prisma.user.findUnique({
       where: { id: userId },

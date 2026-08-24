@@ -33,6 +33,14 @@ body {
   font-family: var(--font-inter);
 }
 
+@layer base {
+  button:not(:disabled),
+  select:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
 @layer utilities {
   input[type="password"]::-ms-reveal,
   input[type="password"]::-ms-clear {

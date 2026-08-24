@@ -12,6 +12,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { IncomingStockModal } from "@/components/inventory/IncomingStockModal";
+import { StockReceiptDetailModal } from "@/components/inventory/StockReceiptDetailModal";
 import type { StockReceiptListItem } from "@/types/stock-receipt";
 
 const PAGE_SIZE = 10;
@@ -21,6 +22,12 @@ export default function IncomingStockPage() {
   const [receipts, setReceipts] = useState<StockReceiptListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [detailReceipt, setDetailReceipt] =
+    useState<StockReceiptListItem | null>(null);
+
+  // Filter state
+  const [periodFilter, setPeriodFilter] = useState("this-month");
+  const [supplierFilter, setSupplierFilter] = useState("all");
 
   const loadReceipts = useCallback(async () => {
     try {
@@ -46,8 +53,63 @@ export default function IncomingStockPage() {
     void loadReceipts();
   }, [loadReceipts]);
 
-  const totalTransactions = receipts.length;
-  const totalValue = receipts.reduce(
+  // Daftar supplier unik dari data untuk opsi select
+  const supplierOptions = React.useMemo(() => {
+    const map = new Map<string, string>();
+    for (const receipt of receipts) {
+      map.set(receipt.supplier.id, receipt.supplier.name);
+    }
+    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
+  }, [receipts]);
+
+  const isSameDay = (a: Date, b: Date) =>
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate();
+
+  const filteredReceipts = React.useMemo(() => {
+    const now = new Date();
+
+    return receipts.filter((receipt) => {
+      // Filter periode tanggal
+      if (periodFilter !== "all") {
+        const receivedDate = new Date(receipt.receivedAt);
+
+        switch (periodFilter) {
+          case "today":
+            if (!isSameDay(receivedDate, now)) return false;
+            break;
+          case "this-week": {
+            const startOfWeek = new Date(now);
+            startOfWeek.setDate(now.getDate() - now.getDay()); // Minggu sebagai awal minggu
+            startOfWeek.setHours(0, 0, 0, 0);
+            if (receivedDate < startOfWeek || receivedDate > now) return false;
+            break;
+          }
+          case "this-month":
+            if (
+              receivedDate.getMonth() !== now.getMonth() ||
+              receivedDate.getFullYear() !== now.getFullYear()
+            )
+              return false;
+            break;
+          case "this-year":
+            if (receivedDate.getFullYear() !== now.getFullYear()) return false;
+            break;
+        }
+      }
+
+      // Filter supplier
+      if (supplierFilter !== "all" && receipt.supplier.id !== supplierFilter) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [receipts, periodFilter, supplierFilter]);
+
+  const totalTransactions = filteredReceipts.length;
+  const totalValue = filteredReceipts.reduce(
     (acc, receipt) =>
       acc +
       receipt.items.reduce(
@@ -65,9 +127,12 @@ export default function IncomingStockPage() {
       year: "numeric",
     });
 
-  const totalPages = Math.max(1, Math.ceil(receipts.length / PAGE_SIZE));
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredReceipts.length / PAGE_SIZE),
+  );
   const safeCurrentPage = Math.min(currentPage, totalPages);
-  const paginatedReceipts = receipts.slice(
+  const paginatedReceipts = filteredReceipts.slice(
     (safeCurrentPage - 1) * PAGE_SIZE,
     safeCurrentPage * PAGE_SIZE,
   );
@@ -95,7 +160,7 @@ export default function IncomingStockPage() {
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-semibold flex items-center gap-2 hover:bg-emerald-600 transition-colors shadow-sm"
+          className="bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-semibold flex items-center gap-2 hover:bg-emerald-600 transition-colors shadow-sm cursor-pointer"
         >
           <Plus className="h-5 w-5" />
           Tambah Stok Masuk
@@ -135,11 +200,34 @@ export default function IncomingStockPage() {
             <Filter className="h-4 w-4" />
             Filter:
           </span>
-          <select className="border border-slate-200 rounded-lg px-4 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 min-w-37.5">
-            <option>Bulan Ini</option>
+          <select
+            value={periodFilter}
+            onChange={(e) => {
+              setPeriodFilter(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="border border-slate-200 rounded-lg px-4 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 min-w-37.5 cursor-pointer"
+          >
+            <option value="today">Hari Ini</option>
+            <option value="this-week">Minggu Ini</option>
+            <option value="this-month">Bulan Ini</option>
+            <option value="this-year">Tahun Ini</option>
+            <option value="all">Semua Periode</option>
           </select>
-          <select className="border border-slate-200 rounded-lg px-4 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 min-w-37.5">
-            <option>Pilih Supplier</option>
+          <select
+            value={supplierFilter}
+            onChange={(e) => {
+              setSupplierFilter(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="border border-slate-200 rounded-lg px-4 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 min-w-37.5 cursor-pointer"
+          >
+            <option value="all">Semua Supplier</option>
+            {supplierOptions.map((supplier) => (
+              <option key={supplier.id} value={supplier.id}>
+                {supplier.name}
+              </option>
+            ))}
           </select>
         </div>
         <div className="flex gap-2">
@@ -165,10 +253,12 @@ export default function IncomingStockPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {receipts.length === 0 && !isLoading && (
+            {filteredReceipts.length === 0 && !isLoading && (
               <tr>
                 <td colSpan={6} className="p-5 text-center text-slate-500">
-                  Tidak ada data stok masuk.
+                  {receipts.length === 0
+                    ? "Tidak ada data stok masuk."
+                    : "Tidak ada transaksi yang cocok dengan filter."}
                 </td>
               </tr>
             )}
@@ -200,7 +290,10 @@ export default function IncomingStockPage() {
                   +{row.items.reduce((acc, item) => acc + item.quantity, 0)}
                 </td>
                 <td className="px-5 py-3 text-center flex justify-center">
-                  <button className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-600 rounded-lg text-xs font-semibold hover:bg-emerald-100 transition-colors border border-emerald-200">
+                  <button
+                    onClick={() => setDetailReceipt(row)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-600 rounded-lg text-xs font-semibold hover:bg-emerald-100 transition-colors border cursor-pointer border-emerald-200"
+                  >
                     <Eye className="h-3.5 w-3.5" /> Detail
                   </button>
                 </td>
@@ -253,6 +346,12 @@ export default function IncomingStockPage() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSuccess={loadReceipts}
+      />
+
+      <StockReceiptDetailModal
+        isOpen={detailReceipt !== null}
+        receipt={detailReceipt}
+        onClose={() => setDetailReceipt(null)}
       />
     </div>
   );

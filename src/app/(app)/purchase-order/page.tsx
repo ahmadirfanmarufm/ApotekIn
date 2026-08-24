@@ -5,7 +5,6 @@ import {
   Plus,
   Filter,
   Search,
-  Printer,
   Eye,
   ChevronLeft,
   ChevronRight,
@@ -103,7 +102,6 @@ export default function PurchaseOrderPage() {
     void loadPurchaseOrders();
   }, [loadPurchaseOrders]);
 
-  // Reset ke halaman 1 saat filter berubah
   useEffect(() => {
     setCurrentPage(1);
   }, [statusFilter, searchInput]);
@@ -262,20 +260,12 @@ export default function PurchaseOrderPage() {
                       </span>
                     )}
                   </td>
-                  <td className="px-5 py-3 text-center flex justify-center">
+                  <td className="px-5 py-5 text-center flex justify-center">
                     <button
                       onClick={() => setDetailPoId(po.id)}
                       className="flex items-center gap-2 px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
                     >
-                      {po.status === "PENDING" || po.status === "PARTIAL" ? (
-                        <>
-                          <Printer className="h-4 w-4" /> Cetak SP
-                        </>
-                      ) : (
-                        <>
-                          <Eye className="h-4 w-4" /> Detail
-                        </>
-                      )}
+                      <Eye className="h-4 w-4" /> Detail
                     </button>
                   </td>
                 </tr>

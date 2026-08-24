@@ -8,8 +8,10 @@ import {
   FileText,
   Building2,
   CalendarDays,
+  Printer,
 } from "lucide-react";
 import type { PurchaseOrderDetail, POStatusUI } from "@/types/purchase-order";
+import { streamPurchaseOrderPDF } from "./streamSP";
 
 interface PODetailModalProps {
   isOpen: boolean;
@@ -34,7 +36,26 @@ const STATUS_BADGE_CLASS: Record<POStatusUI, string> = {
 export function PODetailModal({ isOpen, poId, onClose }: PODetailModalProps) {
   const [detail, setDetail] = useState<PurchaseOrderDetail | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const handlePrintSP = async () => {
+    if (!detail) return;
+
+    setIsPrinting(true);
+    try {
+      await streamPurchaseOrderPDF(detail);
+    } catch (err) {
+      console.error("Failed to generate SP PDF:", err);
+      setError(
+        err instanceof Error
+          ? `Gagal mencetak Surat Pesanan: ${err.message}`
+          : "Gagal mencetak Surat Pesanan.",
+      );
+    } finally {
+      setIsPrinting(false);
+    }
+  };
 
   useEffect(() => {
     if (!isOpen || !poId) return;
@@ -84,15 +105,6 @@ export function PODetailModal({ isOpen, poId, onClose }: PODetailModalProps) {
       month: "long",
       year: "numeric",
     });
-
-  const totalOrdered = detail?.items.reduce(
-    (acc, item) => acc + (Number(item.orderedQty) || 0),
-    0,
-  );
-  const totalReceived = detail?.items.reduce(
-    (acc, item) => acc + (Number(item.receivedQty) || 0),
-    0,
-  );
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
@@ -228,9 +240,9 @@ export function PODetailModal({ isOpen, poId, onClose }: PODetailModalProps) {
                               {formatCurrency(item.unitPrice)}
                             </td>
                             <td className="px-4 py-3 text-right font-bold text-slate-900 whitespace-nowrap">
-                              {
-                                formatCurrency(item.receivedQty * Number(item.unitPrice ?? 0))
-                              }
+                              {formatCurrency(
+                                item.receivedQty * Number(item.unitPrice ?? 0),
+                              )}
                             </td>
                           </tr>
                         ))
@@ -270,13 +282,30 @@ export function PODetailModal({ isOpen, poId, onClose }: PODetailModalProps) {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-slate-200 flex justify-end items-center gap-3 bg-white">
+        <div className="px-6 py-4 border-t border-slate-200 flex justify-between items-center gap-3 bg-white">
           <button
-            onClick={onClose}
-            className="px-6 py-2.5 border border-slate-300 text-slate-700 rounded-xl font-medium hover:bg-slate-50 transition-colors cursor-pointer"
+            onClick={handlePrintSP}
+            disabled={!detail || isPrinting}
+            className="flex items-center gap-2 px-5 py-2.5 bg-emerald-500 text-white rounded-xl font-semibold hover:bg-emerald-600 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
-            Tutup
+            {isPrinting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" /> Menyiapkan PDF...
+              </>
+            ) : (
+              <>
+                <Printer className="h-4 w-4" /> Cetak SP
+              </>
+            )}
           </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onClose}
+              className="px-6 py-2.5 border border-slate-300 text-slate-700 rounded-xl font-medium hover:bg-slate-50 transition-colors cursor-pointer"
+            >
+              Tutup
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -12,6 +12,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { POModal } from "@/components/purchase-order/POModal";
+import { PODetailModal } from "@/components/purchase-order/PODetailModal";
 import type { PurchaseOrderListItem } from "@/types/purchase-order";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -38,6 +39,7 @@ export default function PurchaseOrderPage() {
   const [statusFilter, setStatusFilter] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [detailPoId, setDetailPoId] = useState<string | null>(null);
 
   const loadPurchaseOrders = useCallback(async () => {
     try {
@@ -165,7 +167,7 @@ export default function PurchaseOrderPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="border border-slate-200 rounded-lg px-4 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 min-w-[150px]"
+            className="border border-slate-200 rounded-lg px-4 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 min-w-37.5"
           >
             <option value="">Semua Status</option>
             <option value="PENDING">Pending</option>
@@ -215,11 +217,11 @@ export default function PurchaseOrderPage() {
             )}
             {paginatedOrders.map((po) => {
               const totalOrdered = po.items.reduce(
-                (acc, item) => acc + item.quantity,
+                (acc, item) => acc + (Number(item.quantity) || 0),
                 0,
               );
               const totalReceived = po.items.reduce(
-                (acc, item) => acc + item.receivedQty,
+                (acc, item) => acc + (Number(item.receivedQty) || 0),
                 0,
               );
 
@@ -262,10 +264,8 @@ export default function PurchaseOrderPage() {
                   </td>
                   <td className="px-5 py-3 text-center flex justify-center">
                     <button
-                      onClick={() =>
-                        window.open(`/api/purchase-order/${po.id}`, "_blank")
-                      }
-                      className="flex items-center gap-2 px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+                      onClick={() => setDetailPoId(po.id)}
+                      className="flex items-center gap-2 px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
                     >
                       {po.status === "PENDING" || po.status === "PARTIAL" ? (
                         <>
@@ -333,6 +333,12 @@ export default function PurchaseOrderPage() {
         suppliers={suppliers}
         items={items}
         onSuccess={loadPurchaseOrders}
+      />
+
+      <PODetailModal
+        isOpen={detailPoId !== null}
+        poId={detailPoId}
+        onClose={() => setDetailPoId(null)}
       />
     </div>
   );

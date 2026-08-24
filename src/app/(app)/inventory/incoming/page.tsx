@@ -49,7 +49,12 @@ export default function IncomingStockPage() {
   const totalTransactions = receipts.length;
   const totalValue = receipts.reduce(
     (acc, receipt) =>
-      acc + receipt.items.reduce((itemAcc, item) => itemAcc + item.quantity, 0),
+      acc +
+      receipt.items.reduce(
+        (itemAcc, item) =>
+          itemAcc + Number(item.quantity) * Number(item.unitPrice ?? 0),
+        0,
+      ),
     0,
   );
 
@@ -130,10 +135,10 @@ export default function IncomingStockPage() {
             <Filter className="h-4 w-4" />
             Filter:
           </span>
-          <select className="border border-slate-200 rounded-lg px-4 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 min-w-[150px]">
+          <select className="border border-slate-200 rounded-lg px-4 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 min-w-37.5">
             <option>Bulan Ini</option>
           </select>
-          <select className="border border-slate-200 rounded-lg px-4 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 min-w-[150px]">
+          <select className="border border-slate-200 rounded-lg px-4 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 min-w-37.5">
             <option>Pilih Supplier</option>
           </select>
         </div>

@@ -49,8 +49,15 @@ function mapPoItemsToForms(
     }));
 }
 
-export function IncomingStockModal({
-  isOpen,
+export function IncomingStockModal(props: IncomingStockModalProps) {
+  if (!props.isOpen) return null;
+
+  // Render konten sebagai komponen terpisah agar state selalu fresh
+  // (ter-reset otomatis) setiap kali modal dibuka.
+  return <IncomingStockModalContent {...props} />;
+}
+
+function IncomingStockModalContent({
   onClose,
   onSuccess,
 }: IncomingStockModalProps) {
@@ -58,7 +65,9 @@ export function IncomingStockModal({
   const [selectedPoId, setSelectedPoId] = useState("");
   const [poDetail, setPoDetail] = useState<PurchaseOrderDetail | null>(null);
   const [invoiceNumber, setInvoiceNumber] = useState("");
-  const [receivedDate, setReceivedDate] = useState("");
+  const [receivedDate, setReceivedDate] = useState(
+    new Date().toISOString().split("T")[0],
+  );
   const [items, setItems] = useState<ReceiptItemForm[]>([]);
   const [nextKey, setNextKey] = useState(1);
 
@@ -68,16 +77,6 @@ export function IncomingStockModal({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isOpen) return;
-
-    setPoOptions([]);
-    setSelectedPoId("");
-    setPoDetail(null);
-    setInvoiceNumber("");
-    setReceivedDate(new Date().toISOString().split("T")[0]);
-    setItems([]);
-    setError(null);
-
     const loadReceivablePos = async () => {
       setIsLoadingPos(true);
 
@@ -121,22 +120,23 @@ export function IncomingStockModal({
     };
 
     void loadReceivablePos();
-  }, [isOpen]);
+  }, []);
 
   useEffect(() => {
-    if (!selectedPoId) {
-      setPoDetail(null);
-      setItems([]);
-      return;
-    }
-
-    setIsLoadingPo(true);
+    if (!selectedPoId) return;
 
     const loadPoDetail = async () => {
+      setIsLoadingPo(true);
+
       try {
-        const response = await fetch(`/api/purchase-order/${selectedPoId}`, {
-          cache: "no-store",
-        });
+        // Gunakan endpoint khusus penerimaan agar items memiliki
+        // remainingQty, suggestedBatchNumber & suggestedExpiryDate
+        const response = await fetch(
+          `/api/inventory/incoming/po/${selectedPoId}`,
+          {
+            cache: "no-store",
+          },
+        );
         const data = await response.json();
 
         if (!response.ok || !data.success) {
@@ -298,8 +298,6 @@ export function IncomingStockModal({
     );
   };
 
-  if (!isOpen) return null;
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
       <div className="bg-white rounded-2xl w-full max-w-5xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
@@ -324,9 +322,12 @@ export function IncomingStockModal({
               <select
                 value={selectedPoId}
                 onChange={(e) => setSelectedPoId(e.target.value)}
-                className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                disabled={isLoadingPos}
+                className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:bg-slate-50 disabled:text-slate-400"
               >
-                <option value="">-- Pilih PO --</option>
+                <option value="">
+                  {isLoadingPos ? "Memuat daftar PO..." : "-- Pilih PO --"}
+                </option>
                 {poOptions.map((po) => (
                   <option key={po.id} value={po.id}>
                     {po.poNumber} - {po.supplierName} ({po.status})
@@ -384,95 +385,116 @@ export function IncomingStockModal({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {items.map((item) => (
-                    <tr key={item.key} className="bg-white">
-                      <td className="p-4">
-                        <select
-                          value={item.purchaseOrderItemId}
-                          onChange={(e) =>
-                            handleItemFieldChange(
-                              item.key,
-                              "purchaseOrderItemId",
-                              e.target.value,
-                            )
-                          }
-                          className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                        >
-                          <option value="">Pilih Barang</option>
-                          {poDetail?.items
-                            .filter((i) => i.remainingQty > 0)
-                            .map((poItem) => (
-                              <option key={poItem.id} value={poItem.id}>
-                                {poItem.item.name} ({poItem.item.code}) - Sisa
-                                Qty: {poItem.remainingQty}
-                              </option>
-                            ))}
-                        </select>
+                  {isLoadingPo ? (
+                    <tr>
+                      <td colSpan={5} className="p-8 text-center">
+                        <span className="inline-flex items-center gap-2 text-sm text-slate-500">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Memuat barang dari PO...
+                        </span>
                       </td>
-                      <td className="p-4">
-                        <input
-                          type="text"
-                          value={item.batchNumber}
-                          onChange={(e) =>
-                            handleItemFieldChange(
-                              item.key,
-                              "batchNumber",
-                              e.target.value,
-                            )
-                          }
-                          placeholder="Contoh: PCL-0230-2222"
-                          className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                        />
+                    </tr>
+                  ) : items.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={5}
+                        className="p-8 text-center text-sm text-slate-400"
+                      >
+                        Pilih PO terlebih dahulu untuk menampilkan daftar
+                        barang.
                       </td>
-                      <td className="p-4">
-                        <input
-                          type="date"
-                          value={item.expiryDate}
-                          onChange={(e) =>
-                            handleItemFieldChange(
-                              item.key,
-                              "expiryDate",
-                              e.target.value,
-                            )
-                          }
-                          className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                        />
-                      </td>
-                      <td className="p-4">
-                        <div className="flex shadow-sm rounded-lg">
-                          <input
-                            type="number"
-                            min={1}
-                            max={item.remainingQty}
-                            value={item.quantity}
+                    </tr>
+                  ) : (
+                    items.map((item) => (
+                      <tr key={item.key} className="bg-white">
+                        <td className="p-4">
+                          <select
+                            value={item.purchaseOrderItemId}
                             onChange={(e) =>
                               handleItemFieldChange(
                                 item.key,
-                                "quantity",
+                                "purchaseOrderItemId",
                                 e.target.value,
                               )
                             }
-                            className="w-16 border border-slate-200 rounded-l-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 z-10"
+                            className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                          >
+                            <option value="">Pilih Barang</option>
+                            {poDetail?.items
+                              .filter((i) => i.remainingQty > 0)
+                              .map((poItem) => (
+                                <option key={poItem.id} value={poItem.id}>
+                                  {poItem.item.name} ({poItem.item.code}) - Sisa
+                                  Qty: {poItem.remainingQty}
+                                </option>
+                              ))}
+                          </select>
+                        </td>
+                        <td className="p-4">
+                          <input
+                            type="text"
+                            value={item.batchNumber}
+                            onChange={(e) =>
+                              handleItemFieldChange(
+                                item.key,
+                                "batchNumber",
+                                e.target.value,
+                              )
+                            }
+                            placeholder="Contoh: PCL-0230-2222"
+                            className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                           />
-                          <span className="bg-slate-50 border-y border-r border-slate-200 text-slate-500 text-sm px-3 py-2.5 rounded-r-lg">
-                            {item.unit}
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-slate-400 mt-1">
-                          Diterima: {item.receivedQty}/{item.orderedQty} · Sisa:{" "}
-                          {item.remainingQty}
-                        </p>
-                      </td>
-                      <td className="p-4 text-center">
-                        <button
-                          onClick={() => handleRemoveItem(item.key)}
-                          className="text-red-500 hover:text-red-600 transition-colors p-2 hover:bg-red-50 rounded-lg"
-                        >
-                          <Trash2 className="h-5 w-5" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="p-4">
+                          <input
+                            type="date"
+                            value={item.expiryDate}
+                            onChange={(e) =>
+                              handleItemFieldChange(
+                                item.key,
+                                "expiryDate",
+                                e.target.value,
+                              )
+                            }
+                            className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                          />
+                        </td>
+                        <td className="p-4">
+                          <div className="flex shadow-sm rounded-lg">
+                            <input
+                              type="number"
+                              min={1}
+                              max={item.remainingQty}
+                              value={item.quantity}
+                              onChange={(e) =>
+                                handleItemFieldChange(
+                                  item.key,
+                                  "quantity",
+                                  e.target.value,
+                                )
+                              }
+                              className="w-20 border border-slate-200 rounded-l-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 z-10"
+                            />
+                            <span className="bg-slate-50 border-y border-r border-slate-200 text-slate-500 text-sm px-3 py-2.5 rounded-r-lg whitespace-nowrap">
+                              {item.unit || "-"}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-400 mt-1">
+                            Diterima: {item.receivedQty}/{item.orderedQty} ·
+                            Sisa: {item.remainingQty}
+                          </p>
+                        </td>
+                        <td className="p-4 text-center">
+                          <button
+                            onClick={() => handleRemoveItem(item.key)}
+                            className="text-red-500 hover:text-red-600 transition-colors p-2 hover:bg-red-50 rounded-lg"
+                          >
+                            <Trash2 className="h-5 w-5" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -497,9 +519,11 @@ export function IncomingStockModal({
             className="px-6 py-2.5 bg-emerald-500 text-white rounded-xl font-medium hover:bg-emerald-600 transition-colors disabled:opacity-50"
           >
             {isSubmitting ? (
-              <Loader2 className="animate-spin h-5 w-5 mr-2" />
-            ) : null}
-            Simpan Stok Masuk
+              <span className="inline-flex items-center justify-center">
+                <Loader2 className="animate-spin h-5 w-5 mr-2" />
+                Menyimpan...
+              </span>
+            ) : <span>Simpan Stok Masuk</span>}
           </button>
         </div>
       </div>

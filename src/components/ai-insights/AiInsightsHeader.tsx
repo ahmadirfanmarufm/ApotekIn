@@ -16,7 +16,12 @@ export function AiInsightsHeader({
   const [selectedRange, setSelectedRange] = useState("7 Hari Terakhir");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const ranges = ["7 Hari Terakhir", "30 Hari Terakhir", "Bulan Ini", "Kuartal Ini"];
+  const ranges = [
+    "7 Hari Terakhir",
+    "30 Hari Terakhir",
+    "Bulan Ini",
+    "Kuartal Ini",
+  ];
 
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -24,13 +29,14 @@ export function AiInsightsHeader({
         <h1 className="text-2xl font-bold tracking-tight text-slate-900 font-manrope">
           Umum Apotek Cerdas
         </h1>
-        <p className="mt-1 text-sm text-slate-500">
-          Analisis waktu nyata dan optimalisasi prediktif untuk jaringan apotek Anda
+        <p className="mt-1 text-slate-500">
+          Analisis waktu nyata dan optimalisasi prediktif untuk jaringan apotek
+          Anda
         </p>
       </div>
 
       <div className="flex items-center gap-3">
-        {/* Date Range Filter */}
+        
         <div className="relative">
           <button
             type="button"
@@ -65,7 +71,7 @@ export function AiInsightsHeader({
           )}
         </div>
 
-        {/* Refresh Data Button */}
+        
         <Button
           onClick={onRefresh}
           disabled={isRefreshing}

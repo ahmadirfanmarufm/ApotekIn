@@ -224,7 +224,7 @@ async function main() {
       poNumber: "PO-202608-001",
       supplierId: supplierKimia.id,
       createdById: logistikUser.id,
-      status: POStatus.RECEIVED,
+      status: POStatus.COMPLETED,
       totalAmount: 380000,
       receivedAt: new Date(),
       notes: "Penerimaan barang rutin awal bulan.",

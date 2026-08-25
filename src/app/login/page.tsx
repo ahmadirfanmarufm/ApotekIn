@@ -124,7 +124,7 @@ export default function LoginPage() {
         <div className="absolute inset-0 bg-linear-to-t from-slate-900/40 via-slate-900/10 to-transparent" />
 
         <div className="relative z-10 max-w-md space-y-3">
-          <h2 className="text-2xl lg:text-3xl font-bold text-[#10b981] leading-tight">
+          <h2 className="text-2xl lg:text-2xl font-bold text-[#10b981] leading-tight">
             Meningkatkan Operasional Farmasi
           </h2>
           <p className="text-xs lg:text-sm text-slate-700 font-medium leading-relaxed drop-shadow-sm">

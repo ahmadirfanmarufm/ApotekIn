@@ -1,7 +1,13 @@
 "use client";
 
 import React from "react";
-import { TrendingDown, Star, Building2, Truck, ShieldCheck } from "lucide-react";
+import {
+  TrendingDown,
+  Star,
+  Building2,
+  Truck,
+  ShieldCheck,
+} from "lucide-react";
 
 interface SmartSupplierRecommendationsProps {
   onReviewProposal?: (supplierName: string) => void;
@@ -55,7 +61,6 @@ export function SmartSupplierRecommendations({
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h2 className="text-xl font-bold text-slate-900 font-manrope">
@@ -72,7 +77,6 @@ export function SmartSupplierRecommendations({
         </div>
       </div>
 
-      {/* 3 Supplier Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {suppliers.map((supplier) => {
           const IconComp = supplier.icon;
@@ -82,7 +86,6 @@ export function SmartSupplierRecommendations({
               className="flex flex-col justify-between rounded-xl border border-slate-200 bg-slate-50/40 p-5 transition-all hover:border-slate-300 hover:shadow-sm"
             >
               <div>
-                {/* Supplier Header Info */}
                 <div className="flex items-center gap-3 mb-3">
                   <div
                     className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl font-bold ${supplier.iconBg}`}
@@ -103,13 +106,11 @@ export function SmartSupplierRecommendations({
                   </div>
                 </div>
 
-                {/* Description */}
                 <p className="text-xs text-slate-600 leading-relaxed mb-5">
                   {supplier.description}
                 </p>
               </div>
 
-              {/* Action Button */}
               <button
                 type="button"
                 onClick={() => supplier.actionHandler?.(supplier.name)}

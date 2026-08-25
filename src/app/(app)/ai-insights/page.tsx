@@ -13,7 +13,6 @@ export default function AiInsightsPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState("4 menit yang lalu");
 
-  // Handle Refresh Data
   const handleRefresh = () => {
     setIsRefreshing(true);
     setTimeout(() => {
@@ -32,7 +31,6 @@ export default function AiInsightsPage() {
     }, 1200);
   };
 
-  // Handle View Full P&L
   const handleViewPL = () => {
     Swal.fire({
       title: "Analisis Keuangan Lanjutan (P&L)",
@@ -50,7 +48,6 @@ export default function AiInsightsPage() {
     });
   };
 
-  // Handle Reorder All Critical Items
   const handleReorderAllCritical = () => {
     Swal.fire({
       title: "Pesan Ulang 4 Item Kritis?",
@@ -72,7 +69,6 @@ export default function AiInsightsPage() {
     });
   };
 
-  // Handle Reorder Single Item
   const handleReorderItem = (itemName: string) => {
     Swal.fire({
       title: `Pesan Ulang ${itemName}?`,
@@ -94,7 +90,6 @@ export default function AiInsightsPage() {
     });
   };
 
-  // Handle Apply Discount
   const handleApplyDiscount = (itemName: string) => {
     Swal.fire({
       title: `Terapkan Diskon 15%?`,
@@ -116,7 +111,6 @@ export default function AiInsightsPage() {
     });
   };
 
-  // Handle Return to Supplier
   const handleReturnToSupplier = (itemName: string) => {
     Swal.fire({
       title: `Pengembalian ke Pemasok`,
@@ -138,7 +132,6 @@ export default function AiInsightsPage() {
     });
   };
 
-  // Supplier Actions
   const handleReviewProposal = (supplierName: string) => {
     Swal.fire({
       title: `Proposal ${supplierName}`,
@@ -184,13 +177,11 @@ export default function AiInsightsPage() {
 
   return (
     <div className="space-y-6 pb-8">
-      {/* Top Header */}
       <AiInsightsHeader
         onRefresh={handleRefresh}
         isRefreshing={isRefreshing}
       />
 
-      {/* Row 1: Inventory Health & Financial Analysis */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <InventoryHealthSection />
@@ -200,7 +191,6 @@ export default function AiInsightsPage() {
         </div>
       </div>
 
-      {/* Row 2: Critical Stock & Overstock Optimization */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <CriticalStockSection
           onReorderAll={handleReorderAllCritical}
@@ -212,14 +202,12 @@ export default function AiInsightsPage() {
         />
       </div>
 
-      {/* Row 3: Smart Supplier Recommendations */}
       <SmartSupplierRecommendations
         onReviewProposal={handleReviewProposal}
         onComparePrices={handleComparePrices}
         onIntegrateSupplier={handleIntegrateSupplier}
       />
 
-      {/* Footer Notice */}
       <div className="pt-2 text-center">
         <p className="text-xs text-slate-400 font-medium">
           Wawasan AI diperbarui {lastUpdated}. Algoritma v2.4.1 (disesuaikan untuk

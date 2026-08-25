@@ -42,7 +42,7 @@ export function SupplierMetrics({
             </div>
 
             <div className="mt-4">
-              <span className="text-3xl font-bold tracking-tight text-slate-950">
+              <span className="text-2xl font-bold tracking-tight text-slate-950">
                 {metric.value}
               </span>
             </div>

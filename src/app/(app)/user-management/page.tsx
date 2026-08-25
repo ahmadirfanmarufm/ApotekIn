@@ -5,7 +5,10 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmployeeStats } from "@/components/user-management/EmployeeStats";
 import { EmployeeFilterBar } from "@/components/user-management/EmployeeFilter";
-import { EmployeeTable, PAGE_SIZE } from "@/components/user-management/EmployeeTable";
+import {
+  EmployeeTable,
+  PAGE_SIZE,
+} from "@/components/user-management/EmployeeTable";
 import { EmployeeModal } from "@/components/user-management/EmployeeModal";
 import {
   Personnel,
@@ -57,8 +60,7 @@ export default function UserManagementPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<Personnel | null>(null);
 
-  const [formData, setFormData] =
-    useState<EmployeeFormData>(DEFAULT_FORM_DATA);
+  const [formData, setFormData] = useState<EmployeeFormData>(DEFAULT_FORM_DATA);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -253,7 +255,7 @@ export default function UserManagementPage() {
     <div className="relative space-y-6 font-inter text-slate-800">
       <div className="flex flex-row items-center justify-between">
         <div>
-          <h1 className="font-manrope text-3xl font-bold text-slate-950">
+          <h1 className="font-manrope text-2xl font-bold text-slate-950">
             Manajemen Karyawan
           </h1>
 

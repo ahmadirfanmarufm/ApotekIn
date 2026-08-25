@@ -108,7 +108,7 @@ export default function SupplierPage() {
     <div className="relative space-y-6 font-inter text-slate-800">
       <div className="flex flex-row items-center justify-between">
         <div>
-          <h1 className="font-manrope text-3xl font-bold text-slate-950">
+          <h1 className="font-manrope text-2xl font-bold text-slate-950">
             Manajemen Supplier
           </h1>
           <p className="mt-1 text-slate-500">Kelola supplier apotek</p>
@@ -177,9 +177,7 @@ export default function SupplierPage() {
       ) : suppliers.length === 0 ? (
         <EmptyState
           title={
-            debouncedSearch
-              ? "Supplier tidak ditemukan"
-              : "Belum ada supplier"
+            debouncedSearch ? "Supplier tidak ditemukan" : "Belum ada supplier"
           }
           description={
             debouncedSearch

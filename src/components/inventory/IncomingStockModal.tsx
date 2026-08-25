@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { X, Trash2, Plus, Loader2 } from "lucide-react";
 import type {
   PurchaseOrderDetail,
@@ -12,6 +12,9 @@ interface IncomingStockModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+
+  restockItemId?: string | null;
+  restockQuantity?: number | null;
 }
 
 interface ReceiptItemForm {
@@ -27,10 +30,7 @@ interface ReceiptItemForm {
   itemName: string;
 }
 
-function mapPoItemsToForms(
-  items: PurchaseOrderDetailItem[],
-  startKey: number,
-): ReceiptItemForm[] {
+function mapPoItemsToForms( items: PurchaseOrderDetailItem[], startKey: number ): ReceiptItemForm[] {
   return items
     .filter((item) => item.remainingQty > 0)
     .map((item, index) => ({
@@ -52,24 +52,21 @@ function mapPoItemsToForms(
 export function IncomingStockModal(props: IncomingStockModalProps) {
   if (!props.isOpen) return null;
 
-  // Render konten sebagai komponen terpisah agar state selalu fresh
-  // (ter-reset otomatis) setiap kali modal dibuka.
   return <IncomingStockModalContent {...props} />;
 }
 
-function IncomingStockModalContent({
-  onClose,
-  onSuccess,
-}: IncomingStockModalProps) {
+function IncomingStockModalContent({  onClose, onSuccess, restockItemId = null, restockQuantity = null }: IncomingStockModalProps) {
   const [poOptions, setPoOptions] = useState<ReceivablePoOption[]>([]);
   const [selectedPoId, setSelectedPoId] = useState("");
   const [poDetail, setPoDetail] = useState<PurchaseOrderDetail | null>(null);
   const [invoiceNumber, setInvoiceNumber] = useState("");
-  const [receivedDate, setReceivedDate] = useState(
-    new Date().toISOString().split("T")[0],
-  );
+  const [receivedDate, setReceivedDate] = useState(new Date().toISOString().split("T")[0]);
   const [items, setItems] = useState<ReceiptItemForm[]>([]);
   const [nextKey, setNextKey] = useState(1);
+
+  const isRestockMode = Boolean(restockItemId);
+  const normalizedRestockQuantity = Number(restockQuantity ?? 0);
+  const hasRestockRecommendation = normalizedRestockQuantity > 0;
 
   const [isLoadingPos, setIsLoadingPos] = useState(false);
   const [isLoadingPo, setIsLoadingPo] = useState(false);
@@ -77,22 +74,82 @@ function IncomingStockModalContent({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadReceivablePos = async () => {
+    const loadPurchaseOrders = async () => {
       setIsLoadingPos(true);
+      setError(null);
 
       try {
-        const response = await fetch("/api/purchase-order", {
-          cache: "no-store",
-        });
+        let response: Response;
+
+        if (isRestockMode && restockItemId) {
+          response = await fetch(
+            `/api/inventory/incoming/restock-options?itemId=${encodeURIComponent(
+              restockItemId,
+            )}`,
+            {
+              cache: "no-store",
+            },
+          );
+        } else {
+          response = await fetch(
+            "/api/purchase-order",
+            {
+              cache: "no-store",
+            },
+          );
+        }
+
         const data = await response.json();
 
         if (!response.ok || !data.success) {
-          throw new Error(data.message || "Gagal mengambil daftar PO.");
+          throw new Error(
+            data.message ||
+              "Gagal mengambil daftar Purchase Order.",
+          );
         }
 
-        const receivable = (data.data ?? []).filter(
+        if (
+          isRestockMode &&
+          restockItemId
+        ) {
+          const options = data.data ?? [];
+
+          setPoOptions(
+            options.map(
+              (po: {
+                id: string;
+                poNumber: string;
+                status: string;
+                supplier: {
+                  name: string;
+                };
+              }) => ({
+                id: po.id,
+                poNumber: po.poNumber,
+                status: po.status,
+                supplierName:
+                  po.supplier?.name ?? "-",
+              }),
+            ),
+          );
+
+          if (options.length > 0) {
+            setSelectedPoId(options[0].id);
+          } else {
+            setError(
+              "Tidak ada Purchase Order yang masih dapat digunakan untuk restock item ini.",
+            );
+          }
+
+          return;
+        }
+
+        const receivable = (
+          data.data ?? []
+        ).filter(
           (po: { status: string }) =>
-            po.status === "PENDING" || po.status === "PARTIAL",
+            po.status === "PENDING" ||
+            po.status === "PARTIAL",
         );
 
         setPoOptions(
@@ -101,64 +158,107 @@ function IncomingStockModalContent({
               id: string;
               poNumber: string;
               status: string;
-              supplier: { name: string };
+              supplier: {
+                name: string;
+              };
             }) => ({
               id: po.id,
               poNumber: po.poNumber,
               status: po.status,
-              supplierName: po.supplier?.name ?? "-",
+              supplierName:
+                po.supplier?.name ?? "-",
             }),
           ),
         );
-      } catch (err) {
+      } catch (error) {
         setError(
-          err instanceof Error ? err.message : "Gagal mengambil daftar PO.",
+          error instanceof Error
+            ? error.message
+            : "Gagal mengambil daftar Purchase Order.",
         );
       } finally {
         setIsLoadingPos(false);
       }
     };
 
-    void loadReceivablePos();
-  }, []);
+    void loadPurchaseOrders();
+  }, [
+    isRestockMode,
+    restockItemId,
+  ]);
 
   useEffect(() => {
     if (!selectedPoId) return;
 
     const loadPoDetail = async () => {
       setIsLoadingPo(true);
+      setError(null);
 
       try {
-        // Gunakan endpoint khusus penerimaan agar items memiliki
-        // remainingQty, suggestedBatchNumber & suggestedExpiryDate
         const response = await fetch(
           `/api/inventory/incoming/po/${selectedPoId}`,
           {
             cache: "no-store",
           },
         );
+
         const data = await response.json();
 
         if (!response.ok || !data.success) {
-          throw new Error(data.message || "Gagal mengambil detail PO.");
+          throw new Error(
+            data.message ||
+              "Gagal mengambil detail PO.",
+          );
         }
 
         setPoDetail(data.data);
 
-        const mappedItems = mapPoItemsToForms(data.data.items, 1);
+        let mappedItems =
+          mapPoItemsToForms(
+            data.data.items,
+            1,
+          );
+
+        if (isRestockMode && restockItemId) {
+          const requestedRestockQuantity = Number(restockQuantity ?? 0);
+
+          mappedItems = mappedItems.filter((item) => {
+            const poItem = data.data.items.find(
+              (poItem: {
+                id: string;
+                itemId: string;
+              }) => poItem.id === item.purchaseOrderItemId,
+            );
+
+            return poItem?.itemId === restockItemId;
+          });
+
+          mappedItems = mappedItems.map((item) => ({
+            ...item,
+            quantity:
+              requestedRestockQuantity > 0
+                ? String(
+                    Math.min(
+                      requestedRestockQuantity,
+                      item.remainingQty,
+                    ),
+                  )
+                : "",
+          }));
+        }
+
         setItems(mappedItems);
+
         setNextKey(mappedItems.length + 1);
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Gagal mengambil detail PO.",
-        );
+      } catch (error) {
+        setError(error instanceof Error ? error.message : "Gagal mengambil detail PO.");
       } finally {
         setIsLoadingPo(false);
       }
     };
 
     void loadPoDetail();
-  }, [selectedPoId]);
+  }, [selectedPoId, isRestockMode, restockItemId, restockQuantity]);
 
   const handleSave = async () => {
     setError(null);
@@ -204,13 +304,14 @@ function IncomingStockModalContent({
         body: JSON.stringify({
           purchaseOrderId: selectedPoId,
           invoiceNumber: invoiceNumber.trim() || undefined,
+          receivedAt: receivedDate,
           items: validItems.map((item) => ({
             purchaseOrderItemId: item.purchaseOrderItemId,
             quantity: Number(item.quantity),
             batchNumber: item.batchNumber.trim(),
             expiryDate: item.expiryDate,
           })),
-        }),
+        })
       });
 
       const data = await response.json();
@@ -235,29 +336,43 @@ function IncomingStockModalContent({
   const handleAddItem = () => {
     if (!poDetail) return;
 
-    const availableItems = poDetail.items.filter((i) => i.remainingQty > 0);
+    const usedPurchaseOrderItemIds = new Set(
+      items.map((item) => item.purchaseOrderItemId),
+    );
+
+    const availableItem = poDetail.items.find(
+      (item) =>
+        item.remainingQty > 0 &&
+        !usedPurchaseOrderItemIds.has(item.id),
+    );
+
+    if (!availableItem) {
+      setError("Semua barang yang masih tersedia sudah ditambahkan.");
+      return;
+    }
+
+    setError(null);
 
     setItems((prev) => [
       ...prev,
       {
         key: nextKey,
-        purchaseOrderItemId: availableItems[0]?.id ?? "",
-        batchNumber: availableItems[0]?.suggestedBatchNumber ?? "",
-        expiryDate: availableItems[0]?.suggestedExpiryDate
-          ? new Date(availableItems[0].suggestedExpiryDate)
+        purchaseOrderItemId: availableItem.id,
+        batchNumber: availableItem.suggestedBatchNumber ?? "",
+        expiryDate: availableItem.suggestedExpiryDate
+          ? new Date(availableItem.suggestedExpiryDate)
               .toISOString()
               .split("T")[0]
           : "",
-        quantity: String(availableItems[0]?.remainingQty ?? ""),
-        orderedQty: availableItems[0]?.orderedQty ?? 0,
-        receivedQty: availableItems[0]?.receivedQty ?? 0,
-        remainingQty: availableItems[0]?.remainingQty ?? 0,
-        unit: availableItems[0]?.item.unit ?? "",
-        itemName: availableItems[0]
-          ? `${availableItems[0].item.name} (${availableItems[0].item.code})`
-          : "",
+        quantity: String(availableItem.remainingQty),
+        orderedQty: availableItem.orderedQty,
+        receivedQty: availableItem.receivedQty,
+        remainingQty: availableItem.remainingQty,
+        unit: availableItem.item.unit,
+        itemName: `${availableItem.item.name} (${availableItem.item.code})`,
       },
     ]);
+
     setNextKey((prev) => prev + 1);
   };
 
@@ -314,6 +429,47 @@ function IncomingStockModalContent({
         </div>
 
         <div className="p-6 space-y-8 overflow-y-auto">
+          {isRestockMode && (
+            <div
+              className={
+                restockQuantity !== null &&
+                !Number.isNaN(restockQuantity) &&
+                restockQuantity > 0
+                  ? "rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3"
+                  : "rounded-xl border border-amber-200 bg-amber-50 px-4 py-3"
+              }
+            >
+              <p
+                className={
+                  restockQuantity !== null &&
+                  !Number.isNaN(restockQuantity) &&
+                  restockQuantity > 0
+                    ? "text-sm font-semibold text-emerald-700"
+                    : "text-sm font-semibold text-amber-700"
+                }
+              >
+                Mode Restock
+              </p>
+
+              {restockQuantity !== null &&
+              !Number.isNaN(restockQuantity) &&
+              restockQuantity > 0 ? (
+                <p className="mt-1 text-xs text-emerald-600">
+                  Sistem merekomendasikan penambahan stok sebanyak{" "}
+                  <strong>
+                    {restockQuantity.toLocaleString("id-ID")}
+                  </strong>{" "}
+                  unit.
+                </p>
+              ) : (
+                <p className="mt-1 text-xs text-amber-600">
+                  Sistem belum merekomendasikan penambahan stok
+                  untuk item ini. Rekomendasi saat ini adalah{" "}
+                  <strong>0 unit</strong>.
+                </p>
+              )}
+            </div>
+          )}
           <div className="grid grid-cols-3 gap-6 p-5 border border-slate-200 rounded-xl bg-white">
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-600">

@@ -13,6 +13,7 @@ import {
     AlertTriangle,
     Boxes,
 } from "lucide-react";
+import { useState } from "react";
 
 export type CompoundBatchDetailItem = {
     id: string;
@@ -71,7 +72,6 @@ export type CompoundBatchDetailItem = {
 
 interface CompoundBatchDetailProps {
     item: CompoundBatchDetailItem;
-    onEdit: () => void;
 }
 
 const formatDate = (date: string) => {
@@ -99,10 +99,15 @@ const getDaysRemaining = (date: string) => {
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
 };
 
-export function CompoundBatchDetail({
-    item,
-    onEdit,
-}: CompoundBatchDetailProps) {
+export function CompoundBatchDetail({ item }: CompoundBatchDetailProps) {
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedItem, setSelectedItem] = useState<any | null>(null);
+
+    const handleEdit = (item: any) => {
+        setSelectedItem(item);
+        setIsModalOpen(true);
+    };
+
     const totalStock = item.batches.reduce(
         (total, batch) => total + batch.quantity,
         0
@@ -110,14 +115,9 @@ export function CompoundBatchDetail({
 
     const critical = totalStock <= item.minStock;
 
-    const stockPercentage =
-        item.maxStock > 0
-            ? Math.min((totalStock / item.maxStock) * 100, 100)
-            : 0;
+    const stockPercentage = item.maxStock > 0 ? Math.min((totalStock / item.maxStock) * 100, 100) : 0;
 
-    const activeBatches = item.batches.filter(
-        (batch) => batch.quantity > 0
-    );
+    const activeBatches = item.batches.filter((batch) => batch.quantity > 0);
 
     const fefoBatch = activeBatches[0];
 
@@ -208,7 +208,7 @@ export function CompoundBatchDetail({
 
                     <button
                         type="button"
-                        onClick={onEdit}
+                        onClick={() => handleEdit(item)}
                         className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
                     >
                         <Pencil size={16} />

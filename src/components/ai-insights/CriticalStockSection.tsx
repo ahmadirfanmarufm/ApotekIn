@@ -31,7 +31,6 @@ export function CriticalStockSection({
   return (
     <div className="flex h-full flex-col justify-between rounded-2xl border border-red-100 bg-red-50/20 p-6 shadow-sm">
       <div>
-        {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-red-500" />
@@ -39,12 +38,14 @@ export function CriticalStockSection({
               Risiko Kehabisan Stok yang Kritis
             </h2>
           </div>
-          <Badge variant="danger" className="bg-red-500 text-white font-bold px-2.5 py-0.5 rounded-full text-xs">
+          <Badge
+            variant="danger"
+            className="bg-red-500 text-white font-bold px-2.5 py-0.5 rounded-full text-xs"
+          >
             4 Item
           </Badge>
         </div>
 
-        {/* Item List */}
         <div className="space-y-3 mb-6">
           {criticalItems.map((item) => (
             <div
@@ -78,7 +79,6 @@ export function CriticalStockSection({
         </div>
       </div>
 
-      {/* Reorder All Button */}
       <button
         type="button"
         onClick={onReorderAll}

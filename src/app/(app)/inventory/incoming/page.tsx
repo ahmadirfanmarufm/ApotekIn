@@ -25,7 +25,6 @@ export default function IncomingStockPage() {
   const [detailReceipt, setDetailReceipt] =
     useState<StockReceiptListItem | null>(null);
 
-  // Filter state
   const [periodFilter, setPeriodFilter] = useState("this-month");
   const [supplierFilter, setSupplierFilter] = useState("all");
 
@@ -53,7 +52,6 @@ export default function IncomingStockPage() {
     void loadReceipts();
   }, [loadReceipts]);
 
-  // Daftar supplier unik dari data untuk opsi select
   const supplierOptions = React.useMemo(() => {
     const map = new Map<string, string>();
     for (const receipt of receipts) {
@@ -71,7 +69,6 @@ export default function IncomingStockPage() {
     const now = new Date();
 
     return receipts.filter((receipt) => {
-      // Filter periode tanggal
       if (periodFilter !== "all") {
         const receivedDate = new Date(receipt.receivedAt);
 
@@ -81,7 +78,7 @@ export default function IncomingStockPage() {
             break;
           case "this-week": {
             const startOfWeek = new Date(now);
-            startOfWeek.setDate(now.getDate() - now.getDay()); // Minggu sebagai awal minggu
+            startOfWeek.setDate(now.getDate() - now.getDay());
             startOfWeek.setHours(0, 0, 0, 0);
             if (receivedDate < startOfWeek || receivedDate > now) return false;
             break;
@@ -99,7 +96,6 @@ export default function IncomingStockPage() {
         }
       }
 
-      // Filter supplier
       if (supplierFilter !== "all" && receipt.supplier.id !== supplierFilter) {
         return false;
       }
@@ -154,7 +150,7 @@ export default function IncomingStockPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Stok Masuk</h1>
-          <p className="text-slate-500 text-sm mt-1">
+          <p className="text-slate-500 mt-1">
             Pencatatan penerimaan obat & registrasi batch baru dari supplier.
           </p>
         </div>

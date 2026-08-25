@@ -114,7 +114,6 @@ export async function DELETE(
       );
     }
 
-    // Soft delete agar riwayat purchase order tetap utuh
     await prisma.supplier.update({
       where: { id },
       data: { isActive: false },

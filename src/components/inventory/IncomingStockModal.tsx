@@ -52,8 +52,6 @@ function mapPoItemsToForms(
 export function IncomingStockModal(props: IncomingStockModalProps) {
   if (!props.isOpen) return null;
 
-  // Render konten sebagai komponen terpisah agar state selalu fresh
-  // (ter-reset otomatis) setiap kali modal dibuka.
   return <IncomingStockModalContent {...props} />;
 }
 
@@ -129,8 +127,6 @@ function IncomingStockModalContent({
       setIsLoadingPo(true);
 
       try {
-        // Gunakan endpoint khusus penerimaan agar items memiliki
-        // remainingQty, suggestedBatchNumber & suggestedExpiryDate
         const response = await fetch(
           `/api/inventory/incoming/po/${selectedPoId}`,
           {

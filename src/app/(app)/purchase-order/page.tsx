@@ -143,7 +143,7 @@ export default function PurchaseOrderPage() {
           <h1 className="text-2xl font-bold text-slate-900">
             Purchase Order (PO)
           </h1>
-          <p className="text-slate-500 text-sm mt-1">
+          <p className="text-slate-500 mt-1">
             Kelola dan buat Surat Pesanan obat ke Supplier/PBF
           </p>
         </div>

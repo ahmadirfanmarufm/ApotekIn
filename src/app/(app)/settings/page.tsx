@@ -25,8 +25,12 @@ export default async function SettingsPage() {
   return (
     <div className="space-y-6 font-inter text-slate-800 relative">
       <div>
-        <h1 className="text-3xl font-bold font-manrope text-slate-950">Settings</h1>
-        <p className="text-slate-500 mt-1">Kelola identitas dan keamanan Anda.</p>
+        <h1 className="text-2xl font-bold font-manrope text-slate-950">
+          Settings
+        </h1>
+        <p className="text-slate-500 mt-1">
+          Kelola identitas dan keamanan Anda.
+        </p>
       </div>
       <div className="flex flex-col gap-6">
         <IdentityCard

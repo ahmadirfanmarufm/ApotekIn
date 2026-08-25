@@ -39,6 +39,15 @@ enum AuditStatus {
   CANCELLED
 }
 
+enum StockOutReason {
+  SALE
+  EXPIRED
+  DAMAGED
+  REFUND
+  RETURN_TO_SUPPLIER
+  OTHER
+}
+
 enum NotificationType {
   CRITICAL_STOCK
   EXPIRED_WARNING
@@ -221,17 +230,20 @@ model StockReceiptItem {
 }
 
 model StockOut {
-  id          String   @id @default(uuid())
-  referenceNo String   @unique
+  id          String         @id @default(uuid())
+  referenceNo String         @unique
   createdById String
-  totalAmount Decimal  @default(0) @db.Decimal(12, 2)
-  notes       String?  @db.Text
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  reason      StockOutReason @default(SALE)
+  totalAmount Decimal        @default(0) @db.Decimal(12, 2)
+  notes       String?        @db.Text
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 
   createdBy User           @relation("StockOut_CreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
   items     StockOutItem[]
 
+  @@index([reason])
+  @@index([createdAt])
   @@map("stock_outs")
 }
 

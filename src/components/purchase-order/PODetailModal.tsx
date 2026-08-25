@@ -109,7 +109,6 @@ export function PODetailModal({ isOpen, poId, onClose }: PODetailModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
       <div className="bg-white rounded-2xl w-full max-w-4xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
-        {/* Header */}
         <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-white">
           <div className="min-w-0">
             <h2 className="text-xl font-bold text-slate-900 truncate">
@@ -133,7 +132,6 @@ export function PODetailModal({ isOpen, poId, onClose }: PODetailModalProps) {
           </button>
         </div>
 
-        {/* Body */}
         <div className="p-6 space-y-6 overflow-y-auto">
           {isLoading ? (
             <div className="flex justify-center items-center gap-2 py-16 text-sm text-slate-500">
@@ -146,7 +144,6 @@ export function PODetailModal({ isOpen, poId, onClose }: PODetailModalProps) {
             </div>
           ) : detail ? (
             <>
-              {/* Info umum */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="border border-slate-200 rounded-xl p-4 space-y-1.5">
                   <p className="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
@@ -182,7 +179,6 @@ export function PODetailModal({ isOpen, poId, onClose }: PODetailModalProps) {
                 </div>
               </div>
 
-              {/* List item yang diorder */}
               <div>
                 <h3 className="font-bold text-slate-900 mb-3">
                   Daftar Barang Diorder ({detail.items.length} Item)
@@ -281,7 +277,6 @@ export function PODetailModal({ isOpen, poId, onClose }: PODetailModalProps) {
           ) : null}
         </div>
 
-        {/* Footer */}
         <div className="px-6 py-4 border-t border-slate-200 flex justify-between items-center gap-3 bg-white">
           <button
             onClick={handlePrintSP}

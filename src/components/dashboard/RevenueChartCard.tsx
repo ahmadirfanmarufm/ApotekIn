@@ -81,7 +81,6 @@ export function RevenueChartCard() {
         </div>
       </div>
 
-      {/* Summary totals */}
       <div className="flex gap-6 mb-4">
         <div>
           <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold">
@@ -101,7 +100,6 @@ export function RevenueChartCard() {
         </div>
       </div>
 
-      {/* Bar chart */}
       <div className="flex-1 flex items-end justify-between gap-1 pt-2 border-b border-slate-100 pb-2 relative">
         {buckets.length > 0 ? (
           buckets.map((bucket, idx) => {
@@ -116,7 +114,6 @@ export function RevenueChartCard() {
                 onMouseEnter={() => setHoveredIndex(idx)}
                 onMouseLeave={() => setHoveredIndex(null)}
               >
-                {/* Tooltip */}
                 {isHovered && (
                   <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap z-10 shadow-lg pointer-events-none">
                     <p className="font-bold">{bucket.label}</p>
@@ -142,7 +139,6 @@ export function RevenueChartCard() {
         )}
       </div>
 
-      {/* X-axis labels */}
       <div className="flex justify-between text-xs text-slate-400 font-medium pt-2">
         {buckets
           .filter(

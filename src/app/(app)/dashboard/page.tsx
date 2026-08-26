@@ -38,7 +38,6 @@ export default function DashboardPage() {
       </div>
 
       <div className="flex flex-col gap-6">
-        {/* Row 1: Health + AI Summary + Quick Actions */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-stretch">
           <InventoryHealthCard />
           <div className="lg:col-span-2">
@@ -47,16 +46,14 @@ export default function DashboardPage() {
           <QuickActionsCard />
         </div>
 
-        {/* Row 2: Revenue Chart + Priorities */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
           <RevenueChartCard />
           <PrioritiesList />
         </div>
 
-        {/* Row 3: Bottom widgets */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
-          <StockAlertsCard />
+        <div className="grid grid-cols-1 md:grid-cols-2 min-[1300px]:grid-cols-3 2xl:grid-cols-4 gap-6 items-stretch">
           <TopUsageCard />
+          <StockAlertsCard />
           <ActiveSuppliersCard />
           <RecentActivityCard />
         </div>

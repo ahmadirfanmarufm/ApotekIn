@@ -1,14 +1,23 @@
+import { notFound } from "next/navigation";
 import { prisma } from "@/prisma/config";
 import { ItemCategory } from "@/prisma/config";
-import type { OtcInventoryItem } from "@/types/inventory";
-import type { CompoundInventoryItem } from "@/types/inventory";
-import { CompoundInventoryClient } from "@/components/inventory/CompoundInventoryClient";
+import { CompoundBatchDetail } from "@/components/inventory/CompoundBatchDetail";
 
-export default async function CompoundInventoryPage() {
+interface CompoundBatchDetailPageProps {
+    params: Promise<{
+        id: string;
+    }>;
+}
 
-    const items = await prisma.item.findMany({
+export default async function CompoundBatchDetailPage({
+    params,
+}: CompoundBatchDetailPageProps) {
+    const { id } = await params;
+
+    const item = await prisma.item.findFirst({
         where: {
-            category: ItemCategory.OBAT_OTC,
+            id,
+            category: ItemCategory.BAHAN_RACIKAN,
             isActive: true,
         },
         include: {
@@ -16,21 +25,55 @@ export default async function CompoundInventoryPage() {
                 orderBy: {
                     expiryDate: "asc",
                 },
+                include: {
+                    stockOutItems: {
+                        orderBy: {
+                            createdAt: "desc",
+                        },
+                        include: {
+                            stockOut: {
+                                select: {
+                                    referenceNo: true,
+                                    createdAt: true,
+                                },
+                            },
+                        },
+                    },
+                },
             },
-        },
-        orderBy: {
-            name: "asc",
+
+            purchaseOrderItems: {
+                orderBy: {
+                    createdAt: "desc",
+                },
+                include: {
+                    purchaseOrder: {
+                        include: {
+                            supplier: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    code: true,
+                                },
+                            },
+                        },
+                    },
+                },
+            },
         },
     });
 
-    const serializedItems: CompoundInventoryItem[] = items.map((item) => ({
+    if (!item) {
+        notFound();
+    }
+
+    const serializedItem = {
         id: item.id,
         name: item.name,
         code: item.code,
         unit: item.unit,
         minStock: item.minStock,
         maxStock: item.maxStock,
-        imageUrl: item.imageUrl,
         description: item.description,
 
         batches: item.batches.map((batch) => ({
@@ -39,14 +82,57 @@ export default async function CompoundInventoryPage() {
             quantity: batch.quantity,
             initialQuantity: batch.initialQuantity,
             expiryDate: batch.expiryDate.toISOString(),
-            buyPrice: batch.buyPrice.toString(),
-            sellPrice: batch.sellPrice.toString(),
+            buyPrice: Number(batch.buyPrice),
+            sellPrice: Number(batch.sellPrice),
+
+            stockOutItems: batch.stockOutItems.map((transaction) => ({
+                id: transaction.id,
+                quantity: transaction.quantity,
+                unitPrice: Number(transaction.unitPrice),
+                createdAt: transaction.createdAt.toISOString(),
+
+                stockOut: {
+                    referenceNo:
+                        transaction.stockOut.referenceNo,
+                    createdAt:
+                        transaction.stockOut.createdAt.toISOString(),
+                },
+            })),
         })),
-    }));
+
+        purchaseOrderItems: item.purchaseOrderItems.map((po) => ({
+            id: po.id,
+            batchNumber: po.batchNumber ?? "-",
+            quantity: po.quantity,
+
+            expiryDate: po.expiryDate
+                ? po.expiryDate.toISOString()
+                : "",
+
+            unitPrice: Number(po.unitPrice),
+            createdAt: po.createdAt.toISOString(),
+
+            purchaseOrder: {
+                id: po.purchaseOrder.id,
+                poNumber: po.purchaseOrder.poNumber,
+                status: po.purchaseOrder.status,
+                receivedAt:
+                    po.purchaseOrder.receivedAt?.toISOString() ?? null,
+                createdAt:
+                    po.purchaseOrder.createdAt.toISOString(),
+
+                supplier: {
+                    id: po.purchaseOrder.supplier.id,
+                    name: po.purchaseOrder.supplier.name,
+                    code: po.purchaseOrder.supplier.code,
+                },
+            },
+        })),
+    };
 
     return (
-        <CompoundInventoryClient
-            items={serializedItems}
+        <CompoundBatchDetail
+            item={serializedItem}
         />
     );
 }

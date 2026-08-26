@@ -2,7 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ShoppingCart, Pencil, ChevronRight, Trash2 } from "lucide-react";
+import {
+  ShoppingCart,
+  Pencil,
+  ChevronRight,
+  Trash2,
+} from "lucide-react";
 
 type OtcInventoryItem = {
   id: string;
@@ -12,7 +17,6 @@ type OtcInventoryItem = {
   minStock: number;
   maxStock: number;
   imageUrl: string | null;
-
   batches: {
     id: string;
     batchNumber: string;
@@ -28,23 +32,20 @@ interface OtcInventoryCardProps {
   onDelete: () => void;
 }
 
-export function OtcInventoryCard({
-  item,
-  onEdit,
-  onDelete,
-}: OtcInventoryCardProps) {
-  const totalStock = item.batches.reduce(
-    (total, batch) => total + batch.quantity,
-    0,
-  );
+export function OtcInventoryCard({ item, onEdit, onDelete }: OtcInventoryCardProps) {
+  const totalStock = item.batches.reduce((total, batch) => total + batch.quantity, 0);
 
   const isCritical = totalStock <= item.minStock;
 
-  const percentage = Math.min((totalStock / item.maxStock) * 100, 100);
+  const restockQuantity = Math.max(item.maxStock - totalStock, 0);
+
+  const percentage = item.maxStock > 0 ? Math.min((totalStock / item.maxStock) * 100, 100) : 0;
 
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
       <div className="p-5 sm:p-6">
+
+        {/* Header */}
         <div className="flex items-start gap-4">
           <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-slate-100 bg-slate-50">
             {item.imageUrl ? (
@@ -68,7 +69,9 @@ export function OtcInventoryCard({
                   {item.name}
                 </h2>
 
-                <p className="mt-1 text-sm text-slate-400">{item.code}</p>
+                <p className="mt-1 text-sm text-slate-400">
+                  {item.code}
+                </p>
               </div>
 
               <span
@@ -90,9 +93,12 @@ export function OtcInventoryCard({
           </div>
         </div>
 
+        {/* Stock */}
         <div className="mt-6">
           <div className="mb-2 flex items-center justify-between">
-            <span className="text-sm text-slate-400">Stok saat ini</span>
+            <span className="text-sm text-slate-400">
+              Stok saat ini
+            </span>
 
             <span className="font-bold text-slate-800">
               {totalStock.toLocaleString("id-ID")} {item.unit}
@@ -102,7 +108,9 @@ export function OtcInventoryCard({
           <div className="h-2 overflow-hidden rounded-full bg-slate-100">
             <div
               className={`h-full rounded-full ${
-                isCritical ? "bg-red-500" : "bg-emerald-500"
+                isCritical
+                  ? "bg-red-500"
+                  : "bg-emerald-500"
               }`}
               style={{
                 width: `${percentage}%`,
@@ -111,6 +119,7 @@ export function OtcInventoryCard({
           </div>
         </div>
 
+        {/* Batch */}
         <div className="mt-6">
           <div className="mb-3 flex items-center justify-between">
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400">
@@ -132,9 +141,12 @@ export function OtcInventoryCard({
               const expiry = new Date(batch.expiryDate);
               const today = new Date();
 
-              const diff = expiry.getTime() - today.getTime();
+              const diff =
+                expiry.getTime() - today.getTime();
 
-              const daysRemaining = Math.ceil(diff / (1000 * 60 * 60 * 24));
+              const daysRemaining = Math.ceil(
+                diff / (1000 * 60 * 60 * 24),
+              );
 
               const nearExpiry = daysRemaining <= 90;
 
@@ -153,7 +165,8 @@ export function OtcInventoryCard({
                     </div>
 
                     <span className="text-sm font-semibold text-slate-700">
-                      {batch.quantity.toLocaleString("id-ID")} {item.unit}
+                      {batch.quantity.toLocaleString("id-ID")}{" "}
+                      {item.unit}
                     </span>
                   </div>
 
@@ -161,7 +174,10 @@ export function OtcInventoryCard({
                     <div
                       className="h-full rounded-full bg-emerald-500"
                       style={{
-                        width: `${Math.min(batchPercentage, 100)}%`,
+                        width: `${Math.min(
+                          batchPercentage,
+                          100,
+                        )}%`,
                       }}
                     />
                   </div>
@@ -194,36 +210,46 @@ export function OtcInventoryCard({
           </div>
         </div>
 
+        {/* Footer */}
         <div className="mt-5 flex flex-wrap items-center gap-2">
+
+          {/* RESTOCK */}
           <Link
-            href={`/inventory/stok-masuk?itemId=${item.id}&quantity=${Math.max(
-              item.maxStock - totalStock,
-              0,
-            )}&mode=restock`}
+            href={{
+              pathname: "/inventory/incoming",
+              query: {
+                itemId: item.id,
+                quantity: restockQuantity,
+                mode: "restock",
+              },
+            }}
             className="inline-flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-600 transition hover:bg-emerald-100"
           >
             <ShoppingCart size={16} />
             Restock
           </Link>
 
+          {/* EDIT */}
           <button
             type="button"
             onClick={onEdit}
-            className="inline-flex items-center hover:cursor-pointer gap-2 rounded-xl bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
+            className="inline-flex items-center gap-2 rounded-xl bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
           >
             <Pencil size={15} />
             Edit
           </button>
 
+          {/* DELETE */}
           <button
             type="button"
             onClick={onDelete}
-            className="inline-flex items-center hover:cursor-pointer gap-2 rounded-xl border-red-100 bg-red-50 px-4 py-2.5 text-sm font-medium text-red-500 transition hover:bg-red-100"
+            className="inline-flex items-center gap-2 rounded-xl bg-red-50 px-4 py-2.5 text-sm font-medium text-red-500 transition hover:bg-red-100"
           >
             <Trash2 size={15} />
             Hapus
           </button>
 
+          {/* DETAIL */}
           <Link
             href={`/inventory/otc/${item.id}`}
             className="ml-auto inline-flex items-center gap-1 text-sm font-semibold text-slate-500 hover:text-slate-800"

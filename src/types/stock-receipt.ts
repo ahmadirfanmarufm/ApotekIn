@@ -17,6 +17,12 @@ export interface StockReceiptListItem {
     id: string;
     quantity: number;
     unitPrice: number | string;
+    item: {
+      id: string;
+      code: string;
+      name: string;
+      unit: string;
+    };
   }>;
 }
 

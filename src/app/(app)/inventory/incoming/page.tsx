@@ -23,6 +23,7 @@ import {
 } from "next/navigation";
 
 import { IncomingStockModal } from "@/components/inventory/IncomingStockModal";
+import { StockReceiptDetailModal } from "@/components/inventory/StockReceiptDetailModal";
 import type { StockReceiptListItem } from "@/types/stock-receipt";
 
 const PAGE_SIZE = 10;
@@ -35,6 +36,11 @@ export default function IncomingStockPage() {
   const [receipts, setReceipts] = useState<StockReceiptListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [detailReceipt, setDetailReceipt] =
+    useState<StockReceiptListItem | null>(null);
+
+  const [periodFilter, setPeriodFilter] = useState("this-month");
+  const [supplierFilter, setSupplierFilter] = useState("all");
 
   const itemId = searchParams.get("itemId");
   const quantityParam = searchParams.get("quantity");
@@ -43,12 +49,6 @@ export default function IncomingStockPage() {
   const restockQuantity = quantityParam ? Number(quantityParam) : null;
 
   const isRestockMode = mode === "restock" && Boolean(itemId);
-
-  /*
-   * ============================================================
-   * LOAD STOCK RECEIPTS
-   * ============================================================
-   */
 
   const loadReceipts = useCallback(async () => {
     try {

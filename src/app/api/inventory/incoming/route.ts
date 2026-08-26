@@ -53,6 +53,14 @@ export async function GET(req: Request) {
             id: true,
             quantity: true,
             unitPrice: true,
+            item: {
+              select: {
+                id: true,
+                code: true,
+                name: true,
+                unit: true,
+              },
+            },
           },
         },
       },

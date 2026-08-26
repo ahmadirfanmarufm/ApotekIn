@@ -55,11 +55,11 @@ const navItems: NavItem[] = [
         href: "/inventory/nonmedicine",
       },
       {
-        label: "Stock Masuk",
+        label: "Stok Masuk",
         href: "/inventory/incoming",
       },
       {
-        label: "Stock Keluar",
+        label: "Stok Keluar",
         href: "/inventory/outgoing",
       },
     ],

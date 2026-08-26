@@ -10,6 +10,12 @@ import { ActiveSuppliersCard } from "@/components/dashboard/ActiveSuppliersCard"
 import { RecentActivityCard } from "@/components/dashboard/RecentActivityCard";
 
 export default function DashboardPage() {
+  const today = new Date().toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+
   return (
     <div className="space-y-6 font-inter text-slate-800 pb-12">
       <div className="flex justify-between items-start mb-4">
@@ -18,18 +24,15 @@ export default function DashboardPage() {
             Dasbor Apotek
           </h1>
           <p className="text-slate-500 mt-1">
-            Kondisi terkini inventaris dan logistik Anda di seluruh cabang.
+            Kondisi terkini inventaris dan logistik
           </p>
         </div>
-        <div className="flex gap-4">
+        <div className="flex">
           <Button
             variant="outline"
             className="bg-white text-slate-700 border-slate-200 shadow-sm"
           >
-            Oct 24, 2023
-          </Button>
-          <Button className="bg-[#22C55E] hover:bg-green-600 text-white shadow-sm">
-            + Audit Baru
+            {today}
           </Button>
         </div>
       </div>
@@ -48,9 +51,9 @@ export default function DashboardPage() {
           <PrioritiesList />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
-          <StockAlertsCard />
+        <div className="grid grid-cols-1 md:grid-cols-2 min-[1300px]:grid-cols-3 2xl:grid-cols-4 gap-6 items-stretch">
           <TopUsageCard />
+          <StockAlertsCard />
           <ActiveSuppliersCard />
           <RecentActivityCard />
         </div>

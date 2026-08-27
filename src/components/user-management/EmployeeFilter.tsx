@@ -1,8 +1,7 @@
 "use client";
 
 import React from "react";
-import { Filter, Download, Printer } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Filter } from "lucide-react";
 
 interface EmployeeFilterBarProps {
   selectedRoleFilter: string;
@@ -36,24 +35,6 @@ export const EmployeeFilterBar: React.FC<EmployeeFilterBarProps> = ({
           <option value="ADMIN_LOGISTIK">Admin Logistik</option>
           <option value="OWNER">Owner</option>
         </select>
-      </div>
-
-      <div className="flex items-center space-x-1">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="text-slate-600 hover:text-slate-900"
-        >
-          <Download className="h-4 w-4" />
-        </Button>
-
-        <Button
-          variant="ghost"
-          size="icon"
-          className="text-slate-600 hover:text-slate-900"
-        >
-          <Printer className="h-4 w-4" />
-        </Button>
       </div>
     </div>
   );

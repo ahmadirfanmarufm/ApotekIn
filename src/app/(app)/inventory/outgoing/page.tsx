@@ -4,8 +4,6 @@ import React, { useCallback, useEffect, useState } from "react";
 import {
   Plus,
   Filter,
-  Download,
-  Printer,
   Eye,
   ChevronLeft,
   ChevronRight,
@@ -186,9 +184,7 @@ export default function OutgoingStockPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Stok Keluar</h1>
-          <p className="text-slate-500 mt-1">
-            Riwayat pengurangan stok
-          </p>
+          <p className="text-slate-500 mt-1">Riwayat pengurangan stok</p>
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
@@ -202,7 +198,7 @@ export default function OutgoingStockPage() {
       <div className="grid grid-cols-3 gap-6">
         <div className="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col items-center justify-center shadow-sm">
           <p className="text-sm font-semibold text-slate-600 mb-2">
-            Total Transaksi Keluar Bulan Ini
+            Total Transaksi Keluar
           </p>
           <h2 className="text-2xl font-bold text-slate-900">
             {isLoading ? (
@@ -273,14 +269,6 @@ export default function OutgoingStockPage() {
               </option>
             ))}
           </select>
-        </div>
-        <div className="flex gap-2">
-          <button className="p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer">
-            <Download className="h-5 w-5" />
-          </button>
-          <button className="p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer">
-            <Printer className="h-5 w-5" />
-          </button>
         </div>
       </div>
 

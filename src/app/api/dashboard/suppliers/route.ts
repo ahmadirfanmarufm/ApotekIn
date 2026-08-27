@@ -60,7 +60,6 @@ export async function GET() {
         else onTime++;
       }
 
-      // Fallback when expectedDeliveryAt is not set — use PO status as proxy
       const hasExpected = s.purchaseOrders.some((po) => po.expectedDeliveryAt);
       if (!hasExpected && s.purchaseOrders.length > 0) {
         onTime = s.purchaseOrders.filter(
@@ -76,7 +75,6 @@ export async function GET() {
       const denominator = onTime + delayed || 1;
       const onTimePct = Math.round((onTime / denominator) * 100);
 
-      // Status classification
       let status: DeliveryStatus = "ON_TIME";
       if (pending > 0 && onTime + delayed === 0) status = "PENDING";
       else if (onTimePct >= 80) status = "ON_TIME";

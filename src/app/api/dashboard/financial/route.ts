@@ -45,7 +45,6 @@ export async function GET(request: NextRequest) {
     since.setDate(since.getDate() - (days - 1));
     since.setHours(0, 0, 0, 0);
 
-    // Build a lookup map pre-filled with zero for each day
     const dayMap = new Map<string, FinancialDayData>();
     for (let i = 0; i < days; i++) {
       const d = new Date(since);
@@ -54,7 +53,6 @@ export async function GET(request: NextRequest) {
       dayMap.set(key, { date: key, revenue: 0, expense: 0 });
     }
 
-    // ── Revenue (Sales StockOut) ──
     const salesOuts = await prisma.stockOut.findMany({
       where: {
         reason: StockOutReason.SALE,
@@ -80,7 +78,6 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // ── Expense source 1: Stock Receipts (PBF purchases) ──
     const receipts = await prisma.stockReceipt.findMany({
       where: { receivedAt: { gte: since } },
       select: {
@@ -103,7 +100,6 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // ── Expense source 2: Expired/Damaged write-offs (buy price cost) ──
     const writeOffs = await prisma.stockOut.findMany({
       where: {
         reason: { in: [StockOutReason.EXPIRED, StockOutReason.DAMAGED] },

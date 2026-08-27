@@ -70,7 +70,6 @@ export async function GET() {
       });
     }
 
-    // Sort: BOTH first, LOW_STOCK second, NEAR_EXPIRY last; then by daysUntilExpiry asc
     const reasonOrder: Record<StockAlertReason, number> = {
       BOTH: 0,
       LOW_STOCK: 1,

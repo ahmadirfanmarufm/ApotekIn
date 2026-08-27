@@ -2,7 +2,16 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Search, X, Loader2, Pill, FlaskConical, Package, ArrowRight, ExternalLink } from "lucide-react";
+import {
+  Search,
+  X,
+  Loader2,
+  Pill,
+  FlaskConical,
+  Package,
+  ArrowRight,
+  ExternalLink,
+} from "lucide-react";
 
 interface SearchItem {
   id: string;
@@ -31,7 +40,6 @@ export function SearchInput() {
   const [isOpen, setIsOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Global Ctrl+K / Cmd+K shortcut listener
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
@@ -43,14 +51,12 @@ export function SearchInput() {
     return () => window.removeEventListener("keydown", handleGlobalKeyDown);
   }, []);
 
-  // Auto focus input when modal opens
   useEffect(() => {
     if (isOpen) {
       setTimeout(() => inputRef.current?.focus(), 50);
     }
   }, [isOpen]);
 
-  // Fetch search results with debounce
   useEffect(() => {
     if (!query.trim()) {
       setResults(null);
@@ -62,7 +68,9 @@ export function SearchInput() {
 
     const timer = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/search?q=${encodeURIComponent(query.trim())}`);
+        const res = await fetch(
+          `/api/search?q=${encodeURIComponent(query.trim())}`,
+        );
         const json = await res.json();
         if (json.success) {
           setResults(json.data);
@@ -104,7 +112,6 @@ export function SearchInput() {
 
   return (
     <>
-      {/* Trigger button on Navbar */}
       <div className="flex-1 max-w-md">
         <button
           type="button"
@@ -113,7 +120,9 @@ export function SearchInput() {
         >
           <div className="flex items-center gap-2.5">
             <Search className="h-4 w-4 text-slate-400 group-hover:text-green-600 transition-colors" />
-            <span className="text-slate-500">Cari obat OTC, resep/racikan, atau non-obat...</span>
+            <span className="text-slate-500">
+              Cari obat OTC, resep/racikan, atau non-obat...
+            </span>
           </div>
           <kbd className="hidden sm:inline-flex items-center gap-1 rounded border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-slate-500 shadow-xs">
             CTRL + K
@@ -121,7 +130,6 @@ export function SearchInput() {
         </button>
       </div>
 
-      {/* Modal Box Center Overlay */}
       {isOpen && (
         <div
           className="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-200"
@@ -131,7 +139,6 @@ export function SearchInput() {
             className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-2xl overflow-hidden flex flex-col max-h-[80vh] animate-in zoom-in-95 duration-150"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Modal Search Header */}
             <div className="relative flex items-center px-4 py-3.5 border-b border-slate-200 bg-white">
               <Search className="h-5 w-5 text-slate-400 shrink-0 mr-3" />
               <input
@@ -168,7 +175,6 @@ export function SearchInput() {
               </button>
             </div>
 
-            {/* Modal Body / Results */}
             <div className="flex-1 overflow-y-auto divide-y divide-slate-100 p-2">
               {loading && !results && (
                 <div className="p-8 text-center text-sm text-slate-400 flex items-center justify-center gap-2">
@@ -179,25 +185,30 @@ export function SearchInput() {
 
               {!loading && !hasResults && query.trim() && (
                 <div className="p-10 text-center text-sm text-slate-500 space-y-1">
-                  <p className="font-semibold text-slate-700">Tidak ada hasil ditemukan</p>
+                  <p className="font-semibold text-slate-700">
+                    Tidak ada hasil ditemukan
+                  </p>
                   <p className="text-xs text-slate-400">
-                    Tidak ada barang yang cocok dengan kata kunci &ldquo;<span className="text-slate-700">{query}</span>&rdquo;
+                    Tidak ada barang yang cocok dengan kata kunci &ldquo;
+                    <span className="text-slate-700">{query}</span>&rdquo;
                   </p>
                 </div>
               )}
 
               {!loading && !query.trim() && (
                 <div className="p-8 text-center text-xs text-slate-400 space-y-1">
-                  <p className="font-medium text-slate-500">Ketik kata kunci untuk mulai mencari</p>
+                  <p className="font-medium text-slate-500">
+                    Ketik kata kunci untuk mulai mencari
+                  </p>
                   <p className="text-[11px] text-slate-400">
-                    Sistem akan mencari obat OTC, resep/racikan, dan non-obat secara langsung.
+                    Sistem akan mencari obat OTC, resep/racikan, dan non-obat
+                    secara langsung.
                   </p>
                 </div>
               )}
 
               {results && (
                 <>
-                  {/* OTC Section */}
                   {results.otc.length > 0 && (
                     <div className="p-2">
                       <div className="px-3 py-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
@@ -216,7 +227,11 @@ export function SearchInput() {
                               <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity text-emerald-600" />
                             </p>
                             <p className="text-xs text-slate-400 mt-0.5">
-                              Kode: {item.code} • Stok: <span className="font-medium text-slate-600">{item.totalStock} {item.unit}</span> ({item.batchCount} Batch)
+                              Kode: {item.code} • Stok:{" "}
+                              <span className="font-medium text-slate-600">
+                                {item.totalStock} {item.unit}
+                              </span>{" "}
+                              ({item.batchCount} Batch)
                             </p>
                           </div>
                           <span className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-emerald-100/70 text-emerald-700 border border-emerald-200/60 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
@@ -227,7 +242,6 @@ export function SearchInput() {
                     </div>
                   )}
 
-                  {/* Resep / Racikan Section */}
                   {results.compound.length > 0 && (
                     <div className="p-2">
                       <div className="px-3 py-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
@@ -246,7 +260,11 @@ export function SearchInput() {
                               <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity text-purple-600" />
                             </p>
                             <p className="text-xs text-slate-400 mt-0.5">
-                              Kode: {item.code} • Stok: <span className="font-medium text-slate-600">{item.totalStock} {item.unit}</span> ({item.batchCount} Batch)
+                              Kode: {item.code} • Stok:{" "}
+                              <span className="font-medium text-slate-600">
+                                {item.totalStock} {item.unit}
+                              </span>{" "}
+                              ({item.batchCount} Batch)
                             </p>
                           </div>
                           <span className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-purple-100/70 text-purple-700 border border-purple-200/60 group-hover:bg-purple-600 group-hover:text-white transition-colors">
@@ -257,7 +275,6 @@ export function SearchInput() {
                     </div>
                   )}
 
-                  {/* Non Obat Section */}
                   {results.nonmedicine.length > 0 && (
                     <div className="p-2">
                       <div className="px-3 py-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
@@ -276,7 +293,11 @@ export function SearchInput() {
                               <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity text-amber-600" />
                             </p>
                             <p className="text-xs text-slate-400 mt-0.5">
-                              Kode: {item.code} • Stok: <span className="font-medium text-slate-600">{item.totalStock} {item.unit}</span> ({item.batchCount} Batch)
+                              Kode: {item.code} • Stok:{" "}
+                              <span className="font-medium text-slate-600">
+                                {item.totalStock} {item.unit}
+                              </span>{" "}
+                              ({item.batchCount} Batch)
                             </p>
                           </div>
                           <span className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-amber-100/70 text-amber-700 border border-amber-200/60 group-hover:bg-amber-600 group-hover:text-white transition-colors">
@@ -290,16 +311,21 @@ export function SearchInput() {
               )}
             </div>
 
-            {/* Modal Footer */}
             {query.trim() && (
               <div className="p-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
                 <span className="text-xs text-slate-400 hidden sm:inline">
-                  Tekan <kbd className="font-mono bg-white border rounded px-1">Enter</kbd> untuk hasil lengkap
+                  Tekan{" "}
+                  <kbd className="font-mono bg-white border rounded px-1">
+                    Enter
+                  </kbd>{" "}
+                  untuk hasil lengkap
                 </span>
                 <button
                   onClick={() => {
                     setIsOpen(false);
-                    router.push(`/search?q=${encodeURIComponent(query.trim())}`);
+                    router.push(
+                      `/search?q=${encodeURIComponent(query.trim())}`,
+                    );
                   }}
                   className="w-full sm:w-auto py-2 px-4 text-xs font-bold text-white bg-slate-900 hover:bg-green-600 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-xs"
                 >

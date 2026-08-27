@@ -51,6 +51,10 @@ async function main() {
   await prisma.stockReceipt.deleteMany();
   await prisma.purchaseOrderItem.deleteMany();
   await prisma.purchaseOrder.deleteMany();
+  await prisma.stockInTransactionItem.deleteMany();
+  await prisma.stockInTransaction.deleteMany();
+  await prisma.stockOutTransactionItem.deleteMany();
+  await prisma.stockOutTransaction.deleteMany();
   await prisma.batch.deleteMany();
   await prisma.item.deleteMany();
   await prisma.supplier.deleteMany();

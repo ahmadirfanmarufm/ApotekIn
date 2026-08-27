@@ -76,7 +76,6 @@ export default function SearchPage(props: SearchPageProps) {
 
   return (
     <div className="space-y-6 pb-16">
-      {/* Header */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2 mb-1">
@@ -97,7 +96,6 @@ export default function SearchPage(props: SearchPageProps) {
         </div>
       </div>
 
-      {/* Search Input Card */}
       <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-sm space-y-4">
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 pointer-events-none" />
@@ -113,7 +111,6 @@ export default function SearchPage(props: SearchPageProps) {
           )}
         </div>
 
-        {/* Category Tabs */}
         <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100">
           <button
             onClick={() => setActiveTab("ALL")}
@@ -161,7 +158,6 @@ export default function SearchPage(props: SearchPageProps) {
         </div>
       </div>
 
-      {/* Results Content */}
       {loading ? (
         <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-slate-400 flex flex-col items-center justify-center gap-3">
           <Loader2 className="h-8 w-8 text-green-500 animate-spin" />

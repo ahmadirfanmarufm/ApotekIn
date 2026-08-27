@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/prisma/config";
 import { POStatus } from "@/prisma/config";
 import { createStockReceiptSchema } from "@/lib/validations/stock-receipt";
+import { assertStockNotFrozen } from "@/lib/audit-freeze";
 
 async function generateReceiptNumber() {
   const now = new Date();
@@ -109,6 +110,27 @@ export async function POST(req: Request) {
 
     const { purchaseOrderId, invoiceNumber, notes, items } =
       validatedFields.data;
+
+    try {
+      await assertStockNotFrozen();
+    } catch (freezeError) {
+      if (
+        freezeError instanceof Error &&
+        freezeError.message === "STOCK_AUDIT_FREEZE_ACTIVE"
+      ) {
+        return NextResponse.json(
+          {
+            success: false,
+            message:
+              "Stok sedang terkunci (Audit Mode Active). Penerimaan stok tidak dapat dilakukan selama audit berlangsung.",
+            code: "STOCK_AUDIT_FREEZE_ACTIVE",
+          },
+          { status: 423 },
+        );
+      }
+
+      throw freezeError;
+    }
 
     const quantityByPoItemId = new Map<string, number>();
 

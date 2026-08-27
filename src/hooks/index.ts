@@ -39,7 +39,6 @@ export function useDashboardData<T>(url: string): UseDashboardDataResult<T> {
       const res = await fetch(url, { cache: "no-store" });
       const json = (await res.json()) as DashboardApiEnvelope<T>;
 
-      // Ignore stale responses (a newer request already started)
       if (requestId !== requestIdRef.current) return;
 
       if (!res.ok || !json.success) {

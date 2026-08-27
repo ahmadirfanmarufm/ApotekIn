@@ -26,7 +26,6 @@ export async function GET() {
     const todayEnd = endOfDay();
     const tasks: PriorityTaskItem[] = [];
 
-    // ── A. Batches expiring today ──
     const expiringBatches = await prisma.batch.findMany({
       where: {
         expiryDate: { gte: todayStart, lte: todayEnd },
@@ -55,7 +54,6 @@ export async function GET() {
       });
     }
 
-    // ── B. Items at/below reorder point ──
     const allItems = await prisma.item.findMany({
       where: { isActive: true },
       select: {
@@ -84,7 +82,6 @@ export async function GET() {
       }
     }
 
-    // ── C. In-progress audits ──
     const ongoingAudits = await prisma.stockAudit.findMany({
       where: { status: "IN_PROGRESS" },
       select: {

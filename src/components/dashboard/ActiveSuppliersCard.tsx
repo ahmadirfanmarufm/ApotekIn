@@ -68,7 +68,6 @@ export function ActiveSuppliersCard() {
   }
 
   const suppliers = data;
-  // Show top 5 by total deliveries
   const topSuppliers = [...suppliers]
     .sort((a, b) => b.totalDeliveries - a.totalDeliveries)
     .slice(0, 5);

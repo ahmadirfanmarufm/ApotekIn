@@ -97,12 +97,6 @@ export default function IncomingStockPage() {
     void loadReceipts();
   }, [loadReceipts]);
 
-  /*
-   * ============================================================
-   * AUTO OPEN RESTOCK MODAL
-   * ============================================================
-   */
-
   useEffect(() => {
     if (!isRestockMode) {
       return;
@@ -111,38 +105,13 @@ export default function IncomingStockPage() {
     setIsModalOpen(true);
   }, [isRestockMode]);
 
-  /*
-   * ============================================================
-   * CLOSE RESTOCK MODE
-   * ============================================================
-   */
-
   const handleCloseModal = () => {
     setIsModalOpen(false);
-
-    /*
-     * Jika datang dari tombol Restock,
-     * bersihkan query setelah modal ditutup.
-     *
-     * Contoh:
-     *
-     * /inventory/incoming?itemId=xxx&quantity=20&mode=restock
-     *
-     * menjadi:
-     *
-     * /inventory/incoming
-     */
 
     if (isRestockMode) {
       router.replace("/inventory/incoming");
     }
   };
-
-  /*
-   * ============================================================
-   * FILTERING
-   * ============================================================
-   */
 
   const isSameDay = (a: Date, b: Date) =>
     a.getFullYear() === b.getFullYear() &&
@@ -188,12 +157,6 @@ export default function IncomingStockPage() {
     });
   }, [receipts, periodFilter, supplierFilter]);
 
-  /*
-   * ============================================================
-   * STATISTICS
-   * ============================================================
-   */
-
   const totalTransactions = filteredReceipts.length;
 
   const totalValue = filteredReceipts.reduce(
@@ -207,24 +170,12 @@ export default function IncomingStockPage() {
     0,
   );
 
-  /*
-   * ============================================================
-   * DATE FORMAT
-   * ============================================================
-   */
-
   const formatDate = (value: Date | string) =>
     new Date(value).toLocaleDateString("id-ID", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
     });
-
-  /*
-   * ============================================================
-   * PAGINATION
-   * ============================================================
-   */
 
   const totalPages = Math.max(
     1,
@@ -252,16 +203,8 @@ export default function IncomingStockPage() {
     return pages;
   };
 
-  /*
-   * ============================================================
-   * RENDER
-   * ============================================================
-   */
-
   return (
     <div className="relative space-y-6">
-      {/* HEADER */}
-
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Stok Masuk</h1>
@@ -281,8 +224,6 @@ export default function IncomingStockPage() {
         </button>
       </div>
 
-      {/* RESTOCK INFO */}
-
       {isRestockMode && (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
           <p className="text-sm font-semibold text-emerald-700">Mode Restock</p>
@@ -299,8 +240,6 @@ export default function IncomingStockPage() {
           )}
         </div>
       )}
-
-      {/* STATISTICS */}
 
       <div className="grid grid-cols-2 gap-6">
         <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -333,8 +272,6 @@ export default function IncomingStockPage() {
           </h2>
         </div>
       </div>
-
-      {/* FILTER */}
 
       <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="flex items-center gap-3">
@@ -388,8 +325,6 @@ export default function IncomingStockPage() {
           ></button>
         </div>
       </div>
-
-      {/* TABLE */}
 
       <div className="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <table className="w-full text-left">
@@ -454,6 +389,7 @@ export default function IncomingStockPage() {
                 <td className="flex justify-center px-5 py-3 text-center">
                   <button
                     type="button"
+                    onClick={() => setDetailReceipt(row)}
                     className="flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-600 transition-colors hover:bg-emerald-100"
                   >
                     <Eye className="h-3.5 w-3.5" />
@@ -464,8 +400,6 @@ export default function IncomingStockPage() {
             ))}
           </tbody>
         </table>
-
-        {/* PAGINATION */}
 
         <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50/50 px-5 py-3.5 text-xs font-medium text-slate-500">
           <p>
@@ -518,9 +452,11 @@ export default function IncomingStockPage() {
         </div>
       </div>
 
-      {/* ========================================================
-          INCOMING STOCK MODAL
-          ======================================================== */}
+      <StockReceiptDetailModal
+        isOpen={detailReceipt !== null}
+        onClose={() => setDetailReceipt(null)}
+        receipt={detailReceipt}
+      />
 
       <IncomingStockModal
         isOpen={isModalOpen}

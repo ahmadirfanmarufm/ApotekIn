@@ -147,7 +147,7 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
 
         <div className="absolute inset-0 bg-linear-to-t from-slate-900/40 via-slate-900/10 to-transparent" />
 
-        <div className="relative z-10 max-w-md space-y-3">
+        <div className="relative z-10 max-w-md space-y-3 bg-white/70 px-6 py-4 rounded-xl">
           <h2 className="text-2xl lg:text-2xl font-bold text-[#10b981] leading-tight">
             Meningkatkan Operasional Farmasi
           </h2>
@@ -269,20 +269,7 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
               )}
             </div>
 
-            <div className="flex items-center justify-between text-xs pt-0.5">
-              <label className="flex items-center gap-2 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 rounded border-slate-300 text-[#10b981] focus:ring-[#10b981]"
-                />
-
-                <span className="text-slate-600 font-normal">
-                  Ingat selama 30 hari
-                </span>
-              </label>
-
+            <div className="flex items-center justify-end text-xs pt-0.5">
               <button
                 type="button"
                 className="text-[#10b981] font-medium hover:underline focus:outline-none"

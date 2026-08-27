@@ -8,24 +8,15 @@ import { Button } from "../ui/button";
 import Image from "next/image";
 import { ApiResponse } from "@/lib/validations/settings";
 import Swal from "sweetalert2";
-
-type IdentityCardProps = {
-  user: {
-    fullName: string;
-    email: string;
-    phone: string;
-    noSIPA: string;
-    role: string;
-    avatarUrl: string | null;
-  };
-};
+import { ImageCropModal } from "./ImageCropModal";
+import { IdentityCardProps } from "@/types/settings";
 
 export function IdentityCard({ user }: IdentityCardProps) {
   const { update } = useSession();
   const router = useRouter();
 
   const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string | null>(
-    user.avatarUrl,
+    user.avatarUrl
   );
   const [responseState, setResponseState] = useState<ApiResponse>({
     success: false,
@@ -34,6 +25,8 @@ export function IdentityCard({ user }: IdentityCardProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, startTransition] = useTransition();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [selectedImageSrc, setSelectedImageSrc] = useState<string | null>(null);
 
   const handleSelectFile = () => {
     fileInputRef.current?.click();
@@ -89,23 +82,33 @@ export function IdentityCard({ user }: IdentityCardProps) {
       });
       return;
     }
-    if (file.size > 2 * 1024 * 1024) {
-      setResponseState({
-        success: false,
-        message: "Ukuran gambar maksimal 2MB.",
-      });
-      return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setSelectedImageSrc(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
+  };
+
+  const handleUploadCroppedImage = (croppedBlob: Blob) => {
+    setSelectedImageSrc(null);
 
     startTransition(async () => {
       try {
-        const fileExt = file.name.split(".").pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.jpg`;
         const filePath = `avatars/${fileName}`;
 
         const { error } = await supabase.storage
           .from("avatars")
-          .upload(filePath, file, { cacheControl: "3600", upsert: true });
+          .upload(filePath, croppedBlob, {
+            contentType: "image/jpeg",
+            cacheControl: "3600",
+            upsert: true,
+          });
 
         if (error) {
           console.error("Supabase Upload Error:", error);
@@ -175,9 +178,6 @@ export function IdentityCard({ user }: IdentityCardProps) {
         const fileName = currentAvatarUrl?.split("/").at(-1);
         const filePath = `avatars/${fileName}`;
 
-        console.log("File name to remove:", fileName);
-        console.log("File path to remove:", filePath);
-
         const data: ApiResponse = await res.json();
         setResponseState(data);
 
@@ -188,7 +188,6 @@ export function IdentityCard({ user }: IdentityCardProps) {
             icon: "error",
             confirmButtonText: "OK",
           });
-
           return;
         }
 
@@ -230,146 +229,156 @@ export function IdentityCard({ user }: IdentityCardProps) {
   };
 
   return (
-    <form
-      onSubmit={handleIdentitySubmit}
-      className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm"
-    >
-      <div className="mb-4 flex flex-row items-center justify-between">
-        <h2 className="text-lg font-semibold">Identitas Anda</h2>
-        <Button type="submit" disabled={isSubmitting || isUploading}>
-          {isSubmitting ? "Menyimpan..." : "Simpan Perubahan"}
-        </Button>
-      </div>
-
-      {responseState.message && (
-        <div
-          className={`mb-4 p-3 rounded-lg text-sm ${
-            responseState.success
-              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-              : "bg-rose-50 text-rose-700 border border-rose-200"
-          }`}
-        >
-          {responseState.message}
-        </div>
+    <>
+      {selectedImageSrc && (
+        <ImageCropModal
+          imageSrc={selectedImageSrc}
+          onCancel={() => setSelectedImageSrc(null)}
+          onCropComplete={handleUploadCroppedImage}
+        />
       )}
 
-      <div className="flex gap-4 items-center">
-        <div className="relative w-25 h-25 overflow-hidden rounded-2xl border-2 border-dashed border-slate-200 shrink-0">
-          <Image
-            src={currentAvatarUrl || "/images/no-avatar.webp"}
-            alt="Profile Image"
-            className="object-cover"
-            width={100}
-            height={100}
-            unoptimized={!!currentAvatarUrl}
-          />
+      <form
+        onSubmit={handleIdentitySubmit}
+        className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm"
+      >
+        <div className="mb-4 flex flex-row items-center justify-between">
+          <h2 className="text-lg font-semibold">Identitas Anda</h2>
+          <Button type="submit" disabled={isSubmitting || isUploading}>
+            {isSubmitting ? "Menyimpan..." : "Simpan Perubahan"}
+          </Button>
         </div>
 
-        <div className="flex flex-col justify-center gap-2">
-          <h3 className="text-sm font-bold">{user.fullName}</h3>
-          <p className="text-sm text-slate-500">{user.email}</p>
+        {responseState.message && (
+          <div
+            className={`mb-4 p-3 rounded-lg text-sm ${
+              responseState.success
+                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                : "bg-rose-50 text-rose-700 border border-rose-200"
+            }`}
+          >
+            {responseState.message}
+          </div>
+        )}
 
-          <div className="flex flex-row gap-4 items-center">
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              accept="image/*"
-              className="hidden"
+        <div className="flex gap-4 items-center">
+          <div className="relative w-25 h-25 overflow-hidden rounded-2xl border-2 border-dashed border-slate-200 shrink-0">
+            <Image
+              src={currentAvatarUrl || "/images/no-avatar.webp"}
+              alt="Profile Image"
+              className="object-cover"
+              width={100}
+              height={100}
+              unoptimized={!!currentAvatarUrl}
             />
+          </div>
 
-            <button
-              type="button"
-              onClick={handleSelectFile}
-              disabled={isUploading}
-              className="text-emerald-600 text-sm font-medium hover:underline disabled:opacity-50 cursor-pointer"
-            >
-              {isUploading ? "Mengunggah..." : "Ganti Foto"}
-            </button>
+          <div className="flex flex-col justify-center gap-2">
+            <h3 className="text-sm font-bold">{user.fullName}</h3>
+            <p className="text-sm text-slate-500">{user.email}</p>
 
-            {currentAvatarUrl && (
+            <div className="flex flex-row gap-4 items-center">
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept="image/*"
+                className="hidden"
+              />
+
               <button
                 type="button"
-                onClick={handleRemovePhoto}
+                onClick={handleSelectFile}
                 disabled={isUploading}
-                className="text-rose-500 text-sm font-medium hover:underline disabled:opacity-50 cursor-pointer"
+                className="text-emerald-600 text-sm font-medium hover:underline disabled:opacity-50 cursor-pointer"
               >
-                Hapus Foto
+                {isUploading ? "Mengunggah..." : "Ganti Foto"}
               </button>
-            )}
+
+              {currentAvatarUrl && (
+                <button
+                  type="button"
+                  onClick={handleRemovePhoto}
+                  disabled={isUploading}
+                  className="text-rose-500 text-sm font-medium hover:underline disabled:opacity-50 cursor-pointer"
+                >
+                  Hapus Foto
+                </button>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="my-8 text-slate-200">
-        <hr />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="flex flex-col gap-2">
-          <label htmlFor="fullName" className="text-sm font-medium">
-            Nama Lengkap
-          </label>
-          <input
-            id="fullName"
-            name="fullName"
-            type="text"
-            defaultValue={user.fullName}
-            required
-            className="bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 w-full text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          />
-          {responseState.errors?.fullName && (
-            <p className="text-xs text-rose-500">
-              {responseState.errors.fullName[0]}
-            </p>
-          )}
+        <div className="my-8 text-slate-200">
+          <hr />
         </div>
 
-        <div className="flex flex-col gap-2">
-          <label htmlFor="email" className="text-sm font-medium">
-            Email
-          </label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            defaultValue={user.email}
-            required
-            className="bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 w-full text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          />
-          {responseState.errors?.email && (
-            <p className="text-xs text-rose-500">
-              {responseState.errors.email[0]}
-            </p>
-          )}
-        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="flex flex-col gap-2">
+            <label htmlFor="fullName" className="text-sm font-medium">
+              Nama Lengkap
+            </label>
+            <input
+              id="fullName"
+              name="fullName"
+              type="text"
+              defaultValue={user.fullName}
+              required
+              className="bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 w-full text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+            {responseState.errors?.fullName && (
+              <p className="text-xs text-rose-500">
+                {responseState.errors.fullName[0]}
+              </p>
+            )}
+          </div>
 
-        <div className="flex flex-col gap-2">
-          <label htmlFor="phone" className="text-sm font-medium">
-            No. HP
-          </label>
-          <input
-            id="phone"
-            name="phone"
-            type="tel"
-            defaultValue={user.phone}
-            className="bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 w-full text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          />
-        </div>
+          <div className="flex flex-col gap-2">
+            <label htmlFor="email" className="text-sm font-medium">
+              Email
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              defaultValue={user.email}
+              required
+              className="bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 w-full text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+            {responseState.errors?.email && (
+              <p className="text-xs text-rose-500">
+                {responseState.errors.email[0]}
+              </p>
+            )}
+          </div>
 
-        <div className="flex flex-col gap-2">
-          <label htmlFor="noSIPA" className="text-sm font-medium">
-            No. SIPA
-          </label>
-          <input
-            id="noSIPA"
-            name="noSIPA"
-            type="text"
-            defaultValue={user.noSIPA}
-            className="bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 w-full text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          />
+          <div className="flex flex-col gap-2">
+            <label htmlFor="phone" className="text-sm font-medium">
+              No. HP
+            </label>
+            <input
+              id="phone"
+              name="phone"
+              type="tel"
+              defaultValue={user.phone}
+              className="bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 w-full text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label htmlFor="noSIPA" className="text-sm font-medium">
+              No. SIPA
+            </label>
+            <input
+              id="noSIPA"
+              name="noSIPA"
+              type="text"
+              defaultValue={user.noSIPA}
+              className="bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 w-full text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+          </div>
         </div>
-      </div>
-    </form>
+      </form>
+    </>
   );
 }

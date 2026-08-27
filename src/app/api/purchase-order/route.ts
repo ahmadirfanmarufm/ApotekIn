@@ -145,12 +145,27 @@ export async function POST(req: Request) {
     const itemIds = items.map((item) => item.itemId);
     const uniqueItemIds = [...new Set(itemIds)];
 
+    if (uniqueItemIds.length !== itemIds.length) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Barang yang sama tidak boleh dimasukkan lebih dari satu kali.",
+          errors: {
+            items: ["Terdapat barang yang dipilih lebih dari satu kali."],
+          },
+        },
+        { status: 400 },
+      );
+    }
+
     const existingItems = await prisma.item.findMany({
       where: {
         id: { in: uniqueItemIds },
         isActive: true,
       },
-      select: { id: true },
+      select: {
+        id: true,
+      },
     });
 
     const existingItemIds = new Set(existingItems.map((item) => item.id));

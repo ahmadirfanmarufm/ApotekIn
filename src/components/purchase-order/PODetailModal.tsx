@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   X,
   Loader2,
@@ -179,6 +179,57 @@ export function PODetailModal({ isOpen, poId, onClose }: PODetailModalProps) {
                 </div>
               </div>
 
+              {detail && (
+                <div className="border border-slate-200 rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm font-semibold text-slate-700">
+                      Progress Penerimaan
+                    </p>
+
+                    <p className="text-sm font-bold text-slate-900">
+                      {detail.items.reduce(
+                        (total, item) => total + item.receivedQty,
+                        0,
+                      )}{" "}
+                      /{" "}
+                      {detail.items.reduce(
+                        (total, item) => total + item.orderedQty,
+                        0,
+                      )}{" "}
+                      unit
+                    </p>
+                  </div>
+
+                  <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-emerald-500 rounded-full transition-all"
+                      style={{
+                        width: `${
+                          (() => {
+                            const ordered = detail.items.reduce(
+                              (total, item) => total + item.orderedQty, 0
+                            );
+
+                            const received = detail.items.reduce(
+                              (total, item) =>
+                                total + item.receivedQty,
+                              0,
+                            );
+
+                            return ordered > 0
+                              ? Math.min(
+                                  (received / ordered) * 100,
+                                  100,
+                                )
+                              : 0;
+                          })()
+                        }%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+
               <div>
                 <h3 className="font-bold text-slate-900 mb-3">
                   Daftar Barang Diorder ({detail.items.length} Item)
@@ -191,6 +242,7 @@ export function PODetailModal({ isOpen, poId, onClose }: PODetailModalProps) {
                         <th className="px-4 py-3">Nama Barang</th>
                         <th className="px-4 py-3 text-center">Qty Order</th>
                         <th className="px-4 py-3 text-center">Diterima</th>
+                        <th className="px-4 py-3 text-center">Sisa</th>
                         <th className="px-4 py-3 text-right">Harga Satuan</th>
                         <th className="px-4 py-3 text-right">Subtotal</th>
                       </tr>
@@ -199,7 +251,7 @@ export function PODetailModal({ isOpen, poId, onClose }: PODetailModalProps) {
                       {detail.items.length === 0 ? (
                         <tr>
                           <td
-                            colSpan={6}
+                            colSpan={7}
                             className="p-8 text-center text-sm text-slate-400"
                           >
                             Tidak ada item pada purchase order ini.
@@ -232,12 +284,25 @@ export function PODetailModal({ isOpen, poId, onClose }: PODetailModalProps) {
                                 {item.receivedQty} {item.item.unit}
                               </span>
                             </td>
+                            <td className="px-4 py-3 text-center whitespace-nowrap">
+                              <span
+                                className={`inline-flex items-center px-2.5 py-1 rounded-lg font-bold text-xs border ${
+                                  item.remainingQty === 0
+                                    ? "bg-emerald-50 text-emerald-600 border-emerald-100"
+                                    : item.receivedQty > 0
+                                      ? "bg-orange-50 text-orange-600 border-orange-100"
+                                      : "bg-slate-50 text-slate-400 border-slate-200"
+                                }`}
+                              >
+                                {item.remainingQty} {item.item.unit}
+                              </span>
+                            </td>
                             <td className="px-4 py-3 text-right whitespace-nowrap">
                               {formatCurrency(item.unitPrice)}
                             </td>
                             <td className="px-4 py-3 text-right font-bold text-slate-900 whitespace-nowrap">
                               {formatCurrency(
-                                item.receivedQty * Number(item.unitPrice ?? 0),
+                                item.orderedQty * Number(item.unitPrice ?? 0),
                               )}
                             </td>
                           </tr>
@@ -247,7 +312,7 @@ export function PODetailModal({ isOpen, poId, onClose }: PODetailModalProps) {
                     {detail.items.length > 0 && (
                       <tfoot className="bg-slate-50 border-t border-slate-200">
                         <tr className="text-sm font-bold text-slate-900">
-                          <td colSpan={2} className="px-4 py-3">
+                          <td colSpan={3} className="px-4 py-3">
                             Total
                           </td>
                           <td className="px-4 py-3 text-center"></td>

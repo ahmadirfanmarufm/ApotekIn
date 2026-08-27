@@ -5,6 +5,7 @@ import { X, Trash2, Plus, Loader2 } from "lucide-react";
 import type {
   PurchaseOrderDetail,
   PurchaseOrderDetailItem,
+  PurchaseOrderListItem,
 } from "@/types/purchase-order";
 import type { ReceivablePoOption } from "@/types/stock-receipt";
 
@@ -12,9 +13,6 @@ interface IncomingStockModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
-
-  restockItemId?: string | null;
-  restockQuantity?: number | null;
 }
 
 interface ReceiptItemForm {
@@ -55,7 +53,7 @@ export function IncomingStockModal(props: IncomingStockModalProps) {
   return <IncomingStockModalContent {...props} />;
 }
 
-function IncomingStockModalContent({  onClose, onSuccess, restockItemId = null, restockQuantity = null }: IncomingStockModalProps) {
+function IncomingStockModalContent({  onClose, onSuccess }: IncomingStockModalProps) {
   const [poOptions, setPoOptions] = useState<ReceivablePoOption[]>([]);
   const [selectedPoId, setSelectedPoId] = useState("");
   const [poDetail, setPoDetail] = useState<PurchaseOrderDetail | null>(null);
@@ -63,10 +61,6 @@ function IncomingStockModalContent({  onClose, onSuccess, restockItemId = null, 
   const [receivedDate, setReceivedDate] = useState(new Date().toISOString().split("T")[0]);
   const [items, setItems] = useState<ReceiptItemForm[]>([]);
   const [nextKey, setNextKey] = useState(1);
-
-  const isRestockMode = Boolean(restockItemId);
-  const normalizedRestockQuantity = Number(restockQuantity ?? 0);
-  const hasRestockRecommendation = normalizedRestockQuantity > 0;
 
   const [isLoadingPos, setIsLoadingPos] = useState(false);
   const [isLoadingPo, setIsLoadingPo] = useState(false);
@@ -81,26 +75,14 @@ function IncomingStockModalContent({  onClose, onSuccess, restockItemId = null, 
       try {
         let response: Response;
 
-        if (isRestockMode && restockItemId) {
-          response = await fetch(
-            `/api/inventory/incoming/restock-options?itemId=${encodeURIComponent(
-              restockItemId,
-            )}`,
-            {
-              cache: "no-store",
-            },
-          );
-        } else {
-          response = await fetch(
-            "/api/purchase-order",
-            {
-              cache: "no-store",
-            },
-          );
-        }
+        response = await fetch("/api/purchase-order",
+          {
+            cache: "no-store",
+          },
+        );
 
         const data = await response.json();
-
+        
         if (!response.ok || !data.success) {
           throw new Error(
             data.message ||
@@ -108,67 +90,23 @@ function IncomingStockModalContent({  onClose, onSuccess, restockItemId = null, 
           );
         }
 
-        if (
-          isRestockMode &&
-          restockItemId
-        ) {
-          const options = data.data ?? [];
+        const purchaseOrders: PurchaseOrderListItem[] = data.data ?? [];
 
-          setPoOptions(
-            options.map(
-              (po: {
-                id: string;
-                poNumber: string;
-                status: string;
-                supplier: {
-                  name: string;
-                };
-              }) => ({
-                id: po.id,
-                poNumber: po.poNumber,
-                status: po.status,
-                supplierName:
-                  po.supplier?.name ?? "-",
-              }),
-            ),
-          );
-
-          if (options.length > 0) {
-            setSelectedPoId(options[0].id);
-          } else {
-            setError(
-              "Tidak ada Purchase Order yang masih dapat digunakan untuk restock item ini.",
-            );
-          }
-
-          return;
-        }
-
-        const receivable = (
-          data.data ?? []
-        ).filter(
-          (po: { status: string }) =>
-            po.status === "PENDING" ||
-            po.status === "PARTIAL",
+        const receivable = purchaseOrders.filter((po) => po.items?.some(
+            (item: {
+              quantity: number;
+              receivedQty: number;
+            }) => item.receivedQty < item.quantity,
+          ),
         );
 
         setPoOptions(
-          receivable.map(
-            (po: {
-              id: string;
-              poNumber: string;
-              status: string;
-              supplier: {
-                name: string;
-              };
-            }) => ({
-              id: po.id,
-              poNumber: po.poNumber,
-              status: po.status,
-              supplierName:
-                po.supplier?.name ?? "-",
-            }),
-          ),
+          receivable.map((po) => ({
+            id: po.id,
+            poNumber: po.poNumber,
+            status: po.status,
+            supplierName: po.supplier?.name ?? "-",
+          })),
         );
       } catch (error) {
         setError(
@@ -182,10 +120,7 @@ function IncomingStockModalContent({  onClose, onSuccess, restockItemId = null, 
     };
 
     void loadPurchaseOrders();
-  }, [
-    isRestockMode,
-    restockItemId,
-  ]);
+  }, []);
 
   useEffect(() => {
     if (!selectedPoId) return;
@@ -219,34 +154,6 @@ function IncomingStockModalContent({  onClose, onSuccess, restockItemId = null, 
             1,
           );
 
-        if (isRestockMode && restockItemId) {
-          const requestedRestockQuantity = Number(restockQuantity ?? 0);
-
-          mappedItems = mappedItems.filter((item) => {
-            const poItem = data.data.items.find(
-              (poItem: {
-                id: string;
-                itemId: string;
-              }) => poItem.id === item.purchaseOrderItemId,
-            );
-
-            return poItem?.itemId === restockItemId;
-          });
-
-          mappedItems = mappedItems.map((item) => ({
-            ...item,
-            quantity:
-              requestedRestockQuantity > 0
-                ? String(
-                    Math.min(
-                      requestedRestockQuantity,
-                      item.remainingQty,
-                    ),
-                  )
-                : "",
-          }));
-        }
-
         setItems(mappedItems);
 
         setNextKey(mappedItems.length + 1);
@@ -258,7 +165,7 @@ function IncomingStockModalContent({  onClose, onSuccess, restockItemId = null, 
     };
 
     void loadPoDetail();
-  }, [selectedPoId, isRestockMode, restockItemId, restockQuantity]);
+  }, [selectedPoId]);
 
   const handleSave = async () => {
     setError(null);
@@ -429,47 +336,6 @@ function IncomingStockModalContent({  onClose, onSuccess, restockItemId = null, 
         </div>
 
         <div className="p-6 space-y-8 overflow-y-auto">
-          {isRestockMode && (
-            <div
-              className={
-                restockQuantity !== null &&
-                !Number.isNaN(restockQuantity) &&
-                restockQuantity > 0
-                  ? "rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3"
-                  : "rounded-xl border border-amber-200 bg-amber-50 px-4 py-3"
-              }
-            >
-              <p
-                className={
-                  restockQuantity !== null &&
-                  !Number.isNaN(restockQuantity) &&
-                  restockQuantity > 0
-                    ? "text-sm font-semibold text-emerald-700"
-                    : "text-sm font-semibold text-amber-700"
-                }
-              >
-                Mode Restock
-              </p>
-
-              {restockQuantity !== null &&
-              !Number.isNaN(restockQuantity) &&
-              restockQuantity > 0 ? (
-                <p className="mt-1 text-xs text-emerald-600">
-                  Sistem merekomendasikan penambahan stok sebanyak{" "}
-                  <strong>
-                    {restockQuantity.toLocaleString("id-ID")}
-                  </strong>{" "}
-                  unit.
-                </p>
-              ) : (
-                <p className="mt-1 text-xs text-amber-600">
-                  Sistem belum merekomendasikan penambahan stok
-                  untuk item ini. Rekomendasi saat ini adalah{" "}
-                  <strong>0 unit</strong>.
-                </p>
-              )}
-            </div>
-          )}
           <div className="grid grid-cols-3 gap-6 p-5 border border-slate-200 rounded-xl bg-white">
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-600">

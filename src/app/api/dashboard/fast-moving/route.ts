@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { prisma } from "@/prisma/config";
-import { StockOutReason } from "@/prisma/config";
+import { prisma, StockOutReason } from "@/prisma/config";
 import type { TopMovingItem } from "@/types/dashboard";
 
 export const dynamic = "force-dynamic";

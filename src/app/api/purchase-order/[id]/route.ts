@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+
 import { auth } from "@/lib/auth";
 import { prisma } from "@/prisma/config";
 
@@ -10,10 +11,16 @@ interface RouteContext {
 
 export async function GET(req: Request, context: RouteContext) {
   const session = await auth();
+
   if (!session?.user?.id) {
     return NextResponse.json(
-      { success: false, message: "Sesi tidak valid." },
-      { status: 401 },
+      {
+        success: false,
+        message: "Sesi tidak valid.",
+      },
+      {
+        status: 401,
+      },
     );
   }
 
@@ -21,49 +28,113 @@ export async function GET(req: Request, context: RouteContext) {
     const { id } = await context.params;
 
     const purchaseOrder = await prisma.purchaseOrder.findUnique({
-      where: { id },
-      include: {
-        supplier: true,
-        createdBy: {
-          select: {
-            id: true,
-            fullName: true,
-          },
+        where: {
+          id,
         },
-        items: {
-          include: {
-            item: {
-              select: {
-                id: true,
-                code: true,
-                name: true,
-                unit: true,
-              },
+
+        select: {
+          id: true,
+          poNumber: true,
+          status: true,
+          totalAmount: true,
+          notes: true,
+          createdAt: true,
+          receivedAt: true,
+
+          supplier: {
+            select: {
+              id: true,
+              code: true,
+              name: true,
             },
           },
-          orderBy: {
-            createdAt: "asc",
+
+          createdBy: {
+            select: {
+              id: true,
+              fullName: true,
+            },
+          },
+
+          items: {
+            select: {
+              id: true,
+              itemId: true,
+              quantity: true,
+              receivedQty: true,
+              unitPrice: true,
+
+              item: {
+                select: {
+                  id: true,
+                  code: true,
+                  name: true,
+                  unit: true,
+                },
+              },
+            },
+
+            orderBy: {
+              createdAt: "asc",
+            },
           },
         },
-      },
-    });
+      });
 
     if (!purchaseOrder) {
       return NextResponse.json(
-        { success: false, message: "Purchase Order tidak ditemukan." },
-        { status: 404 },
+        {
+          success: false,
+          message: "Purchase Order tidak ditemukan.",
+        },
+        {
+          status: 404,
+        },
       );
     }
 
+    const data = {
+      id: purchaseOrder.id,
+      poNumber: purchaseOrder.poNumber,
+      status: purchaseOrder.status,
+      totalAmount: purchaseOrder.totalAmount,
+      notes: purchaseOrder.notes,
+      createdAt: purchaseOrder.createdAt,
+      receivedAt: purchaseOrder.receivedAt,
+      supplier: purchaseOrder.supplier,
+      createdBy: purchaseOrder.createdBy ?? undefined,
+
+      items: purchaseOrder.items.map((item) => ({
+        id: item.id,
+        itemId: item.itemId,
+
+        orderedQty: item.quantity,
+
+        receivedQty: item.receivedQty,
+
+        remainingQty: Math.max(item.quantity - item.receivedQty, 0),
+
+        unitPrice: item.unitPrice,
+
+        item: item.item,
+      })),
+    };
+
     return NextResponse.json({
       success: true,
-      data: purchaseOrder,
+      data,
     });
   } catch (error) {
     console.error("GET Purchase Order Detail Error:", error);
+
     return NextResponse.json(
-      { success: false, message: "Gagal mengambil detail purchase order." },
-      { status: 500 },
+      {
+        success: false,
+        message: "Gagal mengambil detail purchase order.",
+      },
+      {
+        status: 500,
+      },
     );
   }
 }

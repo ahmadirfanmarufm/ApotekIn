@@ -197,20 +197,30 @@ export function OtcInventoryCard({
         </div>
 
         <div className="mt-5 flex flex-wrap items-center gap-2">
-          <Link
-            href={{
-              pathname: "/inventory/incoming",
-              query: {
-                itemId: item.id,
-                quantity: restockQuantity,
-                mode: "restock",
-              },
-            }}
-            className="inline-flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-600 transition hover:bg-emerald-100"
-          >
-            <ShoppingCart size={16} />
-            Restock
-          </Link>
+          {restockQuantity > 0 ? (
+            <Link
+              href={{
+                pathname: "/purchase-order",
+                query: {
+                  itemId: item.id,
+                  quantity: restockQuantity,
+                  mode: "restock",
+                },
+              }}
+              className="inline-flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-600 transition hover:bg-emerald-100"
+            >
+              <ShoppingCart size={16} />
+              Restock
+            </Link>
+          ) : (
+            <span
+              className="inline-flex cursor-not-allowed items-center gap-2 rounded-xl bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-400"
+              title="Stok sudah mencapai batas maksimum"
+            >
+              <ShoppingCart size={16} />
+              Stok Maksimal
+            </span>
+          )}
 
           <button
             type="button"

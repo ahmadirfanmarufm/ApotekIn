@@ -13,7 +13,7 @@ export function MetricsGrid() {
                 </div>
                 <div>
                     <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Pendapatan</p>
-                    <h3 className="text-xl font-bold font-manrope text-slate-900 mt-1">$124,500.00</h3>
+                    <h3 className="text-xl font-bold font-manrope text-slate-900 mt-1">Rp124.500.000</h3>
                 </div>
             </div>
 
@@ -26,7 +26,7 @@ export function MetricsGrid() {
                 </div>
                 <div>
                     <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Nilai Pesanan Rata-rata</p>
-                    <h3 className="text-xl font-bold font-manrope text-slate-900 mt-1">$68.42</h3>
+                    <h3 className="text-xl font-bold font-manrope text-slate-900 mt-1">Rp68.420</h3>
                 </div>
             </div>
 

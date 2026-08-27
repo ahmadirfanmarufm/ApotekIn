@@ -24,7 +24,6 @@ export async function GET() {
     since.setDate(since.getDate() - 30);
     since.setHours(0, 0, 0, 0);
 
-    // Group stock-out quantities by itemId via batch relationship
     const outItems = await prisma.stockOutItem.findMany({
       where: {
         stockOut: {
@@ -44,7 +43,6 @@ export async function GET() {
       },
     });
 
-    // Aggregate per item
     const qtyMap = new Map<
       string,
       { itemId: string; itemName: string; itemCode: string; total: number }

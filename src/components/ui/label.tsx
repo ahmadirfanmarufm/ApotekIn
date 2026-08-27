@@ -1,7 +1,7 @@
 "use client";
 
 import type { ComponentPropsWithoutRef } from "react";
-import { cn } from "@/utils/cn";
+import { cn } from "@/lib/cn";
 
 export interface LabelProps extends ComponentPropsWithoutRef<"label"> {
   required?: boolean;

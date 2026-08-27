@@ -45,6 +45,15 @@ enum StockOutReason {
   DAMAGED
   REFUND
   RETURN_TO_SUPPLIER
+  ADJUSTMENT_AUDIT
+  OTHER
+}
+
+enum StockInReason {
+  PURCHASE
+  RETURN
+  INITIAL_STOCK
+  ADJUSTMENT_AUDIT
   OTHER
 }
 
@@ -77,11 +86,13 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  purchaseOrders PurchaseOrder[] @relation("PO_CreatedBy")
-  stockOuts      StockOut[]      @relation("StockOut_CreatedBy")
-  stockAudits    StockAudit[]    @relation("Audit_ConductedBy")
-  stockReceipts  StockReceipt[]  @relation("StockReceipt_CreatedBy")
-  notifications  Notification[]
+  purchaseOrders       PurchaseOrder[]       @relation("PO_CreatedBy")
+  stockOuts            StockOut[]            @relation("StockOut_CreatedBy")
+  stockAudits          StockAudit[]          @relation("Audit_ConductedBy")
+  stockReceipts        StockReceipt[]        @relation("StockReceipt_CreatedBy")
+  stockIns             StockInTransaction[]  @relation("StockIn_CreatedBy")
+  stockOutTransactions StockOutTransaction[] @relation("StockOutTxn_CreatedBy")
+  notifications        Notification[]
 
   @@map("users")
 }
@@ -101,8 +112,9 @@ model Supplier {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  purchaseOrders PurchaseOrder[]
-  stockReceipts  StockReceipt[]
+  purchaseOrders      PurchaseOrder[]
+  stockReceipts       StockReceipt[]
+  stockInTransactions StockInTransaction[]
 
   @@map("suppliers")
 }
@@ -121,10 +133,14 @@ model Item {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
-  batches            Batch[]
-  purchaseOrderItems PurchaseOrderItem[]
-  stockReceiptItems  StockReceiptItem[]
-  stockAuditDetails  StockAuditDetail[]
+  batches                  Batch[]
+  purchaseOrderItems       PurchaseOrderItem[]
+  stockReceiptItems        StockReceiptItem[]
+  stockAuditDetails        StockAuditDetail[]
+  stockInTransactions      StockInTransaction[]
+  stockOutTransactions     StockOutTransaction[]
+  stockInTransactionItems  StockInTransactionItem[]
+  stockOutTransactionItems StockOutTransactionItem[]
 
   @@index([category])
   @@map("items")
@@ -142,64 +158,68 @@ model Batch {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  item          Item           @relation(fields: [itemId], references: [id], onDelete: Cascade)
-  stockOutItems StockOutItem[]
+  item                     Item                      @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  stockOutItems            StockOutItem[]
+  stockAuditDetails        StockAuditDetail[]
+  stockInTransactionItems  StockInTransactionItem[]
+  stockOutTransactionItems StockOutTransactionItem[]
 
   @@index([itemId, expiryDate])
   @@map("batches")
 }
 
 model PurchaseOrder {
-  id          String    @id @default(uuid())
-  poNumber    String    @unique
-  supplierId  String
-  createdById String
-  status              POStatus  @default(PENDING)
-  totalAmount         Decimal   @default(0) @db.Decimal(12, 2)
-  expectedDeliveryAt  DateTime?
-  receivedAt          DateTime?
-  notes               String?   @db.Text
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id                 String    @id @default(uuid())
+  poNumber           String    @unique
+  supplierId         String
+  createdById        String
+  status             POStatus  @default(PENDING)
+  totalAmount        Decimal   @default(0) @db.Decimal(12, 2)
+  expectedDeliveryAt DateTime?
+  receivedAt         DateTime?
+  notes              String?   @db.Text
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
-  supplier  Supplier            @relation(fields: [supplierId], references: [id], onDelete: Restrict)
-  createdBy User                @relation("PO_CreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
-  items     PurchaseOrderItem[]
-  receipts  StockReceipt[]
+  supplier            Supplier             @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  createdBy           User                 @relation("PO_CreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  items               PurchaseOrderItem[]
+  receipts            StockReceipt[]
+  stockInTransactions StockInTransaction[]
 
   @@index([supplierId])
   @@map("purchase_orders")
 }
 
 model PurchaseOrderItem {
-  id              String   @id @default(uuid())
+  id              String    @id @default(uuid())
   purchaseOrderId String
   itemId          String
   batchNumber     String?
   quantity        Int
-  receivedQty     Int      @default(0)
+  receivedQty     Int       @default(0)
   expiryDate      DateTime? @db.Date
-  unitPrice       Decimal  @db.Decimal(12, 2)
-  createdAt       DateTime @default(now())
+  unitPrice       Decimal   @db.Decimal(12, 2)
+  createdAt       DateTime  @default(now())
 
-  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
-  item          Item          @relation(fields: [itemId], references: [id], onDelete: Restrict)
+  purchaseOrder     PurchaseOrder      @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  item              Item               @relation(fields: [itemId], references: [id], onDelete: Restrict)
   stockReceiptItems StockReceiptItem[]
 
   @@map("purchase_order_items")
 }
 
 model StockReceipt {
-  id            String    @id @default(uuid())
-  receiptNumber String    @unique
+  id              String   @id @default(uuid())
+  receiptNumber   String   @unique
   purchaseOrderId String?
-  supplierId    String
-  createdById   String
-  invoiceNumber String?
-  receivedAt    DateTime  @default(now())
-  notes         String?   @db.Text
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  supplierId      String
+  createdById     String
+  invoiceNumber   String?
+  receivedAt      DateTime @default(now())
+  notes           String?  @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   purchaseOrder PurchaseOrder?     @relation(fields: [purchaseOrderId], references: [id], onDelete: SetNull)
   supplier      Supplier           @relation(fields: [supplierId], references: [id], onDelete: Restrict)
@@ -212,18 +232,18 @@ model StockReceipt {
 }
 
 model StockReceiptItem {
-  id             String  @id @default(uuid())
-  stockReceiptId String
+  id                  String   @id @default(uuid())
+  stockReceiptId      String
   purchaseOrderItemId String?
-  itemId         String
-  batchId        String?
-  quantity       Int
-  unitPrice      Decimal @db.Decimal(12, 2)
-  createdAt      DateTime @default(now())
+  itemId              String
+  batchId             String?
+  quantity            Int
+  unitPrice           Decimal  @db.Decimal(12, 2)
+  createdAt           DateTime @default(now())
 
-  stockReceipt       StockReceipt      @relation(fields: [stockReceiptId], references: [id], onDelete: Cascade)
-  purchaseOrderItem  PurchaseOrderItem? @relation(fields: [purchaseOrderItemId], references: [id], onDelete: SetNull)
-  item               Item              @relation(fields: [itemId], references: [id], onDelete: Restrict)
+  stockReceipt      StockReceipt       @relation(fields: [stockReceiptId], references: [id], onDelete: Cascade)
+  purchaseOrderItem PurchaseOrderItem? @relation(fields: [purchaseOrderItemId], references: [id], onDelete: SetNull)
+  item              Item               @relation(fields: [itemId], references: [id], onDelete: Restrict)
 
   @@index([stockReceiptId])
   @@index([itemId])
@@ -262,6 +282,96 @@ model StockOutItem {
   @@map("stock_out_items")
 }
 
+enum StockBatchType {
+  PURCHASE
+  RETURN
+  INITIAL_STOCK
+  ADJUSTMENT
+  OTHER
+}
+
+model StockInTransaction {
+  id            String         @id @default(uuid())
+  referenceNo   String         @unique
+  supplierId    String?
+  createdById   String
+  reason        StockInReason
+  batchType     StockBatchType @default(PURCHASE)
+  totalQuantity Int            @default(0)
+  notes         String?        @db.Text
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  supplier        Supplier?                @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  createdBy       User                     @relation("StockIn_CreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  items           StockInTransactionItem[]
+  item            Item?                    @relation(fields: [itemId], references: [id])
+  itemId          String?
+  purchaseOrder   PurchaseOrder?           @relation(fields: [purchaseOrderId], references: [id])
+  purchaseOrderId String?
+
+  @@index([createdAt])
+  @@index([supplierId])
+  @@map("stock_in_transactions")
+}
+
+model StockInTransactionItem {
+  id        String   @id @default(uuid())
+  stockInId String
+  itemId    String
+  batchId   String
+  quantity  Int
+  unitPrice Decimal  @db.Decimal(12, 2)
+  createdAt DateTime @default(now())
+
+  stockIn StockInTransaction @relation(fields: [stockInId], references: [id], onDelete: Cascade)
+  item    Item               @relation(fields: [itemId], references: [id], onDelete: Restrict)
+  batch   Batch              @relation(fields: [batchId], references: [id], onDelete: Restrict)
+
+  @@index([stockInId])
+  @@index([itemId])
+  @@map("stock_in_transaction_items")
+}
+
+model StockOutTransaction {
+  id            String         @id @default(uuid())
+  referenceNo   String         @unique
+  createdById   String
+  reason        StockOutReason
+  batchType     StockBatchType @default(OTHER)
+  totalQuantity Int            @default(0)
+  totalAmount   Decimal        @default(0) @db.Decimal(12, 2)
+  notes         String?        @db.Text
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  createdBy User                      @relation("StockOutTxn_CreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  items     StockOutTransactionItem[]
+  item      Item?                     @relation(fields: [itemId], references: [id])
+  itemId    String?
+
+  @@index([createdAt])
+  @@map("stock_out_transactions")
+}
+
+model StockOutTransactionItem {
+  id         String   @id @default(uuid())
+  stockOutId String
+  itemId     String
+  batchId    String
+  quantity   Int
+  unitPrice  Decimal  @db.Decimal(12, 2)
+  createdAt  DateTime @default(now())
+
+  stockOut StockOutTransaction @relation(fields: [stockOutId], references: [id], onDelete: Cascade)
+  item     Item                @relation(fields: [itemId], references: [id], onDelete: Restrict)
+  batch    Batch               @relation(fields: [batchId], references: [id], onDelete: Restrict)
+
+  @@index([stockOutId])
+  @@index([itemId])
+  @@map("stock_out_transaction_items")
+}
+
 model StockAudit {
   id            String      @id @default(uuid())
   auditNumber   String      @unique
@@ -281,15 +391,18 @@ model StockAudit {
 model StockAuditDetail {
   id            String   @id @default(uuid())
   stockAuditId  String
+  batchId       String
   itemId        String
   systemStock   Int
   physicalStock Int
   difference    Int
+  unitPrice     Decimal  @default(0) @db.Decimal(12, 2)
   reason        String?  @db.Text
   createdAt     DateTime @default(now())
 
   stockAudit StockAudit @relation(fields: [stockAuditId], references: [id], onDelete: Cascade)
   item       Item       @relation(fields: [itemId], references: [id], onDelete: Restrict)
+  batch      Batch      @relation(fields: [batchId], references: [id], onDelete: Restrict)
 
   @@map("stock_audit_details")
 }

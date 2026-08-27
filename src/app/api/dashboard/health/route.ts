@@ -6,10 +6,6 @@ import { nowPlusDays } from "@/lib/date";
 
 export const dynamic = "force-dynamic";
 
-/**
- * Kalkulasi Inventory Health Score:
- *   score = (safeSku / totalSku) * 100
- */
 export async function GET() {
   const session = await auth();
   if (!session?.user?.id) {
@@ -22,7 +18,6 @@ export async function GET() {
   try {
     const threshold30 = nowPlusDays(30);
 
-    // Fetch all active items with their aggregated batch stock
     const items = await prisma.item.findMany({
       where: { isActive: true },
       select: {
@@ -53,10 +48,8 @@ export async function GET() {
     let criticalCount = 0;
 
     for (const item of items) {
-      // Sum all batch quantities for this item
       const totalStock = item.batches.reduce((acc, b) => acc + b.quantity, 0);
 
-      // Find the soonest expiring batch with stock > 0
       const activeBatches = item.batches.filter((b) => b.quantity > 0);
       const nearestExpiry = activeBatches.reduce<Date | null>((nearest, b) => {
         if (!nearest || b.expiryDate < nearest) return b.expiryDate;

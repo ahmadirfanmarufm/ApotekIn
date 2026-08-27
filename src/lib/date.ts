@@ -33,7 +33,6 @@ export function endOfDay(date: Date = new Date()): Date {
   );
 }
 
-/** Local date key "YYYY-MM-DD" (timezone-safe, not UTC). */
 export function toDateKey(date: Date): string {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -41,12 +40,10 @@ export function toDateKey(date: Date): string {
   return `${y}-${m}-${d}`;
 }
 
-/** Days between now and a future date (negative = past). */
 export function daysFromNow(date: Date): number {
   return Math.ceil((date.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
 }
 
-/** Human-readable relative time, e.g. "10m ago", "2h ago". */
 export function toRelativeTime(date: Date): string {
   const diffMs = Date.now() - date.getTime();
   const diffSec = Math.floor(diffMs / 1000);

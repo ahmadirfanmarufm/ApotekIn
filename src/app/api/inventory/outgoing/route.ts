@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { Prisma, prisma } from "@/prisma/config";
 import { StockOutReason } from "@/prisma/config";
 import { createStockOutSchema } from "@/lib/validations/stock-out";
+import { assertStockNotFrozen } from "@/lib/audit-freeze";
 
 async function generateReferenceNumber() {
   const now = new Date();
@@ -117,6 +118,27 @@ export async function POST(req: Request) {
     }
 
     const { reason, notes, items } = validatedFields.data;
+
+    try {
+      await assertStockNotFrozen();
+    } catch (freezeError) {
+      if (
+        freezeError instanceof Error &&
+        freezeError.message === "STOCK_AUDIT_FREEZE_ACTIVE"
+      ) {
+        return NextResponse.json(
+          {
+            success: false,
+            message:
+              "Stok sedang terkunci (Audit Mode Active). Pengeluaran stok tidak dapat dilakukan selama audit berlangsung.",
+            code: "STOCK_AUDIT_FREEZE_ACTIVE",
+          },
+          { status: 423 },
+        );
+      }
+
+      throw freezeError;
+    }
 
     const quantityByBatchId = new Map<string, number>();
 

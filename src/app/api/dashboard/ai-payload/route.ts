@@ -29,7 +29,6 @@ export async function GET() {
     const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
     const threshold30 = nowPlusDays(30);
 
-    // ── Fast-moving velocity (last 24h) ──
     const recentOutItems = await prisma.stockOutItem.findMany({
       where: {
         stockOut: {
@@ -50,7 +49,6 @@ export async function GET() {
       },
     });
 
-    // Aggregate per item
     const velocityMap = new Map<
       string,
       { itemId: string; itemName: string; itemCode: string; qty: number }
@@ -77,7 +75,6 @@ export async function GET() {
         totalQtySold24h: v.qty,
       }));
 
-    // ── Critical count ──
     const items = await prisma.item.findMany({
       where: { isActive: true },
       select: {
@@ -98,10 +95,7 @@ export async function GET() {
       const expiryOk = nearestExpiry ? nearestExpiry > threshold30 : true;
       if (!stockOk || !expiryOk) criticalItemCount++;
     }
-
-    // ── FEFO Compliance (last 24h) ──
-    // FEFO-compliant = the batch taken for each stockOut is the batch
-    // with the earliest expiryDate among available batches for that item.
+    
     const recentOuts = await prisma.stockOutItem.findMany({
       where: { stockOut: { createdAt: { gte: since24h } } },
       select: {

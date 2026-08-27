@@ -34,7 +34,6 @@ export async function GET() {
   }
 
   try {
-    // ── Source 1: Stock outs (sales, write-offs, transfers) ──
     const stockOuts = await prisma.stockOut.findMany({
       orderBy: { createdAt: "desc" },
       take: 5,
@@ -58,7 +57,6 @@ export async function GET() {
       relativeTime: toRelativeTime(so.createdAt),
     }));
 
-    // ── Source 2: Stock receipts (incoming goods) ──
     const receipts = await prisma.stockReceipt.findMany({
       orderBy: { receivedAt: "desc" },
       take: 5,
@@ -82,7 +80,6 @@ export async function GET() {
       relativeTime: toRelativeTime(sr.receivedAt),
     }));
 
-    // ── Source 3: Stock audits ──
     const audits = await prisma.stockAudit.findMany({
       orderBy: { createdAt: "desc" },
       take: 5,
@@ -104,7 +101,6 @@ export async function GET() {
       relativeTime: toRelativeTime(a.createdAt),
     }));
 
-    // Merge & sort by createdAt desc
     const data = [
       ...stockOutActivities,
       ...receiptActivities,

@@ -52,14 +52,22 @@ const formatDate = (date: string) => {
   });
 };
 
-export function CompoundInventoryCard({ item, onEdit, onDelete }: CompoundInventoryCardProps) {
-    const totalStock = item.batches.reduce((total, batch) => total + batch.quantity, 0);
+export function CompoundInventoryCard({
+  item,
+  onEdit,
+  onDelete,
+}: CompoundInventoryCardProps) {
+  const totalStock = item.batches.reduce(
+    (total, batch) => total + batch.quantity,
+    0,
+  );
 
   const isCritical = totalStock <= item.minStock;
 
-    const restockQuantity = Math.max(item.maxStock - totalStock, 0);
+  const restockQuantity = Math.max(item.maxStock - totalStock, 0);
 
-    const percentage = item.maxStock > 0 ? Math.min((totalStock / item.maxStock) * 100, 100) : 0;
+  const percentage =
+    item.maxStock > 0 ? Math.min((totalStock / item.maxStock) * 100, 100) : 0;
 
   const activeBatches = item.batches.filter((batch) => batch.quantity > 0);
 
@@ -208,31 +216,30 @@ export function CompoundInventoryCard({ item, onEdit, onDelete }: CompoundInvent
           </div>
         )}
 
-                {/* Footer */}
-                <div className="mt-5 flex flex-wrap items-center gap-2">
-                    <Link
-                        href={{
-                        pathname: "/inventory/incoming",
-                            query: {
-                                itemId: item.id,
-                                quantity: restockQuantity,
-                                mode: "restock",
-                            },
-                        }}
-                        className="inline-flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-600 transition hover:bg-emerald-100"
-                    >
-                        <ShoppingCart size={16} />
-                        Restock
-                    </Link>
-                    
-                    <button
-                        type="button"
-                        onClick={onEdit}
-                        className="inline-flex items-center hover:cursor-pointer gap-2 rounded-xl bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
-                    >
-                        <Pencil size={15} />
-                        Edit
-                    </button>
+        <div className="mt-5 flex flex-wrap items-center gap-2">
+          <Link
+            href={{
+              pathname: "/inventory/incoming",
+              query: {
+                itemId: item.id,
+                quantity: restockQuantity,
+                mode: "restock",
+              },
+            }}
+            className="inline-flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-600 transition hover:bg-emerald-100"
+          >
+            <ShoppingCart size={16} />
+            Restock
+          </Link>
+
+          <button
+            type="button"
+            onClick={onEdit}
+            className="inline-flex items-center hover:cursor-pointer gap-2 rounded-xl bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
+          >
+            <Pencil size={15} />
+            Edit
+          </button>
 
           <button
             type="button"

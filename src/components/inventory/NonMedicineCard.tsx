@@ -3,12 +3,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import {
-  ShoppingCart,
-  Pencil,
-  ChevronRight,
-  Trash2,
-} from "lucide-react";
+import { ShoppingCart, Pencil, ChevronRight, Trash2 } from "lucide-react";
 import type { NonMedicineInventoryItem } from "@/types/inventory";
 
 interface NonMedicineInventoryCardProps {
@@ -22,12 +17,6 @@ export function NonMedicineInventoryCard({
   onEdit,
   onDelete,
 }: NonMedicineInventoryCardProps) {
-  /*
-   * ============================================================
-   * STOCK CALCULATION
-   * ============================================================
-   */
-
   const totalStock = item.batches.reduce(
     (total, batch) => total + batch.quantity,
     0,
@@ -35,51 +24,18 @@ export function NonMedicineInventoryCard({
 
   const isCritical = totalStock <= item.minStock;
 
-  /*
-   * Jumlah rekomendasi restock:
-   *
-   * maxStock - stok saat ini
-   *
-   * Contoh:
-   * maxStock = 100
-   * totalStock = 28
-   *
-   * restockQuantity = 72
-   */
-
-  const restockQuantity = Math.max(
-    item.maxStock - totalStock,
-    0,
-  );
+  const restockQuantity = Math.max(item.maxStock - totalStock, 0);
 
   const percentage =
-    item.maxStock > 0
-      ? Math.min(
-          (totalStock / item.maxStock) * 100,
-          100,
-        )
-      : 0;
-
-  /*
-   * ============================================================
-   * RENDER
-   * ============================================================
-   */
+    item.maxStock > 0 ? Math.min((totalStock / item.maxStock) * 100, 100) : 0;
 
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
       <div className="p-5 sm:p-6">
 
-        {/* ======================================================
-            HEADER
-            ====================================================== */}
-
         <div className="flex items-start gap-4">
 
-          {/* IMAGE */}
-
           <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-slate-100 bg-slate-50">
-
             {item.imageUrl ? (
               <Image
                 src={item.imageUrl}
@@ -92,26 +48,17 @@ export function NonMedicineInventoryCard({
                 No Image
               </div>
             )}
-
           </div>
 
-          {/* ITEM INFO */}
-
           <div className="min-w-0 flex-1">
-
             <div className="flex items-start justify-between gap-3">
-
               <div>
                 <h2 className="font-manrope text-lg font-bold text-slate-900">
                   {item.name}
                 </h2>
 
-                <p className="mt-1 text-sm text-slate-400">
-                  {item.code}
-                </p>
+                <p className="mt-1 text-sm text-slate-400">{item.code}</p>
               </div>
-
-              {/* STATUS */}
 
               <span
                 className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${
@@ -122,67 +69,39 @@ export function NonMedicineInventoryCard({
               >
                 {isCritical ? "Kritis" : "Normal"}
               </span>
-
             </div>
-
-            {/* CATEGORY */}
 
             <div className="mt-3 flex flex-wrap gap-2">
               <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
                 NON OBAT
               </span>
             </div>
-
           </div>
-
         </div>
 
-        {/* ======================================================
-            STOCK
-            ====================================================== */}
-
         <div className="mt-6">
-
           <div className="mb-2 flex items-center justify-between">
-
-            <span className="text-sm text-slate-400">
-              Stok saat ini
-            </span>
+            <span className="text-sm text-slate-400">Stok saat ini</span>
 
             <span className="font-bold text-slate-800">
-              {totalStock.toLocaleString("id-ID")}{" "}
-              {item.unit}
+              {totalStock.toLocaleString("id-ID")} {item.unit}
             </span>
-
           </div>
 
-          {/* STOCK PROGRESS */}
-
           <div className="h-2 overflow-hidden rounded-full bg-slate-100">
-
             <div
               className={`h-full rounded-full ${
-                isCritical
-                  ? "bg-red-500"
-                  : "bg-emerald-500"
+                isCritical ? "bg-red-500" : "bg-emerald-500"
               }`}
               style={{
                 width: `${percentage}%`,
               }}
             />
-
           </div>
-
         </div>
 
-        {/* ======================================================
-            BATCH
-            ====================================================== */}
-
         <div className="mt-6">
-
           <div className="mb-3 flex items-center justify-between">
-
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400">
               Detail Batch
             </h3>
@@ -190,37 +109,24 @@ export function NonMedicineInventoryCard({
             <span className="text-xs text-slate-400">
               {item.batches.length} batch
             </span>
-
           </div>
 
           <div className="space-y-3">
-
             {item.batches.slice(0, 3).map((batch) => {
-
               const batchPercentage =
                 batch.initialQuantity > 0
-                  ? (batch.quantity /
-                      batch.initialQuantity) *
-                    100
+                  ? (batch.quantity / batch.initialQuantity) * 100
                   : 0;
 
-              const expiry = new Date(
-                batch.expiryDate,
-              );
+              const expiry = new Date(batch.expiryDate);
 
               const today = new Date();
 
-              const diff =
-                expiry.getTime() -
-                today.getTime();
+              const diff = expiry.getTime() - today.getTime();
 
-              const daysRemaining = Math.ceil(
-                diff /
-                  (1000 * 60 * 60 * 24),
-              );
+              const daysRemaining = Math.ceil(diff / (1000 * 60 * 60 * 24));
 
-              const nearExpiry =
-                daysRemaining <= 90;
+              const nearExpiry = daysRemaining <= 90;
 
               return (
                 <div
@@ -228,59 +134,37 @@ export function NonMedicineInventoryCard({
                   className="rounded-xl border border-slate-100 bg-slate-50 p-3"
                 >
 
-                  {/* BATCH HEADER */}
-
                   <div className="flex items-center justify-between">
-
                     <div className="flex items-center gap-2">
-
                       <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
 
                       <span className="text-sm font-semibold text-slate-700">
                         {batch.batchNumber}
                       </span>
-
                     </div>
 
                     <span className="text-sm font-semibold text-slate-700">
-                      {batch.quantity.toLocaleString(
-                        "id-ID",
-                      )}{" "}
-                      {item.unit}
+                      {batch.quantity.toLocaleString("id-ID")} {item.unit}
                     </span>
-
                   </div>
 
-                  {/* BATCH PROGRESS */}
-
                   <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white">
-
                     <div
                       className="h-full rounded-full bg-emerald-500"
                       style={{
-                        width: `${Math.min(
-                          batchPercentage,
-                          100,
-                        )}%`,
+                        width: `${Math.min(batchPercentage, 100)}%`,
                       }}
                     />
-
                   </div>
 
-                  {/* BATCH INFO */}
-
                   <div className="mt-2 flex flex-wrap justify-between gap-2 text-xs">
-
                     <span className="text-slate-400">
                       Exp{" "}
-                      {expiry.toLocaleDateString(
-                        "id-ID",
-                        {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                        },
-                      )}
+                      {expiry.toLocaleDateString("id-ID", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      })}
                     </span>
 
                     <span
@@ -294,15 +178,11 @@ export function NonMedicineInventoryCard({
                         ? `⚠ ${daysRemaining} hari`
                         : `${daysRemaining} hari lagi`}
                     </span>
-
                   </div>
-
                 </div>
               );
             })}
-
           </div>
-
         </div>
 
         {/* ======================================================
@@ -310,7 +190,6 @@ export function NonMedicineInventoryCard({
             ====================================================== */}
 
         <div className="mt-5 flex flex-wrap items-center gap-2">
-
           {/* ====================================================
               RESTOCK
               ==================================================== */}
@@ -367,9 +246,7 @@ export function NonMedicineInventoryCard({
             Batch Detail
             <ChevronRight size={16} />
           </Link>
-
         </div>
-
       </div>
     </div>
   );

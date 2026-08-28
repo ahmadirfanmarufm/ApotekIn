@@ -13,6 +13,7 @@ import {
 import { POModal } from "@/components/purchase-order/POModal";
 import { PODetailModal } from "@/components/purchase-order/PODetailModal";
 import type { PurchaseOrderListItem } from "@/types/purchase-order";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const STATUS_LABEL: Record<string, string> = {
   PENDING: "Pending",
@@ -25,9 +26,7 @@ const PAGE_SIZE = 10;
 
 export default function PurchaseOrderPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrderListItem[]>(
-    [],
-  );
+  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrderListItem[]>([],);
   const [suppliers, setSuppliers] = useState<
     Array<{ id: string; code: string; name: string }>
   >([]);
@@ -39,6 +38,22 @@ export default function PurchaseOrderPage() {
   const [searchInput, setSearchInput] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [detailPoId, setDetailPoId] = useState<string | null>(null);
+
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  const restockItemId = searchParams.get("itemId");
+  const restockMode = searchParams.get("mode") === "restock";
+
+  const parsedRestockQuantity = Number(searchParams.get("quantity") ?? 0);
+
+  const restockQuantity = Number.isFinite(parsedRestockQuantity) && parsedRestockQuantity > 0 ? parsedRestockQuantity : 0;
+
+  useEffect(() => {
+    if (!isLoading && restockMode && restockItemId && restockQuantity > 0 && items.some((item) => item.id === restockItemId)) {
+      setIsModalOpen(true);
+    }
+  }, [isLoading, items, restockMode, restockItemId, restockQuantity]);
 
   const loadPurchaseOrders = useCallback(async () => {
     try {
@@ -319,9 +334,17 @@ export default function PurchaseOrderPage() {
 
       <POModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+
+          if (restockMode) {
+            router.replace("/purchase-order");
+          }
+        }}
         suppliers={suppliers}
         items={items}
+        restockItemId={restockMode ? restockItemId : null}
+        restockQuantity={restockMode ? restockQuantity : 0}
         onSuccess={loadPurchaseOrders}
       />
 

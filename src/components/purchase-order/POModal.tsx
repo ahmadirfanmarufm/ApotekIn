@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { X, Trash2, Plus, Loader2 } from "lucide-react";
 import type { PurchaseOrderSupplier } from "@/types/purchase-order";
 
@@ -14,7 +14,9 @@ interface POModalProps {
     name: string;
     unit: string;
   }>;
-  onSuccess?: () => void;
+  restockItemId?: string | null;
+  restockQuantity?: number;
+  onSuccess?: () => void | Promise<void>;
 }
 
 interface PoItemForm {
@@ -31,13 +33,7 @@ const emptyItem = (key: number): PoItemForm => ({
   unitPrice: "",
 });
 
-export function POModal({
-  isOpen,
-  onClose,
-  suppliers,
-  items,
-  onSuccess,
-}: POModalProps) {
+export function POModal({isOpen, onClose, suppliers, items, restockItemId = null, restockQuantity = 0, onSuccess}: POModalProps) {
   const [supplierId, setSupplierId] = useState("");
   const [notes, setNotes] = useState("");
   const [poItems, setPoItems] = useState<PoItemForm[]>([emptyItem(1)]);
@@ -47,14 +43,26 @@ export function POModal({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isOpen) {
-      setSupplierId("");
-      setNotes("");
+    if (!isOpen) return;
+
+    setSupplierId("");
+    setNotes("");
+    setError(null);
+    setNextKey(2);
+
+    if (restockItemId && restockQuantity > 0) {
+      setPoItems([
+        {
+          key: 1,
+          itemId: restockItemId,
+          quantity: String(restockQuantity),
+          unitPrice: "",
+        },
+      ]);
+    } else {
       setPoItems([emptyItem(1)]);
-      setNextKey(2);
-      setError(null);
     }
-  }, [isOpen]);
+  }, [isOpen, restockItemId, restockQuantity]);
 
   if (!isOpen) return null;
 
@@ -97,6 +105,23 @@ export function POModal({
         setError("Jumlah pesanan harus lebih dari 0.");
         return;
       }
+
+      if (!item.unitPrice) {
+        setError("Harga satuan wajib diisi pada setiap barang.");
+        return;
+      }
+
+      if (Number(item.unitPrice) < 0) {
+        setError("Harga satuan tidak boleh kurang dari 0.");
+        return;
+      }
+    }
+
+    const itemIds = poItems.map((item) => item.itemId);
+
+    if (new Set(itemIds).size !== itemIds.length) {
+      setError("Barang yang sama tidak boleh dipilih lebih dari satu kali.");
+      return;
     }
 
     try {
@@ -159,6 +184,17 @@ export function POModal({
         </div>
 
         <div className="p-6 space-y-8 overflow-y-auto">
+          {restockItemId && restockQuantity > 0 && (
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+              <p className="font-semibold">
+                Restock Barang
+              </p>
+              <p className="mt-1">
+                Barang dan jumlah pesanan telah diisi berdasarkan kebutuhan stok
+                maksimum. Silakan pilih supplier dan masukkan harga satuan.
+              </p>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-6 p-5 border border-slate-200 rounded-xl bg-slate-50/50">
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-600">

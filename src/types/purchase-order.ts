@@ -1,9 +1,19 @@
-export type POStatusUI = "PENDING" | "PARTIAL" | "COMPLETED" | "CANCELLED";
+export type POStatusUI =
+  | "PENDING"
+  | "PARTIAL"
+  | "COMPLETED"
+  | "CANCELLED";
 
 export interface PurchaseOrderSupplier {
   id: string;
   code: string;
   name: string;
+}
+
+export interface PurchaseOrderItemSummary {
+  id: string;
+  quantity: number;
+  receivedQty: number;
 }
 
 export interface PurchaseOrderListItem {
@@ -14,22 +24,22 @@ export interface PurchaseOrderListItem {
   createdAt: Date | string;
   receivedAt: Date | string | null;
   supplier: PurchaseOrderSupplier;
-  items: Array<{
-    id: string;
-    quantity: number;
-    receivedQty: number;
-  }>;
+  items: PurchaseOrderItemSummary[];
 }
 
 export interface PurchaseOrderDetailItem {
   id: string;
   itemId: string;
-  suggestedBatchNumber: string | null;
+
   orderedQty: number;
   receivedQty: number;
   remainingQty: number;
-  suggestedExpiryDate: Date | string | null;
+
   unitPrice: number | string;
+
+  suggestedBatchNumber: string | null;
+  suggestedExpiryDate: Date | string | null;
+
   item: {
     id: string;
     code: string;
@@ -46,10 +56,13 @@ export interface PurchaseOrderDetail {
   notes: string | null;
   createdAt: Date | string;
   receivedAt: Date | string | null;
+
   supplier: PurchaseOrderSupplier;
+
   createdBy?: {
     id: string;
     fullName: string;
   };
+
   items: PurchaseOrderDetailItem[];
 }

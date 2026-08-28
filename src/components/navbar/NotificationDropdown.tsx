@@ -1,36 +1,60 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { Notification } from "@/types/navbar";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type {
+  Notification,
+  NotificationCenterResponse,
+} from "@/types/navbar";
 import { NotificationItem } from "./NotificationItem";
 
-const notifications: Notification[] = [
-  {
-    id: 1,
-    title: "Stok hampir habis",
-    message: "Stok Paracetamol tersisa 5 pcs.",
-    time: "5 menit lalu",
-    unread: true,
-  },
-  {
-    id: 2,
-    title: "Data inventaris diperbarui",
-    message: "Inventaris berhasil diperbarui.",
-    time: "1 jam lalu",
-    unread: true,
-  },
-  {
-    id: 3,
-    title: "Resep baru ditambahkan",
-    message: "Resep Ayam Teriyaki telah ditambahkan.",
-    time: "Kemarin",
-    unread: false,
-  },
-];
+const POLL_INTERVAL_MS = 60_000;
 
 export function NotificationDropdown() {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const notificationRef = useRef<HTMLDivElement>(null);
+
+  const fetchNotifications = useCallback(
+    async (showLoader = false): Promise<void> => {
+      try {
+        if (showLoader) setIsLoading(true);
+        const res = await fetch("/api/notifications", {
+          method: "GET",
+          cache: "no-store",
+        });
+        const json = (await res.json()) as NotificationCenterResponse;
+        if (!res.ok || !json.success || !json.data) {
+          setErrorMessage(json.message ?? "Gagal memuat notifikasi.");
+          return;
+        }
+        setErrorMessage(null);
+        setNotifications(json.data.notifications);
+        setUnreadCount(json.data.unreadCount);
+      } catch (err) {
+        console.error("[NotificationDropdown] fetch error:", err);
+        setErrorMessage("Tidak dapat terhubung ke server.");
+      } finally {
+        if (showLoader) setIsLoading(false);
+      }
+    },
+    [],
+  );
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      void fetchNotifications(false);
+    }, POLL_INTERVAL_MS);
+    const initialFetch = window.setTimeout(() => {
+      void fetchNotifications(false);
+    }, 0);
+    return () => {
+      clearInterval(interval);
+      window.clearTimeout(initialFetch);
+    };
+  }, [fetchNotifications]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -43,13 +67,63 @@ export function NotificationDropdown() {
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
-  const unreadCount = notifications.filter((item) => item.unread).length;
+  const handleOpen = () => {
+    const next = !isNotificationOpen;
+    setIsNotificationOpen(next);
+    if (next) {
+      void fetchNotifications(true);
+    }
+  };
+
+  const handleMarkRead = useCallback(
+    async (id: string) => {
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)),
+      );
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+
+      try {
+        const res = await fetch(`/api/notifications/${id}/read`, {
+          method: "PATCH",
+        });
+        if (!res.ok) {
+          await fetchNotifications(false);
+        }
+      } catch (err) {
+        console.error("[NotificationDropdown] mark-read error:", err);
+        await fetchNotifications(false);
+      }
+    },
+    [fetchNotifications],
+  );
+
+  const handleMarkAllRead = useCallback(async () => {
+    const unreadIds = notifications.filter((n) => !n.isRead).map((n) => n.id);
+    if (unreadIds.length === 0) return;
+
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    setUnreadCount(0);
+
+    await Promise.all(
+      unreadIds.map((id) =>
+        fetch(`/api/notifications/${id}/read`, { method: "PATCH" }).catch(
+          () => null,
+        ),
+      ),
+    );
+
+    await fetchNotifications(false);
+  }, [notifications, fetchNotifications]);
+
+  const unreadText =
+    unreadCount > 0
+      ? `Kamu punya ${unreadCount} notifikasi baru`
+      : "Tidak ada notifikasi baru";
 
   return (
     <div ref={notificationRef} className="relative">
@@ -58,7 +132,7 @@ export function NotificationDropdown() {
         aria-label="Notifikasi"
         aria-expanded={isNotificationOpen}
         aria-haspopup="true"
-        onClick={() => setIsNotificationOpen((prev) => !prev)}
+        onClick={handleOpen}
         className={`relative text-slate-400 hover:text-slate-600 transition-colors rounded-lg p-1 ${
           isNotificationOpen ? "bg-slate-100 text-slate-700" : ""
         }`}
@@ -79,7 +153,9 @@ export function NotificationDropdown() {
         </svg>
 
         {unreadCount > 0 && (
-          <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full" />
+          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-red-500 border-2 border-white text-[10px] font-bold text-white">
+            {unreadCount > 99 ? "99+" : unreadCount}
+          </span>
         )}
       </button>
 
@@ -90,25 +166,36 @@ export function NotificationDropdown() {
               <h3 className="text-sm font-semibold text-slate-900">
                 Notifikasi
               </h3>
-              <p className="text-xs text-slate-500">
-                Kamu punya {unreadCount} notifikasi baru
-              </p>
+              <p className="text-xs text-slate-500">{unreadText}</p>
             </div>
 
             <button
               type="button"
-              className="text-xs font-medium text-green-600 hover:text-green-700"
+              onClick={handleMarkAllRead}
+              disabled={unreadCount === 0}
+              className="text-xs font-medium text-green-600 hover:text-green-700 disabled:cursor-not-allowed disabled:text-slate-300"
             >
               Tandai semua
             </button>
           </div>
 
+          {errorMessage ? (
+            <div className="border-b border-red-100 bg-red-50 px-4 py-2 text-xs text-red-600">
+              {errorMessage}
+            </div>
+          ) : null}
+
           <div className="max-h-96 overflow-y-auto">
-            {notifications.length > 0 ? (
+            {isLoading ? (
+              <div className="px-4 py-10 text-center text-xs text-slate-400">
+                Memuat notifikasi...
+              </div>
+            ) : notifications.length > 0 ? (
               notifications.map((notification) => (
                 <NotificationItem
                   key={notification.id}
                   notification={notification}
+                  onMarkRead={handleMarkRead}
                 />
               ))
             ) : (
@@ -139,9 +226,13 @@ export function NotificationDropdown() {
           <div className="border-t border-slate-100 px-4 py-3">
             <button
               type="button"
+              onClick={() => {
+                setIsNotificationOpen(false);
+                void fetchNotifications(false);
+              }}
               className="w-full text-center text-sm font-medium text-green-600 hover:text-green-700"
             >
-              Lihat semua notifikasi
+              Refresh notifikasi
             </button>
           </div>
         </div>

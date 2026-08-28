@@ -64,6 +64,12 @@ enum NotificationType {
   SYSTEM_INFO
 }
 
+enum NotificationPriority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
 enum InsightType {
   EXECUTIVE_SUMMARY
   WEEKLY_SUMMARY
@@ -419,17 +425,21 @@ model AiInsight {
 }
 
 model Notification {
-  id         String           @id @default(uuid())
-  userId     String
-  title      String
-  message    String           @db.Text
-  type       NotificationType
-  isRead     Boolean          @default(false)
-  actionLink String?
-  createdAt  DateTime         @default(now())
+  id          String              @id @default(uuid())
+  userId      String
+  title       String
+  message     String              @db.Text
+  type        NotificationType
+  priority    NotificationPriority @default(MEDIUM)
+  isRead      Boolean             @default(false)
+  actionLink  String?
+  actionLabel String?
+  metadata    Json?
+  createdAt   DateTime            @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, isRead])
+  @@index([type])
   @@map("notifications")
 }

@@ -9,6 +9,7 @@ import {
   Building2,
   CalendarDays,
   Printer,
+  Truck,
 } from "lucide-react";
 import type { PurchaseOrderDetail, POStatusUI } from "@/types/purchase-order";
 import { streamPurchaseOrderPDF } from "./streamSP";
@@ -144,7 +145,7 @@ export function PODetailModal({ isOpen, poId, onClose }: PODetailModalProps) {
             </div>
           ) : detail ? (
             <>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 <div className="border border-slate-200 rounded-xl p-4 space-y-1.5">
                   <p className="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
                     <FileText className="h-3.5 w-3.5" /> No. PO
@@ -159,6 +160,16 @@ export function PODetailModal({ isOpen, poId, onClose }: PODetailModalProps) {
                   </p>
                   <p className="text-sm font-bold text-slate-900">
                     {formatDate(detail.createdAt)}
+                  </p>
+                </div>
+                <div className="border border-slate-200 rounded-xl p-4 space-y-1.5">
+                  <p className="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
+                    <Truck className="h-3.5 w-3.5" /> Estimasi Datang
+                  </p>
+                  <p className="text-sm font-bold text-slate-900">
+                    {detail.expectedDeliveryAt
+                      ? formatDate(detail.expectedDeliveryAt)
+                      : "-"}
                   </p>
                 </div>
                 <div className="border border-slate-200 rounded-xl p-4 space-y-1.5">
@@ -204,26 +215,21 @@ export function PODetailModal({ isOpen, poId, onClose }: PODetailModalProps) {
                     <div
                       className="h-full bg-emerald-500 rounded-full transition-all"
                       style={{
-                        width: `${
-                          (() => {
-                            const ordered = detail.items.reduce(
-                              (total, item) => total + item.orderedQty, 0
-                            );
+                        width: `${(() => {
+                          const ordered = detail.items.reduce(
+                            (total, item) => total + item.orderedQty,
+                            0,
+                          );
 
-                            const received = detail.items.reduce(
-                              (total, item) =>
-                                total + item.receivedQty,
-                              0,
-                            );
+                          const received = detail.items.reduce(
+                            (total, item) => total + item.receivedQty,
+                            0,
+                          );
 
-                            return ordered > 0
-                              ? Math.min(
-                                  (received / ordered) * 100,
-                                  100,
-                                )
-                              : 0;
-                          })()
-                        }%`,
+                          return ordered > 0
+                            ? Math.min((received / ordered) * 100, 100)
+                            : 0;
+                        })()}%`,
                       }}
                     />
                   </div>

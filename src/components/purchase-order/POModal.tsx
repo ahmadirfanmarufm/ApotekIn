@@ -46,6 +46,7 @@ export function POModal({
 }: POModalProps) {
   const [supplierId, setSupplierId] = useState("");
   const [notes, setNotes] = useState("");
+  const [expectedDeliveryAt, setExpectedDeliveryAt] = useState("");
   const [poItems, setPoItems] = useState<PoItemForm[]>([emptyItem(1)]);
   const [nextKey, setNextKey] = useState(2);
 
@@ -57,6 +58,7 @@ export function POModal({
 
     setSupplierId(initialSupplierId || "");
     setNotes("");
+    setExpectedDeliveryAt("");
     setError(null);
     setNextKey(2);
 
@@ -105,6 +107,22 @@ export function POModal({
       return;
     }
 
+    if (expectedDeliveryAt) {
+      const expected = new Date(expectedDeliveryAt);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (Number.isNaN(expected.getTime())) {
+        setError("Format tanggal estimasi tidak valid.");
+        return;
+      }
+
+      if (expected < today) {
+        setError("Tanggal estimasi tidak boleh sebelum hari ini.");
+        return;
+      }
+    }
+
     for (const item of poItems) {
       if (!item.itemId || !item.quantity) {
         setError("Lengkapi barang dan jumlah pesanan pada setiap baris.");
@@ -145,6 +163,9 @@ export function POModal({
         body: JSON.stringify({
           supplierId,
           notes: notes.trim() || undefined,
+          expectedDeliveryAt: expectedDeliveryAt
+            ? new Date(expectedDeliveryAt).toISOString()
+            : undefined,
           items: poItems.map((item) => ({
             itemId: item.itemId,
             quantity: Number(item.quantity),
@@ -203,7 +224,7 @@ export function POModal({
               </p>
             </div>
           )}
-          <div className="grid grid-cols-2 gap-6 p-5 border border-slate-200 rounded-xl bg-slate-50/50">
+          <div className="grid grid-cols-3 gap-6 p-5 border border-slate-200 rounded-xl bg-slate-50/50">
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-600">
                 Pilih Supplier
@@ -220,6 +241,18 @@ export function POModal({
                   </option>
                 ))}
               </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-slate-600">
+                Tgl. Estimasi Datang (Opsional)
+              </label>
+              <input
+                type="date"
+                value={expectedDeliveryAt}
+                min={new Date().toISOString().split("T")[0]}
+                onChange={(e) => setExpectedDeliveryAt(e.target.value)}
+                className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-600">

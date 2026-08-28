@@ -11,6 +11,8 @@ import type { ReceivablePoOption } from "@/types/stock-receipt";
 
 interface IncomingStockModalProps {
   isOpen: boolean;
+  restockItemId?: string | null;
+  restockQuantity?: number | null;
   onClose: () => void;
   onSuccess?: () => void;
 }
@@ -28,7 +30,10 @@ interface ReceiptItemForm {
   itemName: string;
 }
 
-function mapPoItemsToForms( items: PurchaseOrderDetailItem[], startKey: number ): ReceiptItemForm[] {
+function mapPoItemsToForms(
+  items: PurchaseOrderDetailItem[],
+  startKey: number,
+): ReceiptItemForm[] {
   return items
     .filter((item) => item.remainingQty > 0)
     .map((item, index) => ({
@@ -53,12 +58,17 @@ export function IncomingStockModal(props: IncomingStockModalProps) {
   return <IncomingStockModalContent {...props} />;
 }
 
-function IncomingStockModalContent({  onClose, onSuccess }: IncomingStockModalProps) {
+function IncomingStockModalContent({
+  onClose,
+  onSuccess,
+}: IncomingStockModalProps) {
   const [poOptions, setPoOptions] = useState<ReceivablePoOption[]>([]);
   const [selectedPoId, setSelectedPoId] = useState("");
   const [poDetail, setPoDetail] = useState<PurchaseOrderDetail | null>(null);
   const [invoiceNumber, setInvoiceNumber] = useState("");
-  const [receivedDate, setReceivedDate] = useState(new Date().toISOString().split("T")[0]);
+  const [receivedDate, setReceivedDate] = useState(
+    new Date().toISOString().split("T")[0],
+  );
   const [items, setItems] = useState<ReceiptItemForm[]>([]);
   const [nextKey, setNextKey] = useState(1);
 
@@ -75,28 +85,24 @@ function IncomingStockModalContent({  onClose, onSuccess }: IncomingStockModalPr
       try {
         let response: Response;
 
-        response = await fetch("/api/purchase-order",
-          {
-            cache: "no-store",
-          },
-        );
+        response = await fetch("/api/purchase-order", {
+          cache: "no-store",
+        });
 
         const data = await response.json();
-        
+
         if (!response.ok || !data.success) {
           throw new Error(
-            data.message ||
-              "Gagal mengambil daftar Purchase Order.",
+            data.message || "Gagal mengambil daftar Purchase Order.",
           );
         }
 
         const purchaseOrders: PurchaseOrderListItem[] = data.data ?? [];
 
-        const receivable = purchaseOrders.filter((po) => po.items?.some(
-            (item: {
-              quantity: number;
-              receivedQty: number;
-            }) => item.receivedQty < item.quantity,
+        const receivable = purchaseOrders.filter((po) =>
+          po.items?.some(
+            (item: { quantity: number; receivedQty: number }) =>
+              item.receivedQty < item.quantity,
           ),
         );
 
@@ -140,25 +146,20 @@ function IncomingStockModalContent({  onClose, onSuccess }: IncomingStockModalPr
         const data = await response.json();
 
         if (!response.ok || !data.success) {
-          throw new Error(
-            data.message ||
-              "Gagal mengambil detail PO.",
-          );
+          throw new Error(data.message || "Gagal mengambil detail PO.");
         }
 
         setPoDetail(data.data);
 
-        let mappedItems =
-          mapPoItemsToForms(
-            data.data.items,
-            1,
-          );
+        let mappedItems = mapPoItemsToForms(data.data.items, 1);
 
         setItems(mappedItems);
 
         setNextKey(mappedItems.length + 1);
       } catch (error) {
-        setError(error instanceof Error ? error.message : "Gagal mengambil detail PO.");
+        setError(
+          error instanceof Error ? error.message : "Gagal mengambil detail PO.",
+        );
       } finally {
         setIsLoadingPo(false);
       }
@@ -218,7 +219,7 @@ function IncomingStockModalContent({  onClose, onSuccess }: IncomingStockModalPr
             batchNumber: item.batchNumber.trim(),
             expiryDate: item.expiryDate,
           })),
-        })
+        }),
       });
 
       const data = await response.json();
@@ -248,9 +249,7 @@ function IncomingStockModalContent({  onClose, onSuccess }: IncomingStockModalPr
     );
 
     const availableItem = poDetail.items.find(
-      (item) =>
-        item.remainingQty > 0 &&
-        !usedPurchaseOrderItemIds.has(item.id),
+      (item) => item.remainingQty > 0 && !usedPurchaseOrderItemIds.has(item.id),
     );
 
     if (!availableItem) {
@@ -545,7 +544,9 @@ function IncomingStockModalContent({  onClose, onSuccess }: IncomingStockModalPr
                 <Loader2 className="animate-spin h-5 w-5 mr-2" />
                 Menyimpan...
               </span>
-            ) : <span>Simpan Stok Masuk</span>}
+            ) : (
+              <span>Simpan Stok Masuk</span>
+            )}
           </button>
         </div>
       </div>

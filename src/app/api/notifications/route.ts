@@ -34,31 +34,15 @@ type GeneratedDraft = {
   dedupKey: string;
 };
 
-async function getOrCreateSystemUserId(): Promise<string> {
-  const owner = await prisma.user.findFirst({
-    where: { role: "OWNER" },
+async function getAllActiveUserIds(): Promise<string[]> {
+  const users = await prisma.user.findMany({
+    where: { isActive: true },
     select: { id: true },
   });
-
-  if (owner) return owner.id;
-
-  const admin = await prisma.user.findFirst({
-    where: { role: "ADMINISTRATOR" },
-    select: { id: true },
-  });
-
-  if (!admin) {
-    throw new Error(
-      "No system user (OWNER/ADMINISTRATOR) available to own notifications.",
-    );
-  }
-
-  return admin.id;
+  return users.map((u) => u.id);
 }
 
-async function buildCriticalStockDrafts(
-  userId: string,
-): Promise<GeneratedDraft[]> {
+async function buildCriticalStockDrafts(): Promise<GeneratedDraft[]> {
   const items = await prisma.item.findMany({
     where: { isActive: true },
     select: {
@@ -96,7 +80,6 @@ async function buildCriticalStockDrafts(
     });
   }
 
-  void userId;
   return drafts;
 }
 
@@ -159,46 +142,57 @@ async function buildExpiryDrafts(): Promise<GeneratedDraft[]> {
   return drafts;
 }
 
-async function persistDrafts(
-  userId: string,
+async function persistDraftsForAllUsers(
   drafts: GeneratedDraft[],
 ): Promise<void> {
   if (drafts.length === 0) return;
 
+  const userIds = await getAllActiveUserIds();
+  if (userIds.length === 0) return;
+
   const existing = await prisma.notification.findMany({
     where: {
-      userId,
+      userId: { in: userIds },
       isRead: false,
       type: { in: ["CRITICAL_STOCK", "EXPIRED_WARNING"] },
     },
-    select: { metadata: true, type: true },
+    select: { userId: true, metadata: true },
   });
 
-  const existingKeys = new Set<string>();
+  const existingKeysByUser = new Map<string, Set<string>>();
   for (const note of existing) {
     const meta = note.metadata as { dedupKey?: string } | null;
-    if (meta?.dedupKey) existingKeys.add(meta.dedupKey);
+    if (!meta?.dedupKey) continue;
+    const set = existingKeysByUser.get(note.userId) ?? new Set<string>();
+    set.add(meta.dedupKey);
+    existingKeysByUser.set(note.userId, set);
   }
 
-  const fresh = drafts.filter((d) => !existingKeys.has(d.dedupKey));
-  if (fresh.length === 0) return;
+  const createOps: ReturnType<typeof prisma.notification.create>[] = [];
+  for (const userId of userIds) {
+    const existingKeys = existingKeysByUser.get(userId) ?? new Set<string>();
+    for (const draft of drafts) {
+      if (existingKeys.has(draft.dedupKey)) continue;
+      createOps.push(
+        prisma.notification.create({
+          data: {
+            userId,
+            title: draft.title,
+            message: draft.message,
+            type: draft.type,
+            priority: draft.priority,
+            actionLink: draft.actionLink,
+            actionLabel: draft.actionLabel,
+            metadata: draft.metadata as object,
+          },
+        }),
+      );
+    }
+  }
 
-  await prisma.$transaction(
-    fresh.map((d) =>
-      prisma.notification.create({
-        data: {
-          userId,
-          title: d.title,
-          message: d.message,
-          type: d.type,
-          priority: d.priority,
-          actionLink: d.actionLink,
-          actionLabel: d.actionLabel,
-          metadata: d.metadata as object,
-        },
-      }),
-    ),
-  );
+  if (createOps.length === 0) return;
+
+  await prisma.$transaction(createOps);
 }
 
 function serializeNotification(n: {
@@ -266,15 +260,14 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const isPaginated = searchParams.has("page") || searchParams.has("limit");
 
-    const ownerId = await getOrCreateSystemUserId();
     const targetUserId = session.user.id;
 
     const [criticalDrafts, expiryDrafts] = await Promise.all([
-      buildCriticalStockDrafts(targetUserId),
+      buildCriticalStockDrafts(),
       buildExpiryDrafts(),
     ]);
 
-    await persistDrafts(ownerId, [...criticalDrafts, ...expiryDrafts]);
+    await persistDraftsForAllUsers([...criticalDrafts, ...expiryDrafts]);
 
     const unreadCount = await prisma.notification.count({
       where: { userId: targetUserId, isRead: false },

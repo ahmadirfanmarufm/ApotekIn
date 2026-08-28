@@ -7,6 +7,7 @@ import type { PurchaseOrderSupplier } from "@/types/purchase-order";
 interface POModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialSupplierId?: string | null;
   suppliers: PurchaseOrderSupplier[];
   items: Array<{
     id: string;
@@ -33,7 +34,16 @@ const emptyItem = (key: number): PoItemForm => ({
   unitPrice: "",
 });
 
-export function POModal({isOpen, onClose, suppliers, items, restockItemId = null, restockQuantity = 0, onSuccess}: POModalProps) {
+export function POModal({
+  isOpen,
+  onClose,
+  initialSupplierId = null,
+  suppliers,
+  items,
+  restockItemId = null,
+  restockQuantity = 0,
+  onSuccess,
+}: POModalProps) {
   const [supplierId, setSupplierId] = useState("");
   const [notes, setNotes] = useState("");
   const [poItems, setPoItems] = useState<PoItemForm[]>([emptyItem(1)]);
@@ -45,7 +55,7 @@ export function POModal({isOpen, onClose, suppliers, items, restockItemId = null
   useEffect(() => {
     if (!isOpen) return;
 
-    setSupplierId("");
+    setSupplierId(initialSupplierId || "");
     setNotes("");
     setError(null);
     setNextKey(2);
@@ -62,7 +72,7 @@ export function POModal({isOpen, onClose, suppliers, items, restockItemId = null
     } else {
       setPoItems([emptyItem(1)]);
     }
-  }, [isOpen, restockItemId, restockQuantity]);
+  }, [isOpen, initialSupplierId, restockItemId, restockQuantity]);
 
   if (!isOpen) return null;
 
@@ -186,9 +196,7 @@ export function POModal({isOpen, onClose, suppliers, items, restockItemId = null
         <div className="p-6 space-y-8 overflow-y-auto">
           {restockItemId && restockQuantity > 0 && (
             <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-              <p className="font-semibold">
-                Restock Barang
-              </p>
+              <p className="font-semibold">Restock Barang</p>
               <p className="mt-1">
                 Barang dan jumlah pesanan telah diisi berdasarkan kebutuhan stok
                 maksimum. Silakan pilih supplier dan masukkan harga satuan.

@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Building2,
@@ -16,20 +15,16 @@ import { Dropdown, DropdownItem } from "@/components/ui/dropdown-menu";
 interface SupplierCardProps {
   supplier: Supplier;
   onEdit: (supplier: Supplier) => void;
+  onCreatePo: (supplier: Supplier) => void;
   onRefresh: () => void;
 }
 
 export function SupplierCard({
   supplier,
   onEdit,
+  onCreatePo,
   onRefresh,
 }: SupplierCardProps) {
-  const router = useRouter();
-
-  const handleCreatePO = () => {
-    router.push(`/purchase-order?supplierId=${supplier.id}&openModal=true`);
-  };
-
   const handleDelete = async () => {
     if (confirm(`Apakah Anda yakin ingin menghapus ${supplier.name}?`)) {
       const res = await fetch(`/api/supplier/${supplier.id}`, {
@@ -96,7 +91,7 @@ export function SupplierCard({
       <div className="flex items-center gap-2 pt-1">
         <Button
           size="icon"
-          onClick={handleCreatePO}
+          onClick={() => onCreatePo(supplier)}
           className="flex-1 gap-2 border-0 bg-emerald-100/70 font-semibold text-emerald-800 shadow-none hover:bg-emerald-200"
         >
           <Package className="h-4 w-4" />
@@ -107,7 +102,7 @@ export function SupplierCard({
           trigger={
             <Button
               size="icon"
-              className="border-0 w-2 h-2 bg-emerald-100/70 text-emerald-800 shadow-none hover:bg-emerald-200"
+              className="border-0 bg-emerald-100/70 text-emerald-800 shadow-none hover:bg-emerald-200"
             >
               <MoreVertical className="h-4 w-4" />
             </Button>

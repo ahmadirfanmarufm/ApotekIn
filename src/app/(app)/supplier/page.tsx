@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Plus, Loader2 } from "lucide-react";
@@ -13,6 +14,7 @@ import { SupplierSearch } from "@/components/supplier/supplier-search";
 const SEARCH_DEBOUNCE_MS = 300;
 
 export default function SupplierPage() {
+  const router = useRouter();
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [searchInput, setSearchInput] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -22,7 +24,6 @@ export default function SupplierPage() {
   );
 
   const [isLoading, setIsLoading] = useState(true);
-
   const [refreshKey, setRefreshKey] = useState(0);
 
   const refresh = useCallback(() => {
@@ -97,6 +98,10 @@ export default function SupplierPage() {
   const handleOpenEditDialog = (supplier: Supplier) => {
     setSelectedSupplier(supplier);
     setIsDialogOpen(true);
+  };
+
+  const handleCreatePo = (supplier: Supplier) => {
+    router.push(`/purchase-order?supplierId=${supplier.id}`);
   };
 
   const totalDelivered = suppliers.reduce(
@@ -193,6 +198,7 @@ export default function SupplierPage() {
                 key={supplier.id}
                 supplier={supplier}
                 onEdit={handleOpenEditDialog}
+                onCreatePo={handleCreatePo}
                 onRefresh={refresh}
               />
             ))}

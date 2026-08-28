@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Supplier } from "@/types/supplier";
 import { Dropdown, DropdownItem } from "@/components/ui/dropdown-menu";
+import Swal from "sweetalert2";
 
 interface SupplierCardProps {
   supplier: Supplier;
@@ -26,16 +27,56 @@ export function SupplierCard({
   onRefresh,
 }: SupplierCardProps) {
   const handleDelete = async () => {
-    if (confirm(`Apakah Anda yakin ingin menghapus ${supplier.name}?`)) {
+    const { isConfirmed } = await Swal.fire({
+      title: "Konfirmasi Hapus",
+      text: `Apakah Anda yakin ingin menghapus ${supplier.name}?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#64748b",
+      confirmButtonText: "Ya, hapus",
+      cancelButtonText: "Batal",
+      reverseButtons: true,
+      focusCancel: true,
+    });
+
+    if (!isConfirmed) {
+      return;
+    }
+
+    try {
       const res = await fetch(`/api/supplier/${supplier.id}`, {
         method: "DELETE",
       });
+
       const json = await res.json();
+
       if (res.ok && json.success) {
+        await Swal.fire({
+          title: "Berhasil",
+          text: "Supplier berhasil dihapus.",
+          icon: "success",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+
         onRefresh();
       } else {
-        alert(json.message || "Gagal menghapus supplier.");
+        await Swal.fire({
+          title: "Gagal",
+          text: json.message || "Gagal menghapus supplier.",
+          icon: "error",
+          confirmButtonColor: "#059669",
+        });
       }
+    } catch (error) {
+      console.error("Failed to delete supplier:", error);
+      await Swal.fire({
+        title: "Terjadi Kesalahan",
+        text: "Terjadi kesalahan saat menghapus supplier.",
+        icon: "error",
+        confirmButtonColor: "#059669",
+      });
     }
   };
 

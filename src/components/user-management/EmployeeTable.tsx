@@ -232,9 +232,7 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
 
           <button
             type="button"
-            onClick={() =>
-              onPageChange(Math.min(currentPage + 1, totalPages))
-            }
+            onClick={() => onPageChange(Math.min(currentPage + 1, totalPages))}
             disabled={
               currentPage === totalPages || totalPages === 0 || isLoading
             }

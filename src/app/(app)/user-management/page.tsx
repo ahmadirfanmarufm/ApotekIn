@@ -16,6 +16,7 @@ import {
   EmployeesResponse,
   EmployeeFormData,
 } from "@/types/employee";
+import Swal from "sweetalert2";
 
 const DEFAULT_FORM_DATA: EmployeeFormData = {
   fullName: "",
@@ -174,11 +175,20 @@ export default function UserManagementPage() {
   };
 
   const handleDeleteUser = async (id: string) => {
-    const confirmed = window.confirm(
-      "Apakah Anda yakin ingin menghapus karyawan ini?",
-    );
+    const { isConfirmed } = await Swal.fire({
+      title: "Konfirmasi Hapus",
+      text: "Apakah Anda yakin ingin menghapus karyawan ini?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#64748b",
+      confirmButtonText: "Ya, hapus",
+      cancelButtonText: "Batal",
+      reverseButtons: true,
+      focusCancel: true,
+    });
 
-    if (!confirmed) {
+    if (!isConfirmed) {
       return;
     }
 
@@ -190,14 +200,32 @@ export default function UserManagementPage() {
       const json = (await response.json()) as EmployeesResponse;
 
       if (!response.ok || !json.success) {
-        window.alert(json.message ?? "Gagal menghapus karyawan.");
+        await Swal.fire({
+          title: "Gagal",
+          text: json.message ?? "Gagal menghapus karyawan.",
+          icon: "error",
+          confirmButtonColor: "#059669",
+        });
         return;
       }
+
+      await Swal.fire({
+        title: "Berhasil",
+        text: "Data karyawan berhasil dihapus.",
+        icon: "success",
+        timer: 1500,
+        showConfirmButton: false,
+      });
 
       setRefreshKey((previous) => previous + 1);
     } catch (error) {
       console.error("Failed to delete employee:", error);
-      window.alert("Terjadi kesalahan saat menghapus karyawan.");
+      await Swal.fire({
+        title: "Terjadi Kesalahan",
+        text: "Terjadi kesalahan saat menghapus karyawan.",
+        icon: "error",
+        confirmButtonColor: "#059669",
+      });
     }
   };
 

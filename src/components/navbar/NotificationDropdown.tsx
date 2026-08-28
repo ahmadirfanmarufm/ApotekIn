@@ -1,66 +1,111 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { Notification } from "@/types/navbar";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { Notification, NotificationListResponse } from "@/types/navbar";
 import { NotificationItem } from "./NotificationItem";
 
-const notifications: Notification[] = [
-  {
-    id: 1,
-    title: "Stok hampir habis",
-    message: "Stok Paracetamol tersisa 5 pcs.",
-    time: "5 menit lalu",
-    unread: true,
-  },
-  {
-    id: 2,
-    title: "Data inventaris diperbarui",
-    message: "Inventaris berhasil diperbarui.",
-    time: "1 jam lalu",
-    unread: true,
-  },
-  {
-    id: 3,
-    title: "Resep baru ditambahkan",
-    message: "Resep Ayam Teriyaki telah ditambahkan.",
-    time: "Kemarin",
-    unread: false,
-  },
-];
+const POLL_INTERVAL_MS = 60_000;
 
 export function NotificationDropdown() {
-  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const notificationRef = useRef<HTMLDivElement>(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isMutating, setIsMutating] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const fetchNotifications = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/notifications", { cache: "no-store" });
+      const json: NotificationListResponse = await res.json();
+      if (json.success) {
+        setNotifications(json.data);
+        setUnreadCount(json.unreadCount);
+      }
+    } catch (error) {
+      console.error("[NotificationDropdown] fetch failed", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, POLL_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, [fetchNotifications]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        notificationRef.current &&
-        !notificationRef.current.contains(event.target as Node)
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
       ) {
-        setIsNotificationOpen(false);
+        setIsOpen(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const unreadCount = notifications.filter((item) => item.unread).length;
+  const markAsRead = useCallback(async (id: string) => {
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)),
+    );
+    setUnreadCount((prev) => Math.max(0, prev - 1));
+
+    try {
+      const res = await fetch(`/api/notifications/${id}/read`, {
+        method: "PATCH",
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    } catch (error) {
+      console.error("[NotificationDropdown] markRead failed", error);
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, isRead: false } : n)),
+      );
+      setUnreadCount((prev) => prev + 1);
+    }
+  }, []);
+
+  const markAllAsRead = useCallback(async () => {
+    if (unreadCount === 0 || isMutating) return;
+    setIsMutating(true);
+
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    const previousUnread = unreadCount;
+    setUnreadCount(0);
+
+    try {
+      const res = await fetch("/api/notifications/read-all", {
+        method: "PATCH",
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    } catch (error) {
+      console.error("[NotificationDropdown] markAllRead failed", error);
+      setUnreadCount(previousUnread);
+      fetchNotifications();
+    } finally {
+      setIsMutating(false);
+    }
+  }, [unreadCount, isMutating, fetchNotifications]);
+
+  const handleOpen = () => {
+    setIsOpen((prev) => !prev);
+    if (!isOpen) fetchNotifications();
+  };
 
   return (
-    <div ref={notificationRef} className="relative">
+    <div ref={containerRef} className="relative">
       <button
         type="button"
         aria-label="Notifikasi"
-        aria-expanded={isNotificationOpen}
+        aria-expanded={isOpen}
         aria-haspopup="true"
-        onClick={() => setIsNotificationOpen((prev) => !prev)}
-        className={`relative text-slate-400 hover:text-slate-600 transition-colors rounded-lg p-1 ${
-          isNotificationOpen ? "bg-slate-100 text-slate-700" : ""
+        onClick={handleOpen}
+        className={`relative rounded-lg p-1 text-slate-400 transition-colors hover:text-slate-600 ${
+          isOpen ? "bg-slate-100 text-slate-700" : ""
         }`}
       >
         <svg
@@ -79,36 +124,48 @@ export function NotificationDropdown() {
         </svg>
 
         {unreadCount > 0 && (
-          <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full" />
+          <span className="absolute -top-0.5 -right-0.5 inline-flex min-w-[18px] items-center justify-center rounded-full border-2 border-white bg-red-500 px-1 text-[10px] font-bold leading-none text-white">
+            {unreadCount > 99 ? "99+" : unreadCount}
+          </span>
         )}
       </button>
 
-      {isNotificationOpen && (
-        <div className="absolute right-0 top-full mt-3 w-120 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
+      {isOpen && (
+        <div className="absolute right-0 top-full z-50 mt-3 w-120 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
           <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
             <div>
               <h3 className="text-sm font-semibold text-slate-900">
                 Notifikasi
               </h3>
               <p className="text-xs text-slate-500">
-                Kamu punya {unreadCount} notifikasi baru
+                {unreadCount > 0
+                  ? `Kamu punya ${unreadCount} notifikasi baru`
+                  : "Tidak ada notifikasi baru"}
               </p>
             </div>
 
             <button
               type="button"
-              className="text-xs font-medium text-green-600 hover:text-green-700"
+              onClick={markAllAsRead}
+              disabled={unreadCount === 0 || isMutating}
+              className="text-xs font-medium text-emerald-600 transition-colors hover:text-emerald-700 disabled:cursor-not-allowed disabled:text-slate-300"
             >
               Tandai semua
             </button>
           </div>
 
           <div className="max-h-96 overflow-y-auto">
-            {notifications.length > 0 ? (
+            {isLoading && notifications.length === 0 ? (
+              <div className="px-4 py-10 text-center text-sm text-slate-400">
+                Memuat notifikasi...
+              </div>
+            ) : notifications.length > 0 ? (
               notifications.map((notification) => (
                 <NotificationItem
                   key={notification.id}
                   notification={notification}
+                  onMarkRead={markAsRead}
+                  onNavigate={() => setIsOpen(false)}
                 />
               ))
             ) : (
@@ -128,7 +185,6 @@ export function NotificationDropdown() {
                   <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
                   <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                 </svg>
-
                 <p className="mt-2 text-sm text-slate-500">
                   Tidak ada notifikasi
                 </p>
@@ -137,12 +193,12 @@ export function NotificationDropdown() {
           </div>
 
           <div className="border-t border-slate-100 px-4 py-3">
-            <button
-              type="button"
-              className="w-full text-center text-sm font-medium text-green-600 hover:text-green-700"
+            <a
+              href="/notifications"
+              className="block w-full text-center text-sm font-medium text-emerald-600 transition-colors hover:text-emerald-700"
             >
               Lihat semua notifikasi
-            </button>
+            </a>
           </div>
         </div>
       )}

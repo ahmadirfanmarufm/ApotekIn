@@ -1,68 +1,149 @@
-import React from 'react';
+import { ArrowDown, ArrowRight, ArrowUp } from "lucide-react";
 
-export function EfficiencyTable() {
-    return (
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-            <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-bold font-manrope text-slate-900">Matriks Efisiensi Produk</h3>
-                <div className="bg-slate-100 p-1 rounded-xl flex text-xs font-semibold text-slate-600">
-                    <button className="px-3 py-1.5 rounded-lg bg-white shadow-sm text-slate-800">Sehari-hari</button>
-                    <button className="px-3 py-1.5 rounded-lg text-[#22C55E]">Bulanan</button>
-                </div>
-            </div>
+import type { ProductEfficiency } from "@/types/report";
 
-            <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr className="border-b border-slate-100 text-xs font-bold text-slate-400 uppercase tracking-wider">
-                            <th className="pb-3 font-semibold">Kategori Produk</th>
-                            <th className="pb-3 font-semibold">Turnover Rate</th>
-                            <th className="pb-3 font-semibold">Efisiensi Stok</th>
-                            <th className="pb-3 font-semibold">Volume Bulanan</th>
-                            <th className="pb-3 font-semibold">Trend</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 text-sm">
+interface EfficiencyTableProps {
+  data: ProductEfficiency[];
+}
 
-                        <tr>
-                            <td className="py-4 font-bold text-slate-900">Cardiovascular Meds</td>
-                            <td className="py-4 text-slate-600">14.5x</td>
-                            <td className="py-4">
-                                <div className="w-36 bg-slate-100 h-2 rounded-full overflow-hidden">
-                                    <div className="bg-[#22C55E] h-full rounded-full" style={{ width: '75%' }}></div>
-                                </div>
-                            </td>
-                            <td className="py-4 text-slate-600">2,450 Units</td>
-                            <td className="py-4 text-[#22C55E] font-semibold text-xs">↗ +12%</td>
-                        </tr>
+function TrendBadge({ trendChange }: { trendChange: number }) {
+  const TrendIcon = trendChange > 0 ? ArrowUp : trendChange < 0 ? ArrowDown : ArrowRight;
 
-                        <tr>
-                            <td className="py-4 font-bold text-slate-900">Antibiotics</td>
-                            <td className="py-4 text-slate-600">9.2x</td>
-                            <td className="py-4">
-                                <div className="w-36 bg-slate-100 h-2 rounded-full overflow-hidden">
-                                    <div className="bg-[#22C55E] h-full rounded-full" style={{ width: '55%' }}></div>
-                                </div>
-                            </td>
-                            <td className="py-4 text-slate-600">1,120 Units</td>
-                            <td className="py-4 text-slate-500 font-semibold text-xs">→ 0.5%</td>
-                        </tr>
+  return (
+    <span
+      className={`flex items-center gap-1 text-xs font-semibold ${
+        trendChange > 0
+          ? "text-emerald-600"
+          : trendChange < 0
+            ? "text-red-500"
+            : "text-slate-500"
+      }`}
+    >
+      <TrendIcon className="h-3.5 w-3.5" />
+      {Math.abs(trendChange).toFixed(1)}%
+    </span>
+  );
+}
 
-                        <tr>
-                            <td className="py-4 font-bold text-slate-900">OTC Supplements</td>
-                            <td className="py-4 text-slate-600">21.0x</td>
-                            <td className="py-4">
-                                <div className="w-36 bg-slate-100 h-2 rounded-full overflow-hidden">
-                                    <div className="bg-[#22C55E] h-full rounded-full" style={{ width: '90%' }}></div>
-                                </div>
-                            </td>
-                            <td className="py-4 text-slate-600">5,800 Units</td>
-                            <td className="py-4 text-[#22C55E] font-semibold text-xs">↗ +28%</td>
-                        </tr>
+export function EfficiencyTable({ data }: EfficiencyTableProps) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5 lg:p-6">
+      <div className="mb-4 sm:mb-6">
+        <h3 className="text-base font-bold text-slate-900 sm:text-lg">
+          Matriks Efisiensi Inventaris
+        </h3>
+        <p className="mt-1 text-xs text-slate-500 sm:text-sm">
+          Perbandingan efisiensi berdasarkan kategori produk, dibanding periode
+          sebelumnya.
+        </p>
+      </div>
 
-                    </tbody>
-                </table>
-            </div>
+      {data.length === 0 ? (
+        <div className="py-12 text-center text-sm text-slate-400">
+          Belum ada data untuk periode ini.
         </div>
-    );
+      ) : (
+        <>
+          {/* Tampilan tabel untuk layar sedang ke atas */}
+          <div className="hidden overflow-x-auto sm:block">
+            <table className="w-full min-w-[640px] text-left">
+              <thead>
+                <tr className="border-b border-slate-100 text-xs font-bold uppercase tracking-wider text-slate-400">
+                  <th className="pb-3">Kategori Produk</th>
+                  <th className="pb-3 text-center">Stok Masuk</th>
+                  <th className="pb-3 text-center">Stok Keluar</th>
+                  <th className="pb-3">Turnover Rate</th>
+                  <th className="pb-3">Efisiensi</th>
+                  <th className="pb-3 text-right">Trend vs Periode Lalu</th>
+                </tr>
+              </thead>
+
+              <tbody className="divide-y divide-slate-100 text-sm">
+                {data.map((item) => (
+                  <tr key={item.category} className="hover:bg-slate-50/70">
+                    <td className="py-4 font-bold text-slate-900">{item.category}</td>
+                    <td className="py-4 text-center text-slate-600">
+                      {item.stockIn.toLocaleString("id-ID")}
+                    </td>
+                    <td className="py-4 text-center text-slate-600">
+                      {item.stockOut.toLocaleString("id-ID")}
+                    </td>
+                    <td className="py-4 text-slate-600">
+                      {item.turnoverRate.toFixed(2)}x
+                    </td>
+                    <td className="py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="h-2 w-28 overflow-hidden rounded-full bg-slate-100">
+                          <div
+                            className="h-full rounded-full bg-emerald-500"
+                            style={{ width: `${item.efficiency}%` }}
+                          />
+                        </div>
+                        <span className="text-xs font-semibold text-slate-600">
+                          {item.efficiency.toFixed(0)}%
+                        </span>
+                      </div>
+                    </td>
+                    <td className="py-4">
+                      <div className="flex justify-end">
+                        <TrendBadge trendChange={item.trendChange} />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Tampilan kartu untuk layar kecil (mobile) */}
+          <div className="space-y-3 sm:hidden">
+            {data.map((item) => (
+              <div
+                key={item.category}
+                className="rounded-xl border border-slate-100 bg-slate-50 p-3"
+              >
+                <div className="mb-2 flex items-center justify-between">
+                  <p className="font-bold text-slate-900">{item.category}</p>
+                  <TrendBadge trendChange={item.trendChange} />
+                </div>
+
+                <div className="mb-2 grid grid-cols-3 gap-2 text-center text-xs text-slate-500">
+                  <div>
+                    <p className="font-semibold text-slate-700">
+                      {item.stockIn.toLocaleString("id-ID")}
+                    </p>
+                    <p>Masuk</p>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-slate-700">
+                      {item.stockOut.toLocaleString("id-ID")}
+                    </p>
+                    <p>Keluar</p>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-slate-700">
+                      {item.turnoverRate.toFixed(2)}x
+                    </p>
+                    <p>Turnover</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-200">
+                    <div
+                      className="h-full rounded-full bg-emerald-500"
+                      style={{ width: `${item.efficiency}%` }}
+                    />
+                  </div>
+                  <span className="text-xs font-semibold text-slate-600">
+                    {item.efficiency.toFixed(0)}%
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
 }

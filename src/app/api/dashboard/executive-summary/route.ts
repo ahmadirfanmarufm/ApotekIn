@@ -12,8 +12,6 @@ import type {
   TopMovingItem,
 } from "@/types/dashboard";
 import { buildNarrative, type NarrativeInput } from "@/lib/executive-narrative";
-import { polishNarrativeWithGemini } from "@/lib/executive-narrative-polisher";
-import { isGeminiConfigured } from "@/lib/gemini";
 import {
   endOfDay,
   nowPlusDays,
@@ -30,17 +28,6 @@ const SINCE_24H_MS = 24 * 60 * 60 * 1000;
 const SINCE_30D_MS = 30 * 24 * 60 * 60 * 1000;
 const SINCE_15D_MS = 15 * 24 * 60 * 60 * 1000;
 
-/**
- * GET /api/dashboard/executive-summary
- *
- * Returns a single aggregated payload that summarizes the entire
- * dashboard state, plus a rule-based narrative (headline + insight
- * + recommendation) and severity classification.
- *
- * Cached for 5 minutes via `unstable_cache` + tag-based revalidation.
- * Mutations in other modules can call `revalidateDashboardSummary()`
- * to bust the cache immediately.
- */
 export async function GET() {
   const session = await auth();
   if (!session?.user?.id) {
@@ -51,51 +38,7 @@ export async function GET() {
   }
 
   try {
-    const cached = await getCachedExecutiveSummary();
-
-    // Optional Gemini polish layer: best-effort, non-blocking on failure.
-    // - Runs OUTSIDE the cache so cached template remains the source of truth.
-    // - If Gemini is unconfigured / errors / times out / returns invalid output,
-    //   we serve the deterministic template narrative unchanged.
-    // - Build a fresh object so we never mutate the cached payload.
-    let data: ExecutiveSummary = {
-      ...cached,
-      narrative: cached.narrative,
-      narrativeSource: "TEMPLATE" as const,
-      geminiModel: null,
-    };
-
-    if (isGeminiConfigured()) {
-      const polished = await polishNarrativeWithGemini({
-        baseNarrative: cached.narrative,
-        facts: {
-          healthScore: cached.healthScore,
-          criticalCount: cached.criticalCount,
-          totalSku: cached.totalSku,
-          topCriticalItemName: cached.topCriticalItem?.itemName ?? null,
-          topCriticalDaysUntilExpiry:
-            cached.topCriticalItem?.daysUntilExpiry ?? null,
-          fastMovingName: cached.fastMovingName,
-          fastMovingQty: cached.fastMovingQty,
-          fefoCompliancePct: cached.fefoCompliancePct,
-          revenue30d: cached.revenue30d,
-          expense30d: cached.expense30d,
-          marginPct: cached.marginPct,
-          pendingTasksCount: cached.pendingTasksCount,
-          onTimeSupplierPct: cached.onTimeSupplierPct,
-        },
-      });
-
-      if (polished.polished) {
-        data = {
-          ...data,
-          narrative: polished.narrative,
-          narrativeSource: "GEMINI" as const,
-          geminiModel: polished.model ?? null,
-        };
-      }
-    }
-
+    const data = await getCachedExecutiveSummary();
     return NextResponse.json({ success: true, data });
   } catch (error) {
     console.error("[DASHBOARD/EXECUTIVE-SUMMARY]", error);
@@ -106,10 +49,6 @@ export async function GET() {
   }
 }
 
-/**
- * Public helper — call this from any mutation route to invalidate
- * the executive-summary cache after writes (stock-out, stock-in, PO, etc).
- */
 export function revalidateDashboardSummary(): void {
   revalidateTag(CACHE_TAG, "max");
 }
@@ -210,8 +149,6 @@ async function computeExecutiveSummary(): Promise<ExecutiveSummary> {
     onTimeSupplierPct,
     lastActivity,
     narrative: buildNarrative(narrativeInput),
-    narrativeSource: "TEMPLATE",
-    geminiModel: null,
     generatedAt,
     cachedUntil,
   };

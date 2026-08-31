@@ -110,8 +110,6 @@ export interface DashboardData {
 
 export type NarrativeSeverity = "GOOD" | "WARNING" | "CRITICAL";
 
-export type NarrativeSource = "TEMPLATE" | "GEMINI";
-
 export interface NarrativePayload {
   headline: string;
   insight: string;
@@ -138,8 +136,6 @@ export interface ExecutiveSummary {
   onTimeSupplierPct: number;
   lastActivity: { title: string; actor: string; relativeTime: string } | null;
   narrative: NarrativePayload;
-  narrativeSource: NarrativeSource;
-  geminiModel: string | null;
   generatedAt: string;
   cachedUntil: string;
 }

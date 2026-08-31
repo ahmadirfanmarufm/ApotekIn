@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { InventoryHealthCard } from "@/components/dashboard/InventoryHealthCard";
-import { AiSummaryCard } from "@/components/dashboard/AiSummaryCard";
+import { AiSummaryCard } from "@/components/dashboard/SummaryCard";
 import { QuickActionsCard } from "@/components/dashboard/QuickActionsCard";
 import { RevenueChartCard } from "@/components/dashboard/RevenueChartCard";
 import { PrioritiesList } from "@/components/dashboard/PrioritiesList";

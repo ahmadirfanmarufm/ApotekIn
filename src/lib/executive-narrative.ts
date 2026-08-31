@@ -1,17 +1,3 @@
-/**
- * Rule-based narrative engine for the dashboard's AI Executive Summary.
- *
- * Takes aggregated metrics from the dashboard and produces a 3-part
- * Bahasa Indonesia narrative (headline + insight + recommendation),
- * classified by severity. Deterministic, no LLM required.
- *
- * Why this approach:
- * - 100% data-accurate (no hallucination)
- * - < 1ms execution (no network call)
- * - Works fully offline
- * - Easy to unit-test
- */
-
 import type { NarrativePayload, NarrativeSeverity } from "@/types/dashboard";
 import { formatRupiah } from "@/lib/format";
 

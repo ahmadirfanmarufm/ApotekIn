@@ -1,11 +1,7 @@
 "use client";
 
 import { useDashboardData } from "@/hooks";
-import type {
-  ExecutiveSummary,
-  NarrativeSeverity,
-  NarrativeSource,
-} from "@/types/dashboard";
+import type { ExecutiveSummary, NarrativeSeverity } from "@/types/dashboard";
 
 const SEVERITY_THEME: Record<
   NarrativeSeverity,
@@ -106,31 +102,12 @@ function formatRelativeMinutes(iso: string): string {
   return `${days} hari lalu`;
 }
 
-function SourceBadge({
-  source,
-  model,
-}: {
-  source: NarrativeSource;
-  model: string | null;
-}) {
-  if (source === "GEMINI") {
-    return (
-      <span
-        title={model ? `Diringkas oleh ${model}` : "Diringkas oleh Gemini"}
-        className="text-[10px] font-bold uppercase px-2 py-0.5 rounded tracking-wider bg-blue-100 text-blue-700"
-      >
-        ✨ AI
-      </span>
-    );
-  }
-  return (
-    <span
-      title="Template deterministik (Gemini tidak aktif atau fallback)"
-      className="text-[10px] font-bold uppercase px-2 py-0.5 rounded tracking-wider bg-slate-100 text-slate-500"
-    >
-      Template
-    </span>
-  );
+function formatClock(iso: string): string {
+  return new Date(iso).toLocaleTimeString("id-ID", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
 }
 
 export function AiSummaryCard() {
@@ -163,7 +140,7 @@ export function AiSummaryCard() {
             <SparklesIcon />
           </div>
           <h2 className="text-xl font-bold font-manrope text-slate-900">
-            AI Executive Summary
+            Executive Summary
           </h2>
         </div>
         <p className="text-sm text-red-500 py-6 text-center">
@@ -180,7 +157,7 @@ export function AiSummaryCard() {
   }
 
   const theme = SEVERITY_THEME[data.narrative.severity];
-  const { narrative, cachedUntil, narrativeSource, geminiModel } = data;
+  const { narrative, cachedUntil } = data;
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between h-full">
@@ -194,18 +171,17 @@ export function AiSummaryCard() {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <h2 className="text-xl font-bold font-manrope text-slate-900">
-                AI Executive Summary
+                Executive Summary
               </h2>
               <span
                 className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded tracking-wider ${theme.badge}`}
               >
                 {theme.label}
               </span>
-              <SourceBadge source={narrativeSource} model={geminiModel} />
             </div>
             <p className="text-[11px] text-slate-400 mt-0.5">
               Diperbarui {formatRelativeMinutes(data.generatedAt)} • cache
-              hingga {formatRelativeMinutes(cachedUntil)}
+              hingga {formatClock(cachedUntil)}
             </p>
           </div>
         </div>

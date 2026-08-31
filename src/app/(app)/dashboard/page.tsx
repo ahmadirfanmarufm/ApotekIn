@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { InventoryHealthCard } from "@/components/dashboard/InventoryHealthCard";
-import { AiSummaryCard } from "@/components/dashboard/SummaryCard";
+import { SummaryCard } from "@/components/dashboard/SummaryCard";
 import { QuickActionsCard } from "@/components/dashboard/QuickActionsCard";
 import { RevenueChartCard } from "@/components/dashboard/RevenueChartCard";
 import { PrioritiesList } from "@/components/dashboard/PrioritiesList";
@@ -41,7 +41,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-stretch">
           <InventoryHealthCard />
           <div className="lg:col-span-2">
-            <AiSummaryCard />
+            <SummaryCard />
           </div>
           <QuickActionsCard />
         </div>

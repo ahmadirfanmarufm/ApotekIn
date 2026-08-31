@@ -110,7 +110,7 @@ function formatClock(iso: string): string {
   });
 }
 
-export function AiSummaryCard() {
+export function SummaryCard() {
   const { data, loading, error, refetch } = useDashboardData<ExecutiveSummary>(
     "/api/dashboard/executive-summary",
   );

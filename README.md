@@ -1,4 +1,14 @@
-# ApotekIn
+# Healtech 2026
+Nama TIM: **Asik Asikin Aja CLAN**
+Daftar Anggota:
+- Damar Syahada Kusuma
+- Ahmad Irfan Ma'ruf
+- Raihan Yassar Tsaqib
+
+
+---
+
+## ApotekIn
 
 Aplikasi manajemen inventaris dan operasional apotek berbasis web. Mendukung pelacakan stok per batch (kedaluwarsa & harga), alur pembelian (PO) dengan penerimaan parsial, rekonsiliasi stok (*stock opname*), laporan PDF, dan modul analitik AI.
 
@@ -24,7 +34,7 @@ Aplikasi manajemen inventaris dan operasional apotek berbasis web. Mendukung pel
 | **Database & ORM** | PostgreSQL, Prisma 7 (`@prisma/adapter-pg`) |
 | **Autentikasi** | NextAuth.js (JWT, bcryptjs, jose) |
 | **Storage** | Supabase Storage |
-| **Library UI/PDF** | Lucide Icons, Chart.js, `@react-pdf/renderer` |
+| **Library UI/PDF** | Lucide Icons, Chart.js, react-chartjs, `@react-pdf/renderer` |
 | **Validasi Schema** | Zod |
 
 ---
@@ -51,15 +61,16 @@ pnpm install
 Buat file `.env` di root project:
 
 ```env
-DATABASE_URL="postgresql://user:password@localhost:5432/apotekin"
+JWT_SECRET=""
 
-NEXT_PUBLIC_SUPABASE_URL="[https://xxxxx.supabase.co](https://xxxxx.supabase.co)"
-NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key"
-SUPABASE_SERVICE_ROLE_KEY="your-service-role-key"
+NEXTAUTH_URL=""
+NEXTAUTH_SECRET=""
 
-NEXTAUTH_URL="http://localhost:3000"
-NEXTAUTH_SECRET="your-nextauth-secret"
+DATABASE_URL=""
+DIRECT_URL=""
 
+NEXT_PUBLIC_SUPABASE_URL=""
+NEXT_PUBLIC_SUPABASE_ANON_KEY=""
 ```
 
 ### 3. Database Migration & Seeding
@@ -99,16 +110,6 @@ ApotekIn/
 └── middleware.ts           # Route protection & session validation
 
 ```
-
----
-
-## Skema Database Utama
-
-* **User:** Kredensial, role RBAC, dan nomor SIPA.
-* **Item & Batch:** Katalog obat/bahan dan pelacakan batch kedaluwarsa/harga.
-* **PurchaseOrder & StockReceipt:** Alur pembelian ke supplier hingga penerimaan barang.
-* **StockOut & StockAudit:** Pencatatan penyesuaian/pengeluaran stok dan rekonsiliasi fisik.
-* **AiInsight:** Log hasil pemrosesan data analitik/AI.
 
 ---
 

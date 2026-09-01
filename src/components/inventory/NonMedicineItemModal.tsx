@@ -38,12 +38,14 @@ interface NonMedicineItemModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   item?: any | null;
+  onSuccess?: () => void;
 }
 
 export function NonMedicineItemModal({
   open,
   onOpenChange,
   item,
+  onSuccess,
 }: NonMedicineItemModalProps) {
   const isEdit = Boolean(item);
 
@@ -164,7 +166,11 @@ export function NonMedicineItemModal({
       }
 
       onOpenChange(false);
-      router.refresh();
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        router.refresh();
+      }
     } catch (error) {
       console.error("NON MEDICINE SUBMIT ERROR:", error);
 
@@ -580,7 +586,11 @@ export function NonMedicineItemModal({
           onSaved={() => {
             setBatchModalOpen(false);
             setSelectedBatch(null);
-            router.refresh();
+            if (onSuccess) {
+              onSuccess();
+            } else {
+              router.refresh();
+            }
           }}
         />
       )}

@@ -38,6 +38,7 @@ interface CompoundItemModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   item?: CompoundItem | null;
+  onSuccess?: () => void;
 }
 
 const emptyForm: CompoundFormData = {
@@ -67,7 +68,12 @@ const COMPOUND_UNITS = [
   { value: "SACHET", label: "Sachet" },
 ];
 
-export function CompoundItemModal({ open, onOpenChange, item }: CompoundItemModalProps) {
+export function CompoundItemModal({
+  open,
+  onOpenChange,
+  item,
+  onSuccess,
+}: CompoundItemModalProps) {
   const [form, setForm] = useState<CompoundFormData>(emptyForm);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -202,7 +208,11 @@ export function CompoundItemModal({ open, onOpenChange, item }: CompoundItemModa
 
       onOpenChange(false);
 
-      window.location.reload();
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        window.location.reload();
+      }
     } catch (err) {
       console.error("COMPOUND ITEM ERROR:", err);
 
@@ -266,7 +276,11 @@ export function CompoundItemModal({ open, onOpenChange, item }: CompoundItemModa
         showConfirmButton: false,
       });
 
-      window.location.reload();
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        window.location.reload();
+      }
     } catch (error) {
       console.error("Failed to delete batch:", error);
       await Swal.fire({
@@ -658,7 +672,11 @@ export function CompoundItemModal({ open, onOpenChange, item }: CompoundItemModa
           itemUnit={form.unit}
           batch={selectedBatch}
           onSaved={() => {
-            window.location.reload();
+            if (onSuccess) {
+              onSuccess();
+            } else {
+              window.location.reload();
+            }
           }}
         />
       )}

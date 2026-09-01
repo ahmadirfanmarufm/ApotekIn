@@ -38,9 +38,15 @@ interface OtcItemModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   item?: any | null;
+  onSuccess?: () => void;
 }
 
-export function OtcItemModal({ open, onOpenChange, item }: OtcItemModalProps) {
+export function OtcItemModal({
+  open,
+  onOpenChange,
+  item,
+  onSuccess,
+}: OtcItemModalProps) {
   const isEdit = Boolean(item);
 
   const router = useRouter();
@@ -160,7 +166,11 @@ export function OtcItemModal({ open, onOpenChange, item }: OtcItemModalProps) {
       }
 
       onOpenChange(false);
-      router.refresh();
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        router.refresh();
+      }
     } catch (error) {
       console.error("OTC SUBMIT ERROR:", error);
 
@@ -576,7 +586,11 @@ export function OtcItemModal({ open, onOpenChange, item }: OtcItemModalProps) {
           onSaved={() => {
             setBatchModalOpen(false);
             setSelectedBatch(null);
-            router.refresh();
+            if (onSuccess) {
+              onSuccess();
+            } else {
+              router.refresh();
+            }
           }}
         />
       )}

@@ -14,6 +14,7 @@ import {
   Boxes,
 } from "lucide-react";
 import { useState } from "react";
+import { CompoundItemModal } from "./CompoundItemModal";
 
 export type CompoundBatchDetailItem = {
   id: string;
@@ -115,8 +116,9 @@ export function CompoundBatchDetail({ item }: CompoundBatchDetailProps) {
 
   const critical = totalStock <= item.minStock;
 
-  const stockPercentage =
-    item.maxStock > 0 ? Math.min((totalStock / item.maxStock) * 100, 100) : 0;
+  const restockQuantity = Math.max(item.maxStock - totalStock, 0);
+
+  const stockPercentage = item.maxStock > 0 ? Math.min((totalStock / item.maxStock) * 100, 100) : 0;
 
   const activeBatches = item.batches.filter((batch) => batch.quantity > 0);
 
@@ -189,13 +191,30 @@ export function CompoundBatchDetail({ item }: CompoundBatchDetailProps) {
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row">
-          <Link
-            href={`/inventory/incoming?itemId=${item.id}&quantity=${recommendedRestock}&mode=restock`}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600"
-          >
-            <ShoppingCart size={16} />
-            Restock
-          </Link>
+          {restockQuantity > 0 ? (
+            <Link
+              href={{
+                pathname: "/purchase-order",
+                query: {
+                  itemId: item.id,
+                  quantity: restockQuantity,
+                  mode: "restock",
+                },
+              }}
+              className="inline-flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-600 transition hover:bg-emerald-100"
+            >
+              <ShoppingCart size={16} />
+              Restock
+            </Link>
+          ) : (
+            <span
+              className="inline-flex cursor-not-allowed items-center gap-2 rounded-xl bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-400"
+              title="Stok sudah mencapai batas maksimum"
+            >
+              <ShoppingCart size={16} />
+              Stok Maksimal
+            </span>
+          )}
 
           <button
             type="button"
@@ -738,6 +757,12 @@ export function CompoundBatchDetail({ item }: CompoundBatchDetailProps) {
           )}
         </div>
       </div>
+
+      <CompoundItemModal
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        item={selectedItem}
+      />
     </div>
   );
 }

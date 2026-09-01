@@ -1,31 +1,93 @@
-import React from 'react';
+import { Activity, Sparkles } from "lucide-react";
 
-export function ReportsTopSection() {
-    return (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+interface ReportsTopSectionProps {
+  summary: {
+    healthScore: number;
+    message: string;
+  };
+  periodLabel: string;
+}
 
-            <div className="lg:col-span-2 bg-emerald-50/50 rounded-2xl border border-emerald-100 p-6 shadow-sm flex flex-col justify-between">
-                <div className="flex items-center gap-3 mb-3">
-                    <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-[#22C55E]">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" /></svg>
-                    </div>
-                    <h2 className="text-lg font-bold font-manrope text-slate-900">AI Executive Summary</h2>
-                </div>
-                <p className="text-slate-600 text-sm leading-relaxed">
-                    Kinerja operasional bulan ini berada <span className="text-[#22C55E] font-semibold">12% di atas tolok ukur</span>. Pendapatan telah stabil setelah optimalisasi rantai pasok pada Kuartal 1. Kami melihat adanya peluang signifikan untuk menekan biaya penyimpanan sebesar 8% dengan menyesuaikan tingkat stok antibiotik musiman dengan tingkat pemenuhan pesanan sebesar 99,4%.
-                </p>
-            </div>
+export function ReportsTopSection({ summary, periodLabel }: ReportsTopSectionProps) {
+  const scoreColor =
+    summary.healthScore >= 80
+      ? "text-emerald-600"
+      : summary.healthScore >= 60
+        ? "text-amber-500"
+        : "text-red-500";
 
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col items-center justify-between">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Skor Kesehatan Global</span>
-                <div className="relative w-24 h-24 rounded-full border-8 border-green-100 flex items-center justify-center border-t-[#22C55E] my-2">
-                    <span className="text-2xl font-bold font-manrope text-slate-900">92%</span>
-                </div>
-                <p className="text-xs font-semibold text-[#22C55E] flex items-center gap-1">
-                    <span>↗</span> +3.4% this week
-                </p>
-            </div>
+  const ringColor =
+    summary.healthScore >= 80
+      ? "#22c55e"
+      : summary.healthScore >= 60
+        ? "#f59e0b"
+        : "#ef4444";
 
+  const circumference = 2 * Math.PI * 40;
+  const offset = circumference - (summary.healthScore / 100) * circumference;
+
+  return (
+    <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3">
+      <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-5 shadow-sm sm:p-6 lg:col-span-2">
+        <div className="mb-4 flex items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
+            <Sparkles className="h-5 w-5" />
+          </div>
+
+          <div className="min-w-0">
+            <h2 className="font-manrope text-base font-bold text-slate-900 sm:text-lg">
+              Ringkasan Inventaris
+            </h2>
+            <p className="truncate text-xs text-slate-500">
+              Berdasarkan {periodLabel.toLowerCase()}
+            </p>
+          </div>
         </div>
-    );
+
+        <p className="text-sm leading-relaxed text-slate-600">{summary.message}</p>
+      </div>
+
+      <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+          <Activity className="h-4 w-4" />
+          Kesehatan Inventaris
+        </div>
+
+        <div className="relative my-3 flex h-28 w-28 items-center justify-center">
+          <svg viewBox="0 0 100 100" className="h-28 w-28 -rotate-90">
+            <circle
+              cx="50"
+              cy="50"
+              r="40"
+              fill="none"
+              stroke="#e2e8f0"
+              strokeWidth="8"
+            />
+            <circle
+              cx="50"
+              cy="50"
+              r="40"
+              fill="none"
+              stroke={ringColor}
+              strokeWidth="8"
+              strokeLinecap="round"
+              strokeDasharray={circumference}
+              strokeDashoffset={offset}
+              style={{ transition: "stroke-dashoffset 0.6s ease" }}
+            />
+          </svg>
+
+          <span
+            className={`absolute font-manrope text-2xl font-bold ${scoreColor}`}
+          >
+            {Math.round(summary.healthScore)}%
+          </span>
+        </div>
+
+        <p className="text-center text-xs text-slate-500">
+          Berdasarkan kondisi stok aktif, stok minimum, dan barang kedaluwarsa.
+        </p>
+      </div>
+    </div>
+  );
 }

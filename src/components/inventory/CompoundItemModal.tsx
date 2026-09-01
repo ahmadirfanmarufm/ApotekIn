@@ -67,11 +67,7 @@ const COMPOUND_UNITS = [
   { value: "SACHET", label: "Sachet" },
 ];
 
-export function CompoundItemModal({
-  open,
-  onOpenChange,
-  item,
-}: CompoundItemModalProps) {
+export function CompoundItemModal({ open, onOpenChange, item }: CompoundItemModalProps) {
   const [form, setForm] = useState<CompoundFormData>(emptyForm);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -296,7 +292,7 @@ export function CompoundItemModal({
       >
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100 bg-white px-5 py-4 sm:px-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-500">
               <Beaker size={20} />
             </div>
 
@@ -349,7 +345,7 @@ export function CompoundItemModal({
                   value={form.name}
                   onChange={(e) => updateField("name", e.target.value)}
                   placeholder="Contoh: Paracetamol"
-                  className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
+                  className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                 />
               </div>
 
@@ -379,7 +375,7 @@ export function CompoundItemModal({
                 <select
                   value={form.unit}
                   onChange={(e) => updateField("unit", e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                 >
                   <option value="">Pilih satuan</option>
 
@@ -401,7 +397,7 @@ export function CompoundItemModal({
                   min="0"
                   value={form.minStock}
                   onChange={(e) => updateField("minStock", e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
+                  className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                 />
               </div>
 
@@ -415,7 +411,7 @@ export function CompoundItemModal({
                   min="0"
                   value={form.maxStock}
                   onChange={(e) => updateField("maxStock", e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
+                  className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                 />
               </div>
 
@@ -429,14 +425,14 @@ export function CompoundItemModal({
                   value={form.description}
                   onChange={(e) => updateField("description", e.target.value)}
                   placeholder="Contoh: Digunakan untuk racikan demam dan nyeri..."
-                  className="w-full resize-none rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
+                  className="w-full resize-none rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                 />
               </div>
             </div>
           </section>
 
           {!isEdit && (
-            <section className="rounded-2xl border border-violet-100 bg-violet-50/40 p-4 sm:p-5">
+            <section className="rounded-2xl border border-emerald-100 bg-emerald-50/40 p-4 sm:p-5">
               <div className="mb-4">
                 <h3 className="text-sm font-bold text-slate-800">Batch Awal</h3>
 
@@ -456,7 +452,7 @@ export function CompoundItemModal({
                     value={form.batchNumber}
                     onChange={(e) => updateField("batchNumber", e.target.value)}
                     placeholder="BTH-2026-001"
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                   />
                 </div>
 
@@ -472,7 +468,7 @@ export function CompoundItemModal({
                       value={form.quantity}
                       onChange={(e) => updateField("quantity", e.target.value)}
                       placeholder="100"
-                      className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 pr-16 text-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 pr-16 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                     />
 
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">
@@ -491,7 +487,7 @@ export function CompoundItemModal({
                     type="date"
                     value={form.expiryDate}
                     onChange={(e) => updateField("expiryDate", e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                   />
                 </div>
 
@@ -506,7 +502,7 @@ export function CompoundItemModal({
                     value={form.buyPrice}
                     onChange={(e) => updateField("buyPrice", e.target.value)}
                     placeholder="0"
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                   />
                 </div>
 
@@ -521,7 +517,7 @@ export function CompoundItemModal({
                     value={form.sellPrice}
                     onChange={(e) => updateField("sellPrice", e.target.value)}
                     placeholder="0"
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                   />
                 </div>
               </div>
@@ -617,7 +613,7 @@ export function CompoundItemModal({
                     <button
                       type="button"
                       onClick={handleAddBatch}
-                      className="mt-3 text-sm font-medium text-violet-600 hover:text-violet-700"
+                      className="mt-3 text-sm font-medium text-emerald-500 hover:text-emerald-700"
                     >
                       + Tambahkan batch
                     </button>
@@ -640,7 +636,7 @@ export function CompoundItemModal({
             <button
               type="submit"
               disabled={loading}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
             >
               {loading && <Loader2 size={16} className="animate-spin" />}
 

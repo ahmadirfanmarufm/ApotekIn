@@ -1,86 +1,156 @@
-import React from 'react';
+"use client";
 
-export function AnalyticsSection() {
-    return (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+import {
+  ArrowDownRight,
+  ArrowUpRight,
+  BarChart3,
+  Truck,
+} from "lucide-react";
 
-            <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between">
-                <div className="flex justify-between items-center mb-6">
-                    <div>
-                        <h3 className="text-lg font-bold font-manrope text-slate-900">Trend Inventaris</h3>
-                    </div>
-                    <div className="border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-600 bg-slate-50 flex items-center gap-2 cursor-pointer">
-                        Last 6 Months <span>▼</span>
-                    </div>
-                </div>
+import type {
+  InventoryTrend,
+  SupplierPerformance,
+} from "@/types/report";
 
-                <div className="h-48 border-b border-slate-100 flex items-end justify-between px-4 pb-2 relative">
-                    <div className="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-40">
-                        <div className="border-b border-slate-100 w-full"></div>
-                        <div className="border-b border-slate-100 w-full"></div>
-                        <div className="border-b border-slate-100 w-full"></div>
-                    </div>
-                    <div className="w-12 bg-blue-100/60 rounded-t h-[40%]"></div>
-                    <div className="w-12 bg-blue-100/60 rounded-t h-[55%]"></div>
-                    <div className="w-12 bg-blue-100/60 rounded-t h-[45%]"></div>
-                    <div className="w-12 bg-blue-100/60 rounded-t h-[70%]"></div>
-                    <div className="w-12 bg-blue-100/60 rounded-t h-[60%]"></div>
-                    <div className="w-12 bg-[#22C55E]/80 rounded-t h-[85%]"></div>
-                </div>
+import { InventoryTrendChart } from "./InventoryTrendChart";
 
-                <div className="flex justify-between text-xs text-slate-400 font-medium pt-3 px-2">
-                    <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span>
-                </div>
+interface AnalyticsSectionProps {
+  trends: InventoryTrend[];
+  suppliers: SupplierPerformance[];
+  periodLabel: string;
+}
 
-                <div className="flex gap-6 text-xs font-medium text-slate-600 mt-4 pt-2">
-                    <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-blue-400"></span> Revenue</div>
-                    <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-[#22C55E]"></span> Expenses</div>
-                </div>
+export function AnalyticsSection({ trends, suppliers, periodLabel }: AnalyticsSectionProps) {
+  return (
+    <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3">
+      {/* INVENTORY TREND */}
+      <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5 lg:col-span-2 lg:p-6">
+        <div className="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 shrink-0 text-emerald-500" />
+
+              <h3 className="font-manrope text-base font-bold text-slate-900 sm:text-lg">
+                Tren Pergerakan Inventaris
+              </h3>
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between">
-                <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-bold font-manrope text-slate-900">Keandalan Pemasok</h3>
-                    <button className="text-slate-400 hover:text-slate-600 font-bold">⋮</button>
-                </div>
-                <p className="text-xs text-slate-400 mb-4">Perbandingan kinerja berdasarkan waktu tunggu dan kualitas</p>
+            <p className="mt-1 text-xs leading-relaxed text-slate-400 sm:truncate">
+              Aktivitas stok berdasarkan {periodLabel.toLowerCase()}
+            </p>
+          </div>
 
-                <div className="space-y-3 flex-1 flex flex-col justify-between">
-                    <div className="p-3 rounded-xl border border-slate-100 bg-slate-50 flex items-center justify-between">
-                        <div>
-                            <span className="text-xs font-bold text-slate-800">BioPharma Global</span>
-                            <p className="text-[11px] text-slate-400">Fulfillment: 99.4%</p>
-                        </div>
-                        <div className="text-right">
-                            <span className="text-sm font-bold text-slate-900">2.1 Days</span>
-                            <p className="text-[10px] text-slate-400">Avg. Lead Time</p>
-                        </div>
-                    </div>
-
-                    <div className="p-3 rounded-xl border border-slate-100 bg-slate-50 flex items-center justify-between">
-                        <div>
-                            <span className="text-xs font-bold text-slate-800">MedSupply Inc.</span>
-                            <p className="text-[11px] text-slate-400">Fulfillment: 94.2%</p>
-                        </div>
-                        <div className="text-right">
-                            <span className="text-sm font-bold text-slate-900">3.8 Days</span>
-                            <p className="text-[10px] text-slate-400">Avg. Lead Time</p>
-                        </div>
-                    </div>
-
-                    <div className="p-3 rounded-xl border border-slate-100 bg-slate-50 flex items-center justify-between">
-                        <div>
-                            <span className="text-xs font-bold text-slate-800">HealthSource Co.</span>
-                            <p className="text-[11px] text-slate-400">Fulfillment: 88.7%</p>
-                        </div>
-                        <div className="text-right">
-                            <span className="text-sm font-bold text-red-500">5.4 Days</span>
-                            <p className="text-[10px] text-slate-400">Avg. Lead Time</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
+          <div className="inline-flex w-fit shrink-0 items-center rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-500">
+            Stok Masuk vs Keluar
+          </div>
         </div>
-    );
+
+        {trends.length === 0 ? (
+          <div className="flex h-[240px] flex-col items-center justify-center text-center sm:h-[320px]">
+            <BarChart3 className="mb-3 h-10 w-10 text-slate-300" />
+
+            <p className="text-sm font-medium text-slate-500">
+              Belum ada data transaksi
+            </p>
+
+            <p className="mt-1 max-w-xs text-xs text-slate-400">
+              Data stok masuk dan stok keluar akan muncul di sini.
+            </p>
+          </div>
+        ) : (
+          <InventoryTrendChart trends={trends} />
+        )}
+      </div>
+
+      {/* SUPPLIER PERFORMANCE */}
+      <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5 lg:p-6">
+        <div className="mb-4 flex items-center gap-2 sm:mb-5">
+          <Truck className="h-5 w-5 shrink-0 text-emerald-500" />
+
+          <div className="min-w-0">
+            <h3 className="font-manrope text-base font-bold text-slate-900 sm:text-lg">
+              Performa Pemasok
+            </h3>
+
+            <p className="text-xs text-slate-400">
+              Berdasarkan purchase order
+            </p>
+          </div>
+        </div>
+
+        {suppliers.length === 0 ? (
+          <div className="flex min-h-[200px] flex-col items-center justify-center text-center sm:min-h-[240px]">
+            <Truck className="mb-3 h-9 w-9 text-slate-300" />
+
+            <p className="text-sm font-medium text-slate-500">
+              Belum ada data pemasok
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {suppliers.slice(0, 5).map((supplier) => {
+              const isGood = supplier.fulfillmentRate >= 80;
+
+              return (
+                <div
+                  key={supplier.id}
+                  className="rounded-xl border border-slate-100 bg-slate-50 p-3"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-bold text-slate-800">
+                        {supplier.name}
+                      </p>
+
+                      <p className="mt-1 text-[11px] text-slate-400">
+                        {supplier.completedOrders}/{supplier.totalOrders} pesanan selesai
+                      </p>
+                    </div>
+
+                    <div className="shrink-0 text-right">
+                      <div
+                        className={`flex items-center justify-end gap-1 text-xs font-bold ${
+                          isGood
+                            ? "text-emerald-600"
+                            : "text-amber-500"
+                        }`}
+                      >
+                        {isGood ? (
+                          <ArrowUpRight className="h-3 w-3" />
+                        ) : (
+                          <ArrowDownRight className="h-3 w-3" />
+                        )}
+
+                        {supplier.fulfillmentRate.toFixed(1)}%
+                      </div>
+
+                      <p className="mt-1 text-[10px] text-slate-400">
+                        {supplier.averageLeadTime.toFixed(1)} hari
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-200">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${
+                        isGood
+                          ? "bg-emerald-500"
+                          : "bg-amber-400"
+                      }`}
+                      style={{
+                        width: `${Math.min(
+                          supplier.fulfillmentRate,
+                          100,
+                        )}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }

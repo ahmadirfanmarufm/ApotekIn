@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { Package, Thermometer, Container } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 

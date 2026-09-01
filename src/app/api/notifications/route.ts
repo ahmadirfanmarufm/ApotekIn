@@ -213,7 +213,7 @@ async function persistDraftsForAllUsers(
     priority: NotificationPriority;
     actionLink: string;
     actionLabel: string;
-    metadata: Record<string, unknown>;
+    metadata: object;
   }[] = [];
 
   for (const userId of userIds) {

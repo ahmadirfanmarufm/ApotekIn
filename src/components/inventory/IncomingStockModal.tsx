@@ -151,7 +151,7 @@ function IncomingStockModalContent({
 
         setPoDetail(data.data);
 
-        let mappedItems = mapPoItemsToForms(data.data.items, 1);
+        const mappedItems = mapPoItemsToForms(data.data.items, 1);
 
         setItems(mappedItems);
 

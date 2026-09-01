@@ -334,10 +334,12 @@ export default function IncomingStockPage() {
             </thead>
 
             <tbody className="divide-y divide-slate-100">
-              {receipts.length === 0 && !isLoading && (
+              {filteredReceipts.length === 0 && !isLoading && (
                 <tr>
                   <td colSpan={6} className="p-5 text-center text-slate-500">
-                    Tidak ada data stok masuk.
+                    {filteredReceipts.length === 0
+                      ? "Tidak ada data stok masuk."
+                      : "Tidak ada transaksi yang cocok dengan filter."}
                   </td>
                 </tr>
               )}

@@ -290,7 +290,7 @@ export default function OutgoingStockPage() {
               {filteredStockOuts.length === 0 && !isLoading && (
                 <tr>
                   <td colSpan={7} className="p-5 text-center text-slate-500">
-                    {stockOuts.length === 0
+                    {filteredStockOuts.length === 0
                       ? "Tidak ada data stok keluar."
                       : "Tidak ada transaksi yang cocok dengan filter."}
                   </td>

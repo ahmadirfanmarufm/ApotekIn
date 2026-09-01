@@ -170,6 +170,195 @@ async function main() {
   }
   console.log(`Created ${createdUsers.length} users.\n`);
 
+  const permissions = [
+    {
+      code: "dashboard.view",
+      name: "Melihat Dashboard",
+      description: "Mengakses halaman dashboard.",
+    },
+
+    // Inventory
+    {
+      code: "inventory.view",
+      name: "Melihat Inventory",
+      description: "Melihat data inventory.",
+    },
+    {
+      code: "inventory.create",
+      name: "Menambah Inventory",
+      description: "Menambahkan item inventory.",
+    },
+    {
+      code: "inventory.update",
+      name: "Mengubah Inventory",
+      description: "Mengubah data item inventory.",
+    },
+    {
+      code: "inventory.delete",
+      name: "Menghapus Inventory",
+      description: "Menghapus item inventory.",
+    },
+
+    // Stock In
+    {
+      code: "stock_in.view",
+      name: "Melihat Stok Masuk",
+      description: "Melihat riwayat dan data stok masuk.",
+    },
+    {
+      code: "stock_in.create",
+      name: "Menambahkan Stok Masuk",
+      description: "Membuat transaksi stok masuk.",
+    },
+    {
+      code: "stock_in.update",
+      name: "Mengubah Stok Masuk",
+      description: "Mengubah transaksi stok masuk.",
+    },
+
+    // Stock Out
+    {
+      code: "stock_out.view",
+      name: "Melihat Stok Keluar",
+      description: "Melihat riwayat dan data stok keluar.",
+    },
+    {
+      code: "stock_out.create",
+      name: "Menambahkan Stok Keluar",
+      description: "Membuat transaksi stok keluar.",
+    },
+    {
+      code: "stock_out.update",
+      name: "Mengubah Stok Keluar",
+      description: "Mengubah transaksi stok keluar.",
+    },
+
+    // Purchase Order
+    {
+      code: "purchase_order.view",
+      name: "Melihat Purchase Order",
+      description: "Melihat data purchase order.",
+    },
+    {
+      code: "purchase_order.create",
+      name: "Membuat Purchase Order",
+      description: "Membuat purchase order baru.",
+    },
+    {
+      code: "purchase_order.update",
+      name: "Mengubah Purchase Order",
+      description: "Mengubah purchase order.",
+    },
+    {
+      code: "purchase_order.approve",
+      name: "Menyetujui Purchase Order",
+      description: "Menyetujui purchase order.",
+    },
+
+    // Supplier
+    {
+      code: "supplier.view",
+      name: "Melihat Supplier",
+      description: "Melihat data supplier.",
+    },
+    {
+      code: "supplier.create",
+      name: "Menambahkan Supplier",
+      description: "Menambahkan supplier baru.",
+    },
+    {
+      code: "supplier.update",
+      name: "Mengubah Supplier",
+      description: "Mengubah data supplier.",
+    },
+    {
+      code: "supplier.delete",
+      name: "Menghapus Supplier",
+      description: "Menghapus supplier.",
+    },
+
+    // Reports
+    {
+      code: "reports.view",
+      name: "Melihat Reports",
+      description: "Melihat laporan dan analytics.",
+    },
+    {
+      code: "reports.export",
+      name: "Export Reports",
+      description: "Mengekspor laporan.",
+    },
+
+    // AI Insight
+    {
+      code: "ai_insight.view",
+      name: "Melihat AI Insight",
+      description: "Melihat insight yang dihasilkan sistem.",
+    },
+    {
+      code: "ai_insight.generate",
+      name: "Generate AI Insight",
+      description: "Menghasilkan AI insight baru.",
+    },
+
+    // Notifications
+    {
+      code: "notifications.view",
+      name: "Melihat Notifikasi",
+      description: "Melihat notifikasi pengguna.",
+    },
+    {
+      code: "notifications.manage",
+      name: "Mengelola Notifikasi",
+      description: "Mengelola status dan data notifikasi.",
+    },
+
+    // User Management
+    {
+      code: "user_management.view",
+      name: "Melihat Manajemen User",
+      description: "Melihat daftar pengguna.",
+    },
+    {
+      code: "user_management.create",
+      name: "Menambahkan User",
+      description: "Menambahkan pengguna baru.",
+    },
+    {
+      code: "user_management.update",
+      name: "Mengubah User",
+      description: "Mengubah data pengguna.",
+    },
+    {
+      code: "user_management.delete",
+      name: "Menghapus User",
+      description: "Menghapus pengguna.",
+    },
+
+    // Permission
+    {
+      code: "permission.manage",
+      name: "Mengatur Permission User",
+      description: "Mengatur permission pengguna.",
+    },
+  ];
+
+  for (const permission of permissions) {
+    await prisma.permission.upsert({
+      where: {
+        code: permission.code,
+      },
+      update: {
+        name: permission.name,
+        description: permission.description,
+      },
+      create: permission,
+    });
+  }
+
+  console.log(`Created/updated ${permissions.length} permissions.\n`);
+
+
   const pickByRole = (role: Role) =>
     createdUsers.find((usr) => usr.role === role)!;
   const logistikUser = pickByRole(Role.ADMIN_LOGISTIK);

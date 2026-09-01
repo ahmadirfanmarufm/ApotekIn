@@ -1,7 +1,9 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { prisma, ItemCategory } from "@/prisma/config";
 import { OtcBatchDetail } from "@/components/inventory/OtcBatchDetail";
+import { auth } from "@/lib/auth";
+import { getUserPermissions } from "@/lib/permission";
 
 interface OtcBatchDetailPageProps {
   params: Promise<{
@@ -9,9 +11,19 @@ interface OtcBatchDetailPageProps {
   }>;
 }
 
-export default async function OtcBatchDetailPage({
-  params,
-}: OtcBatchDetailPageProps) {
+export default async function OtcBatchDetailPage({ params }: OtcBatchDetailPageProps) {
+  const session = await auth();
+  
+  if (!session?.user?.id || !session.user.role) {
+      redirect("/login");
+  }
+
+  const permissions = await getUserPermissions(session.user.id, session.user.role);
+
+  if (!permissions.includes("*") && !permissions.includes("inventory.view")) {
+        redirect("/not-permission");
+    }
+
   const { id } = await params;
 
   const item = await prisma.item.findFirst({

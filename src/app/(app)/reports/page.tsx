@@ -1,6 +1,21 @@
 import { ReportsClient } from "@/components/reports/ReportsClient";
+import { auth } from "@/lib/auth";
+import { getUserPermissions } from "@/lib/permission";
+import { redirect } from "next/navigation";
 
-export default function ReportsPage() {
+export default async function ReportsPage() {
+  const session = await auth();
+  
+  if (!session?.user?.id || !session.user.role) {
+      redirect("/login");
+  }
+
+  const permissions = await getUserPermissions(session.user.id, session.user.role);
+
+  if (!permissions.includes("reports.view")) {
+      redirect("/not-permission");
+  }
+
   return (
     <div className="mx-auto w-full max-w-[1600px] space-y-4 pb-6 sm:space-y-5 sm:pb-8 lg:space-y-6 lg:pb-10">
       <div className="print:hidden">

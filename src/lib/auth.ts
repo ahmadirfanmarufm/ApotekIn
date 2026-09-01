@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth/next";
 import type { NextAuthOptions, Session, User } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import type { JWT } from "next-auth/jwt";
+import type { Role } from "@/prisma/config";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/prisma/config";
 import { loginSchema } from "@/lib/validations/auth";
@@ -93,7 +94,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.name = user.name;
-        token.role = (user as { role?: string }).role;
+        token.role = user.role;
         token.picture = user.image;
       }
 
@@ -103,9 +104,10 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.name = token.name ?? session.user.name;
-        session.user.role = token.role as string;
+        session.user.role = token.role as Role;
         session.user.image = (token.picture as string) || null;
       }
+
       return session;
     },
   },

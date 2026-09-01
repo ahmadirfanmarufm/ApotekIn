@@ -93,8 +93,51 @@ model User {
   stockIns             StockInTransaction[]  @relation("StockIn_CreatedBy")
   stockOutTransactions StockOutTransaction[] @relation("StockOutTxn_CreatedBy")
   notifications        Notification[]
+  permissions          UserPermission[]
 
   @@map("users")
+}
+
+enum PermissionAction {
+  VIEW
+  CREATE
+  UPDATE
+  DELETE
+  APPROVE
+  EXPORT
+  MANAGE
+}
+
+model Permission {
+  id          String  @id @default(cuid())
+  code        String  @unique
+  name        String
+  description String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userPermissions UserPermission[]
+
+  @@map("permissions")
+}
+
+model UserPermission {
+  id String @id @default(cuid())
+
+  userId       String
+  permissionId String
+
+  allowed Boolean @default(true)
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, permissionId])
+  @@map("user_permissions")
 }
 
 model Supplier {

@@ -13,9 +13,7 @@ interface NonMedicineInventoryClientProps {
   items: NonMedicineInventoryItem[];
 }
 
-export function NonMedicineInventoryClient({
-  items,
-}: NonMedicineInventoryClientProps) {
+export function NonMedicineInventoryClient({ items }: NonMedicineInventoryClientProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
 

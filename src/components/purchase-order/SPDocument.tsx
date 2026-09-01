@@ -301,7 +301,7 @@ export function SPDocument({ po }: SPDocumentProps) {
                 {formatCurrency(item.unitPrice)}
               </Text>
               <Text style={styles.colSubtotal}>
-                {formatCurrency(item.receivedQty * Number(item.unitPrice ?? 0))}
+                {formatCurrency(item.orderedQty * Number(item.unitPrice ?? 0))}
               </Text>
             </View>
           ))}

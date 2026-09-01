@@ -30,6 +30,11 @@ interface NavItem {
   href?: string;
   icon: LucideIcon;
   children?: NavChild[];
+  permission?: string;
+}
+
+interface SidebarProps {
+  permissions: string[];
 }
 
 const navItems: NavItem[] = [
@@ -37,10 +42,12 @@ const navItems: NavItem[] = [
     label: "Dashboard",
     href: "/dashboard",
     icon: LayoutDashboard,
+    permission: "dashboard.view",
   },
   {
     label: "Inventory",
     icon: Archive,
+    permission: "inventory.view",
     children: [
       {
         label: "Obat OTC",
@@ -68,11 +75,13 @@ const navItems: NavItem[] = [
     label: "Purchase Order",
     href: "/purchase-order",
     icon: Receipt,
+    permission: "purchase_order.view",
   },
   {
     label: "Supplier",
     href: "/supplier",
     icon: Truck,
+    permission: "supplier.view",
   },
   {
     label: "Stock Audit",
@@ -83,16 +92,19 @@ const navItems: NavItem[] = [
     label: "AI Insights",
     href: "/ai-insights",
     icon: BrainCircuit,
+    permission: "ai_insight.view",
   },
   {
     label: "Reports",
     href: "/reports",
     icon: BarChart3,
+    permission: "reports.view",
   },
   {
     label: "Manage Users",
     href: "/user-management",
     icon: Users,
+    permission: "user_management.view",
   },
   {
     label: "Settings",
@@ -101,12 +113,23 @@ const navItems: NavItem[] = [
   },
 ];
 
-export function Sidebar() {
+export function Sidebar({ permissions }: SidebarProps) {
   const pathname = usePathname();
 
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(() => {
     return pathname.startsWith("/inventory") ? "Inventory" : null;
   });
+
+  const hasPermission = (permission?: string) => {
+    if (!permission) {
+      return true;
+    }
+
+    return (
+      permissions.includes("*") ||
+      permissions.includes(permission)
+    );
+  };
 
   const isActive = (path?: string) => {
     return Boolean(path && pathname === path);
@@ -123,6 +146,10 @@ export function Sidebar() {
       callbackUrl: "/login",
     });
   };
+
+  const visibleNavItems = navItems.filter((item) =>
+    hasPermission(item.permission),
+  );
 
   return (
     <aside className="fixed left-0 top-0 z-20 flex h-screen w-64 flex-col justify-between border-r border-slate-200 bg-white p-6">
@@ -141,14 +168,15 @@ export function Sidebar() {
         </div>
 
         <nav className="flex-1 space-y-1.5 overflow-y-auto pr-1">
-          {navItems.map((item) => {
+          {visibleNavItems.map((item) => {
             const Icon = item.icon;
             const hasChildren = Boolean(item.children?.length);
-
             const isItemActive = isActive(item.href);
 
             const isChildActive =
-              item.children?.some((child) => isActive(child.href)) ?? false;
+              item.children?.some((child) =>
+                isActive(child.href),
+              ) ?? false;
 
             const isOpen = openSubmenu === item.label;
 
@@ -167,7 +195,6 @@ export function Sidebar() {
                   >
                     <div className="flex items-center gap-3.5 pl-1">
                       <Icon className="h-5 w-5 shrink-0" />
-
                       <span>{item.label}</span>
                     </div>
 
@@ -180,23 +207,19 @@ export function Sidebar() {
 
                   {isOpen && (
                     <div className="space-y-1 pl-10 pr-2">
-                      {item.children?.map((child) => {
-                        const childActive = isActive(child.href);
-
-                        return (
-                          <Link
-                            key={child.href}
-                            href={child.href}
-                            className={`block rounded-lg px-3 py-2 text-sm transition-colors ${
-                              childActive
-                                ? "bg-emerald-100/70 font-semibold text-emerald-700"
-                                : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
-                            }`}
-                          >
-                            {child.label}
-                          </Link>
-                        );
-                      })}
+                      {item.children?.map((child) => (
+                        <Link
+                          key={child.href}
+                          href={child.href}
+                          className={`block rounded-lg px-3 py-2 text-sm transition-colors ${
+                            isActive(child.href)
+                              ? "bg-emerald-100/70 font-semibold text-emerald-700"
+                              : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                          }`}
+                        >
+                          {child.label}
+                        </Link>
+                      ))}
                     </div>
                   )}
                 </div>
@@ -214,7 +237,6 @@ export function Sidebar() {
                 }`}
               >
                 <Icon className="h-5 w-5 shrink-0" />
-
                 <span>{item.label}</span>
               </Link>
             );
@@ -229,7 +251,6 @@ export function Sidebar() {
           className="flex w-full items-center gap-3.5 rounded-xl px-3.5 py-3 font-medium text-red-600 transition-colors hover:bg-red-50 hover:text-red-700 cursor-pointer"
         >
           <LogOut className="h-5 w-5 shrink-0" />
-
           <span>Logout</span>
         </button>
       </div>

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/prisma/config";
+import { requirePermission } from "@/lib/authorize";
 
 interface RouteContext {
   params: Promise<{
@@ -10,18 +11,10 @@ interface RouteContext {
 }
 
 export async function GET(req: Request, context: RouteContext) {
-  const session = await auth();
+  const authorization = await requirePermission("purchase_order.view");
 
-  if (!session?.user?.id) {
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Sesi tidak valid.",
-      },
-      {
-        status: 401,
-      },
-    );
+  if (!authorization.authorized) {
+    return authorization.response;
   }
 
   try {

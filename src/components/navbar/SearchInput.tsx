@@ -112,19 +112,20 @@ export function SearchInput() {
 
   return (
     <>
-      <div className="flex-1 max-w-md">
+      <div className="w-full max-w-md">
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-xl px-4 py-2 w-full text-sm text-slate-400 flex items-center justify-between transition-all shadow-sm group"
+          className="bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-xl px-3 sm:px-4 py-2 w-full text-sm text-slate-400 flex items-center justify-between transition-all shadow-sm group"
         >
-          <div className="flex items-center gap-2.5">
-            <Search className="h-4 w-4 text-slate-400 group-hover:text-green-600 transition-colors" />
-            <span className="text-slate-500">
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+            <Search className="h-4 w-4 text-slate-400 group-hover:text-green-600 transition-colors shrink-0" />
+            <span className="text-slate-500 truncate hidden xs:inline sm:inline">
               Cari obat OTC, resep/racikan, atau non-obat...
             </span>
+            <span className="text-slate-500 sm:hidden">Cari...</span>
           </div>
-          <kbd className="hidden sm:inline-flex items-center gap-1 rounded border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-slate-500 shadow-xs">
+          <kbd className="hidden sm:inline-flex items-center gap-1 rounded border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-slate-500 shadow-xs shrink-0">
             CTRL + K
           </kbd>
         </button>

@@ -3,7 +3,15 @@
 import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Search, Pill, FlaskConical, Package, ChevronRight, Loader2, ArrowLeft } from "lucide-react";
+import {
+  Search,
+  Pill,
+  FlaskConical,
+  Package,
+  ChevronRight,
+  Loader2,
+  ArrowLeft,
+} from "lucide-react";
 
 interface SearchItem {
   id: string;
@@ -30,13 +38,11 @@ export default function SearchPage(props: SearchPageProps) {
   const initialQuery = searchParams.q || "";
 
   const [query, setQuery] = useState(initialQuery);
-  const [activeTab, setActiveTab] = useState<"ALL" | "OBAT_OTC" | "BAHAN_RACIKAN" | "NON_OBAT">("ALL");
+  const [activeTab, setActiveTab] = useState<
+    "ALL" | "OBAT_OTC" | "BAHAN_RACIKAN" | "NON_OBAT"
+  >("ALL");
   const [items, setItems] = useState<SearchItem[]>([]);
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    setQuery(initialQuery);
-  }, [initialQuery]);
 
   useEffect(() => {
     if (!query.trim()) {
@@ -47,7 +53,9 @@ export default function SearchPage(props: SearchPageProps) {
     setLoading(true);
     const timer = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/search?q=${encodeURIComponent(query.trim())}`);
+        const res = await fetch(
+          `/api/search?q=${encodeURIComponent(query.trim())}`,
+        );
         const json = await res.json();
         if (json.success && json.data) {
           setItems(json.data.all || []);
@@ -71,7 +79,9 @@ export default function SearchPage(props: SearchPageProps) {
   });
 
   const countOtc = items.filter((i) => i.category === "OBAT_OTC").length;
-  const countCompound = items.filter((i) => i.category === "BAHAN_RACIKAN").length;
+  const countCompound = items.filter(
+    (i) => i.category === "BAHAN_RACIKAN",
+  ).length;
   const countNonMed = items.filter((i) => i.category === "NON_OBAT").length;
 
   return (
@@ -91,7 +101,8 @@ export default function SearchPage(props: SearchPageProps) {
             Halaman Pencarian Inventaris
           </h1>
           <p className="text-sm text-slate-500">
-            Cari obat OTC, resep/racikan, dan barang non-obat untuk mengakses batch detail secara langsung
+            Cari obat OTC, resep/racikan, dan barang non-obat untuk mengakses
+            batch detail secara langsung
           </p>
         </div>
       </div>
@@ -171,7 +182,8 @@ export default function SearchPage(props: SearchPageProps) {
               : "Silakan ketik kata kunci untuk memulai pencarian"}
           </p>
           <p className="text-xs text-slate-400">
-            Coba gunakan kata kunci seperti nama obat, obat racikan, atau peralatan non-obat.
+            Coba gunakan kata kunci seperti nama obat, obat racikan, atau
+            peralatan non-obat.
           </p>
         </div>
       ) : (
@@ -215,7 +227,9 @@ export default function SearchPage(props: SearchPageProps) {
                       <h3 className="font-manrope text-base font-bold text-slate-900 mt-1 truncate">
                         {item.name}
                       </h3>
-                      <p className="text-xs text-slate-400 font-mono">Kode: {item.code}</p>
+                      <p className="text-xs text-slate-400 font-mono">
+                        Kode: {item.code}
+                      </p>
                     </div>
                   </div>
 
@@ -228,7 +242,9 @@ export default function SearchPage(props: SearchPageProps) {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-slate-400">Jumlah Batch:</span>
-                      <span className="font-semibold text-slate-700">{item.batchCount} Batch</span>
+                      <span className="font-semibold text-slate-700">
+                        {item.batchCount} Batch
+                      </span>
                     </div>
                     {item.description && (
                       <p className="text-[11px] text-slate-400 line-clamp-2 pt-1">

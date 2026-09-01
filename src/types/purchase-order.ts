@@ -1,8 +1,11 @@
-export type POStatusUI =
-  | "PENDING"
-  | "PARTIAL"
-  | "COMPLETED"
-  | "CANCELLED";
+export type POStatusUI = "PENDING" | "PARTIAL" | "COMPLETED" | "CANCELLED";
+
+export interface PurchaseOrderPagination {
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+}
 
 export interface PurchaseOrderSupplier {
   id: string;
@@ -23,6 +26,7 @@ export interface PurchaseOrderListItem {
   totalAmount: number | string;
   createdAt: Date | string;
   receivedAt: Date | string | null;
+  expectedDeliveryAt: Date | string | null;
   supplier: PurchaseOrderSupplier;
   items: PurchaseOrderItemSummary[];
 }
@@ -56,6 +60,7 @@ export interface PurchaseOrderDetail {
   notes: string | null;
   createdAt: Date | string;
   receivedAt: Date | string | null;
+  expectedDeliveryAt: Date | string | null;
 
   supplier: PurchaseOrderSupplier;
 

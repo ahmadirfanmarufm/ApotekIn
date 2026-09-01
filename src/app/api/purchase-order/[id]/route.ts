@@ -21,58 +21,59 @@ export async function GET(req: Request, context: RouteContext) {
     const { id } = await context.params;
 
     const purchaseOrder = await prisma.purchaseOrder.findUnique({
-        where: {
-          id,
+      where: {
+        id,
+      },
+
+      select: {
+        id: true,
+        poNumber: true,
+        status: true,
+        totalAmount: true,
+        notes: true,
+        createdAt: true,
+        receivedAt: true,
+        expectedDeliveryAt: true,
+
+        supplier: {
+          select: {
+            id: true,
+            code: true,
+            name: true,
+          },
         },
 
-        select: {
-          id: true,
-          poNumber: true,
-          status: true,
-          totalAmount: true,
-          notes: true,
-          createdAt: true,
-          receivedAt: true,
-
-          supplier: {
-            select: {
-              id: true,
-              code: true,
-              name: true,
-            },
+        createdBy: {
+          select: {
+            id: true,
+            fullName: true,
           },
+        },
 
-          createdBy: {
-            select: {
-              id: true,
-              fullName: true,
-            },
-          },
+        items: {
+          select: {
+            id: true,
+            itemId: true,
+            quantity: true,
+            receivedQty: true,
+            unitPrice: true,
 
-          items: {
-            select: {
-              id: true,
-              itemId: true,
-              quantity: true,
-              receivedQty: true,
-              unitPrice: true,
-
-              item: {
-                select: {
-                  id: true,
-                  code: true,
-                  name: true,
-                  unit: true,
-                },
+            item: {
+              select: {
+                id: true,
+                code: true,
+                name: true,
+                unit: true,
               },
             },
+          },
 
-            orderBy: {
-              createdAt: "asc",
-            },
+          orderBy: {
+            createdAt: "asc",
           },
         },
-      });
+      },
+    });
 
     if (!purchaseOrder) {
       return NextResponse.json(
@@ -94,6 +95,7 @@ export async function GET(req: Request, context: RouteContext) {
       notes: purchaseOrder.notes,
       createdAt: purchaseOrder.createdAt,
       receivedAt: purchaseOrder.receivedAt,
+      expectedDeliveryAt: purchaseOrder.expectedDeliveryAt,
       supplier: purchaseOrder.supplier,
       createdBy: purchaseOrder.createdBy ?? undefined,
 

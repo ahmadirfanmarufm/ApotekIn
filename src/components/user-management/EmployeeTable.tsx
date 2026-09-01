@@ -89,11 +89,17 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
         <table className="w-full border-collapse text-left text-sm">
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50/80 font-medium text-slate-700">
-              <th className="w-16 px-4 py-3 text-center">No</th>
-              <th className="px-6 py-3">Personil</th>
-              <th className="px-6 py-3">Role & Permissions</th>
-              <th className="px-6 py-3">Login Terakhir</th>
-              <th className="w-20 px-4 py-3 text-center">Actions</th>
+              <th className="w-12 sm:w-16 px-3 sm:px-4 py-3 text-center">No</th>
+              <th className="px-4 sm:px-6 py-3">Personil</th>
+              <th className="hidden md:table-cell px-4 sm:px-6 py-3">
+                Role & Permissions
+              </th>
+              <th className="hidden md:table-cell px-4 sm:px-6 py-3">
+                Login Terakhir
+              </th>
+              <th className="w-16 sm:w-20 px-3 sm:px-4 py-3 text-center">
+                Actions
+              </th>
             </tr>
           </thead>
 
@@ -117,32 +123,44 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
                   key={person.id}
                   className="transition-colors hover:bg-slate-50/50"
                 >
-                  <td className="px-4 py-4 text-center font-medium text-slate-500">
+                  <td className="px-3 sm:px-4 py-4 text-center font-medium text-slate-500">
                     {(currentPage - 1) * PAGE_SIZE + index + 1}
                   </td>
 
-                  <td className="px-6 py-4">
+                  <td className="px-4 sm:px-6 py-4">
                     <div className="flex items-center space-x-3">
                       <Image
                         src={person.avatarUrl || "/images/default-avatar.webp"}
                         alt={person.fullName}
                         width={40}
                         height={40}
-                        className="rounded-full border border-slate-200 object-cover"
+                        className="h-10 w-10 rounded-full border border-slate-200 object-cover shrink-0"
                       />
 
-                      <div>
-                        <p className="font-semibold leading-tight text-slate-900">
+                      <div className="min-w-0">
+                        <p className="font-semibold leading-tight text-slate-900 truncate">
                           {person.fullName}
                         </p>
-                        <p className="mt-0.5 text-xs text-slate-500">
+                        <p className="mt-0.5 text-xs text-slate-500 truncate">
                           {person.email}
                         </p>
+                        <div className="md:hidden mt-1.5 space-y-0.5">
+                          <span
+                            className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wider ${getRoleBadgeClass(
+                              person.role,
+                            )}`}
+                          >
+                            {ROLE_LABELS[person.role]}
+                          </span>
+                          <p className="text-[11px] text-slate-500 truncate">
+                            {formatLastLogin(person.lastLogin)}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </td>
 
-                  <td className="px-6 py-4">
+                  <td className="hidden md:table-cell px-4 sm:px-6 py-4">
                     <div className="space-y-1">
                       <span
                         className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold tracking-wider ${getRoleBadgeClass(
@@ -158,13 +176,13 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
                     </div>
                   </td>
 
-                  <td className="px-6 py-4">
+                  <td className="hidden md:table-cell px-4 sm:px-6 py-4">
                     <p className="text-xs text-slate-600">
                       {formatLastLogin(person.lastLogin)}
                     </p>
                   </td>
 
-                  <td className="px-4 py-4 text-center">
+                  <td className="px-3 sm:px-4 py-4 text-center">
                     <Dropdown
                       trigger={
                         <Button
@@ -197,12 +215,12 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
         </table>
       </div>
 
-      <div className="flex flex-row items-center justify-between border-t border-slate-200 bg-slate-50/80 px-6 py-3 text-xs text-slate-500">
-        <span>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-t border-slate-200 bg-slate-50/80 px-4 sm:px-6 py-3 text-xs text-slate-500">
+        <span className="text-center sm:text-left">
           Menampilkan {startItem}-{endItem} dari {totalItems} personel
         </span>
 
-        <div className="flex items-center space-x-1 font-medium">
+        <div className="flex items-center space-x-1 font-medium justify-center">
           <button
             type="button"
             onClick={() => onPageChange(Math.max(currentPage - 1, 1))}
@@ -232,9 +250,7 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
 
           <button
             type="button"
-            onClick={() =>
-              onPageChange(Math.min(currentPage + 1, totalPages))
-            }
+            onClick={() => onPageChange(Math.min(currentPage + 1, totalPages))}
             disabled={
               currentPage === totalPages || totalPages === 0 || isLoading
             }

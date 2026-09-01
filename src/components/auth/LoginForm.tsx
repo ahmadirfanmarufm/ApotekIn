@@ -106,9 +106,7 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
       }
 
       if (res.error) {
-        setErrorMessage(
-          "Email atau kata sandi yang Anda masukkan salah.",
-        );
+        setErrorMessage("Email atau kata sandi yang Anda masukkan salah.");
         return;
       }
 
@@ -116,9 +114,7 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
       router.refresh();
     } catch (error) {
       console.error("Login error:", error);
-      setErrorMessage(
-        "Terjadi kesalahan sistem. Silakan coba lagi nanti.",
-      );
+      setErrorMessage("Terjadi kesalahan sistem. Silakan coba lagi nanti.");
     } finally {
       setLoading(false);
     }
@@ -214,9 +210,7 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
               />
 
               {fieldErrors.email && (
-                <p className="text-xs text-red-500 mt-1">
-                  {fieldErrors.email}
-                </p>
+                <p className="text-xs text-red-500 mt-1">{fieldErrors.email}</p>
               )}
             </div>
 
@@ -267,18 +261,6 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
                   {fieldErrors.password}
                 </p>
               )}
-            </div>
-
-            <div className="flex items-center justify-end text-xs pt-0.5">
-              <button
-                type="button"
-                className="text-[#10b981] font-medium hover:underline focus:outline-none"
-                onClick={() =>
-                  alert("Fitur Lupa Kata Sandi sedang dikembangkan.")
-                }
-              >
-                Lupa kata sandi?
-              </button>
             </div>
 
             <button

@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import type { CompoundBatch, CompoundFormData } from "@/types/inventory";
 import { CompoundBatchModal } from "./CompoundBatchModal";
+import Swal from "sweetalert2";
 
 type CompoundItem = {
   id?: string;
@@ -37,6 +38,7 @@ interface CompoundItemModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   item?: CompoundItem | null;
+  onSuccess?: () => void;
 }
 
 const emptyForm: CompoundFormData = {
@@ -66,7 +68,12 @@ const COMPOUND_UNITS = [
   { value: "SACHET", label: "Sachet" },
 ];
 
-export function CompoundItemModal({ open, onOpenChange, item }: CompoundItemModalProps) {
+export function CompoundItemModal({
+  open,
+  onOpenChange,
+  item,
+  onSuccess,
+}: CompoundItemModalProps) {
   const [form, setForm] = useState<CompoundFormData>(emptyForm);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -201,7 +208,11 @@ export function CompoundItemModal({ open, onOpenChange, item }: CompoundItemModa
 
       onOpenChange(false);
 
-      window.location.reload();
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        window.location.reload();
+      }
     } catch (err) {
       console.error("COMPOUND ITEM ERROR:", err);
 
@@ -228,11 +239,20 @@ export function CompoundItemModal({ open, onOpenChange, item }: CompoundItemModa
   const handleDeleteBatch = async (batchId: string) => {
     if (!item?.id) return;
 
-    const confirmed = window.confirm(
-      "Apakah Anda yakin ingin menghapus batch ini?",
-    );
+    const { isConfirmed } = await Swal.fire({
+      title: "Konfirmasi Hapus",
+      text: "Apakah Anda yakin ingin menghapus batch ini?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#64748b",
+      confirmButtonText: "Ya, hapus",
+      cancelButtonText: "Batal",
+      reverseButtons: true,
+      focusCancel: true,
+    });
 
-    if (!confirmed) return;
+    if (!isConfirmed) return;
 
     try {
       const response = await fetch(
@@ -248,13 +268,30 @@ export function CompoundItemModal({ open, onOpenChange, item }: CompoundItemModa
         throw new Error(data.message || "Gagal menghapus batch.");
       }
 
-      window.location.reload();
+      await Swal.fire({
+        title: "Berhasil",
+        text: "Batch berhasil dihapus.",
+        icon: "success",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        window.location.reload();
+      }
     } catch (error) {
-      alert(
-        error instanceof Error
-          ? error.message
-          : "Terjadi kesalahan saat menghapus batch.",
-      );
+      console.error("Failed to delete batch:", error);
+      await Swal.fire({
+        title: "Gagal",
+        text:
+          error instanceof Error
+            ? error.message
+            : "Terjadi kesalahan saat menghapus batch.",
+        icon: "error",
+        confirmButtonColor: "#059669",
+      });
     }
   };
 
@@ -635,7 +672,11 @@ export function CompoundItemModal({ open, onOpenChange, item }: CompoundItemModa
           itemUnit={form.unit}
           batch={selectedBatch}
           onSaved={() => {
-            window.location.reload();
+            if (onSuccess) {
+              onSuccess();
+            } else {
+              window.location.reload();
+            }
           }}
         />
       )}

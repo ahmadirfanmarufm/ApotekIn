@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/prisma/config";
+import { POStatus } from "@/prisma/config";
 import { SupplierSchema } from "@/lib/validations/supplier";
 
 export async function GET(req: Request) {
@@ -29,9 +30,72 @@ export async function GET(req: Request) {
       orderBy: { createdAt: "desc" },
     });
 
+    const supplierIds = suppliers.map((supplier) => supplier.id);
+
+    type CountRow = {
+      supplierId: string;
+      _count: { _all: number };
+    };
+
+    let onDeliveryBySupplier = new Map<string, number>();
+    let deliveredBySupplier = new Map<string, number>();
+    let totalBySupplier = new Map<string, number>();
+
+    if (supplierIds.length > 0) {
+      const [onDeliveryRows, deliveredRows, totalRows] = await Promise.all([
+        prisma.purchaseOrder.groupBy({
+          by: ["supplierId"],
+          where: {
+            supplierId: { in: supplierIds },
+            status: { in: [POStatus.PENDING, POStatus.PARTIAL] },
+          },
+          _count: { _all: true },
+        }),
+        prisma.purchaseOrder.groupBy({
+          by: ["supplierId"],
+          where: {
+            supplierId: { in: supplierIds },
+            status: POStatus.COMPLETED,
+          },
+          _count: { _all: true },
+        }),
+        prisma.purchaseOrder.groupBy({
+          by: ["supplierId"],
+          where: { supplierId: { in: supplierIds } },
+          _count: { _all: true },
+        }),
+      ]);
+
+      onDeliveryBySupplier = new Map(
+        (onDeliveryRows as CountRow[]).map((row) => [
+          row.supplierId,
+          row._count._all,
+        ]),
+      );
+      deliveredBySupplier = new Map(
+        (deliveredRows as CountRow[]).map((row) => [
+          row.supplierId,
+          row._count._all,
+        ]),
+      );
+      totalBySupplier = new Map(
+        (totalRows as CountRow[]).map((row) => [
+          row.supplierId,
+          row._count._all,
+        ]),
+      );
+    }
+
+    const suppliersWithMetrics = suppliers.map((supplier) => ({
+      ...supplier,
+      onDelivery: onDeliveryBySupplier.get(supplier.id) ?? 0,
+      Delivered: deliveredBySupplier.get(supplier.id) ?? 0,
+      TotalDelivery: totalBySupplier.get(supplier.id) ?? 0,
+    }));
+
     return NextResponse.json({
       success: true,
-      data: suppliers,
+      data: suppliersWithMetrics,
     });
   } catch (error) {
     console.error("GET Suppliers Error:", error);

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/prisma/config";
 import { POStatus } from "@/prisma/config";
+import type { Prisma } from "@/prisma/config";
 import { createPurchaseOrderSchema } from "@/lib/validations/purchase-order";
 import { requirePermission } from "@/lib/authorize";
 
@@ -47,49 +48,62 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status");
     const search = searchParams.get("search")?.trim();
+    const page = Math.max(1, Number(searchParams.get("page")) || 1);
+    const pageSize = Math.min(
+      100,
+      Math.max(1, Number(searchParams.get("pageSize")) || 10),
+    );
 
-    const purchaseOrders = await prisma.purchaseOrder.findMany({
-      where: {
-        ...(status &&
-          Object.values(POStatus).includes(status as POStatus) && {
-            status: status as POStatus,
-          }),
-        ...(search && {
-          OR: [
-            { poNumber: { contains: search, mode: "insensitive" } },
-            { supplier: { name: { contains: search, mode: "insensitive" } } },
-          ],
+    const where: Prisma.PurchaseOrderWhereInput = {
+      ...(status &&
+        Object.values(POStatus).includes(status as POStatus) && {
+          status: status as POStatus,
         }),
-      },
-      include: {
-        supplier: {
-          select: {
-            id: true,
-            code: true,
-            name: true,
+      ...(search && {
+        OR: [
+          { poNumber: { contains: search, mode: "insensitive" } },
+          { supplier: { name: { contains: search, mode: "insensitive" } } },
+        ],
+      }),
+    };
+
+    const [purchaseOrders, total] = await Promise.all([
+      prisma.purchaseOrder.findMany({
+        where,
+        include: {
+          supplier: {
+            select: {
+              id: true,
+              code: true,
+              name: true,
+            },
+          },
+          items: {
+            select: {
+              id: true,
+              quantity: true,
+              receivedQty: true,
+            },
           },
         },
-        items: {
-          select: {
-            id: true,
-            quantity: true,
-            receivedQty: true,
-          },
+        orderBy: {
+          createdAt: "desc",
         },
-        _count: {
-          select: {
-            items: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      prisma.purchaseOrder.count({ where }),
+    ]);
 
     return NextResponse.json({
       success: true,
       data: purchaseOrders,
+      pagination: {
+        page,
+        pageSize,
+        total,
+        totalPages: Math.max(1, Math.ceil(total / pageSize)),
+      },
     });
   } catch (error) {
     console.error("GET Purchase Orders Error:", error);
@@ -124,7 +138,8 @@ export async function POST(req: Request) {
       );
     }
 
-    const { supplierId, notes, items } = validatedFields.data;
+    const { supplierId, notes, expectedDeliveryAt, items } =
+      validatedFields.data;
 
     const supplier = await prisma.supplier.findUnique({
       where: { id: supplierId },
@@ -147,7 +162,8 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           success: false,
-          message: "Barang yang sama tidak boleh dimasukkan lebih dari satu kali.",
+          message:
+            "Barang yang sama tidak boleh dimasukkan lebih dari satu kali.",
           errors: {
             items: ["Terdapat barang yang dipilih lebih dari satu kali."],
           },
@@ -196,6 +212,9 @@ export async function POST(req: Request) {
         status: POStatus.PENDING,
         totalAmount,
         notes: notes || null,
+        expectedDeliveryAt: expectedDeliveryAt
+          ? new Date(expectedDeliveryAt)
+          : null,
         items: {
           create: items.map((item) => ({
             itemId: item.itemId,

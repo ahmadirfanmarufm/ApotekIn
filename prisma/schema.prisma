@@ -62,6 +62,13 @@ enum NotificationType {
   EXPIRED_WARNING
   ACTION_RECOMMENDATION
   SYSTEM_INFO
+  AUDIT_FREEZE
+}
+
+enum NotificationPriority {
+  HIGH
+  MEDIUM
+  LOW
 }
 
 enum InsightType {
@@ -462,17 +469,21 @@ model AiInsight {
 }
 
 model Notification {
-  id         String           @id @default(uuid())
-  userId     String
-  title      String
-  message    String           @db.Text
-  type       NotificationType
-  isRead     Boolean          @default(false)
-  actionLink String?
-  createdAt  DateTime         @default(now())
+  id          String              @id @default(uuid())
+  userId      String
+  title       String
+  message     String              @db.Text
+  type        NotificationType
+  priority    NotificationPriority @default(MEDIUM)
+  isRead      Boolean             @default(false)
+  actionLink  String?
+  actionLabel String?
+  metadata    Json?
+  createdAt   DateTime            @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, isRead])
+  @@index([userId, type, createdAt])
   @@map("notifications")
 }

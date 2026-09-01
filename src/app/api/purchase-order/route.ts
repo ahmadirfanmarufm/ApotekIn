@@ -126,7 +126,8 @@ export async function POST(req: Request) {
       );
     }
 
-    const { supplierId, notes, items } = validatedFields.data;
+    const { supplierId, notes, expectedDeliveryAt, items } =
+      validatedFields.data;
 
     const supplier = await prisma.supplier.findUnique({
       where: { id: supplierId },
@@ -149,7 +150,8 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           success: false,
-          message: "Barang yang sama tidak boleh dimasukkan lebih dari satu kali.",
+          message:
+            "Barang yang sama tidak boleh dimasukkan lebih dari satu kali.",
           errors: {
             items: ["Terdapat barang yang dipilih lebih dari satu kali."],
           },
@@ -198,6 +200,9 @@ export async function POST(req: Request) {
         status: POStatus.PENDING,
         totalAmount,
         notes: notes || null,
+        expectedDeliveryAt: expectedDeliveryAt
+          ? new Date(expectedDeliveryAt)
+          : null,
         items: {
           create: items.map((item) => ({
             itemId: item.itemId,

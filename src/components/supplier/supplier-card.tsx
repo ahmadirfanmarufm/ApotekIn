@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Building2,
@@ -12,35 +11,72 @@ import {
 } from "lucide-react";
 import { Supplier } from "@/types/supplier";
 import { Dropdown, DropdownItem } from "@/components/ui/dropdown-menu";
+import Swal from "sweetalert2";
 
 interface SupplierCardProps {
   supplier: Supplier;
   onEdit: (supplier: Supplier) => void;
+  onCreatePo: (supplier: Supplier) => void;
   onRefresh: () => void;
 }
 
 export function SupplierCard({
   supplier,
   onEdit,
+  onCreatePo,
   onRefresh,
 }: SupplierCardProps) {
-  const router = useRouter();
-
-  const handleCreatePO = () => {
-    router.push(`/purchase-order?supplierId=${supplier.id}&openModal=true`);
-  };
-
   const handleDelete = async () => {
-    if (confirm(`Apakah Anda yakin ingin menghapus ${supplier.name}?`)) {
+    const { isConfirmed } = await Swal.fire({
+      title: "Konfirmasi Hapus",
+      text: `Apakah Anda yakin ingin menghapus ${supplier.name}?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#64748b",
+      confirmButtonText: "Ya, hapus",
+      cancelButtonText: "Batal",
+      reverseButtons: true,
+      focusCancel: true,
+    });
+
+    if (!isConfirmed) {
+      return;
+    }
+
+    try {
       const res = await fetch(`/api/supplier/${supplier.id}`, {
         method: "DELETE",
       });
+
       const json = await res.json();
+
       if (res.ok && json.success) {
+        await Swal.fire({
+          title: "Berhasil",
+          text: "Supplier berhasil dihapus.",
+          icon: "success",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+
         onRefresh();
       } else {
-        alert(json.message || "Gagal menghapus supplier.");
+        await Swal.fire({
+          title: "Gagal",
+          text: json.message || "Gagal menghapus supplier.",
+          icon: "error",
+          confirmButtonColor: "#059669",
+        });
       }
+    } catch (error) {
+      console.error("Failed to delete supplier:", error);
+      await Swal.fire({
+        title: "Terjadi Kesalahan",
+        text: "Terjadi kesalahan saat menghapus supplier.",
+        icon: "error",
+        confirmButtonColor: "#059669",
+      });
     }
   };
 
@@ -96,7 +132,7 @@ export function SupplierCard({
       <div className="flex items-center gap-2 pt-1">
         <Button
           size="icon"
-          onClick={handleCreatePO}
+          onClick={() => onCreatePo(supplier)}
           className="flex-1 gap-2 border-0 bg-emerald-100/70 font-semibold text-emerald-800 shadow-none hover:bg-emerald-200"
         >
           <Package className="h-4 w-4" />
@@ -107,7 +143,7 @@ export function SupplierCard({
           trigger={
             <Button
               size="icon"
-              className="border-0 w-2 h-2 bg-emerald-100/70 text-emerald-800 shadow-none hover:bg-emerald-200"
+              className="border-0 bg-emerald-100/70 text-emerald-800 shadow-none hover:bg-emerald-200"
             >
               <MoreVertical className="h-4 w-4" />
             </Button>

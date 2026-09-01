@@ -244,7 +244,6 @@ export function SPDocument({ po }: SPDocumentProps) {
     >
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
-          {/* eslint-disable-next-line jsx-a11y/alt-text */}
           <Image
             src={`${window.location.origin}/images/logo.png`}
             style={styles.logo}
@@ -301,7 +300,7 @@ export function SPDocument({ po }: SPDocumentProps) {
                 {formatCurrency(item.unitPrice)}
               </Text>
               <Text style={styles.colSubtotal}>
-                {formatCurrency(item.receivedQty * Number(item.unitPrice ?? 0))}
+                {formatCurrency(item.orderedQty * Number(item.unitPrice ?? 0))}
               </Text>
             </View>
           ))}

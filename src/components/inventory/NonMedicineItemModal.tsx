@@ -16,6 +16,7 @@ import { Textarea } from "../ui/textarea";
 import { Plus, Trash2, Pencil, CalendarDays } from "lucide-react";
 import { NonMedicineFormData } from "@/types/inventory";
 import { NonMedicineBatchModal } from "./NonMedicineBatchModal";
+import Swal from "sweetalert2";
 
 const emptyForm: NonMedicineFormData = {
   name: "",
@@ -189,17 +190,26 @@ export function NonMedicineItemModal({
   };
 
   const handleDeleteBatch = async (batchId: string) => {
-    const confirmed = window.confirm(
-      "Apakah Anda yakin ingin menghapus batch ini?",
-    );
+    if (!item?.id) return;
 
-    if (!confirmed) {
-      return;
-    }
+    const { isConfirmed } = await Swal.fire({
+      title: "Konfirmasi Hapus",
+      text: "Apakah Anda yakin ingin menghapus batch ini?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#64748b",
+      confirmButtonText: "Ya, hapus",
+      cancelButtonText: "Batal",
+      reverseButtons: true,
+      focusCancel: true,
+    });
+
+    if (!isConfirmed) return;
 
     try {
       const response = await fetch(
-        `/api/inventory/nonmedicine/${item.id}/batches/${batchId}`,
+        `/api/inventory/compound/${item.id}/batches/${batchId}`,
         {
           method: "DELETE",
         },
@@ -211,13 +221,26 @@ export function NonMedicineItemModal({
         throw new Error(data.message || "Gagal menghapus batch.");
       }
 
-      router.refresh();
+      await Swal.fire({
+        title: "Berhasil",
+        text: "Batch berhasil dihapus.",
+        icon: "success",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+
+      window.location.reload();
     } catch (error) {
-      alert(
-        error instanceof Error
-          ? error.message
-          : "Terjadi kesalahan saat menghapus batch.",
-      );
+      console.error("Failed to delete batch:", error);
+      await Swal.fire({
+        title: "Gagal",
+        text:
+          error instanceof Error
+            ? error.message
+            : "Terjadi kesalahan saat menghapus batch.",
+        icon: "error",
+        confirmButtonColor: "#059669",
+      });
     }
   };
 

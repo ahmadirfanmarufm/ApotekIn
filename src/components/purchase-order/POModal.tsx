@@ -7,6 +7,7 @@ import type { PurchaseOrderSupplier } from "@/types/purchase-order";
 interface POModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialSupplierId?: string | null;
   suppliers: PurchaseOrderSupplier[];
   items: Array<{
     id: string;
@@ -33,9 +34,19 @@ const emptyItem = (key: number): PoItemForm => ({
   unitPrice: "",
 });
 
-export function POModal({isOpen, onClose, suppliers, items, restockItemId = null, restockQuantity = 0, onSuccess}: POModalProps) {
+export function POModal({
+  isOpen,
+  onClose,
+  initialSupplierId = null,
+  suppliers,
+  items,
+  restockItemId = null,
+  restockQuantity = 0,
+  onSuccess,
+}: POModalProps) {
   const [supplierId, setSupplierId] = useState("");
   const [notes, setNotes] = useState("");
+  const [expectedDeliveryAt, setExpectedDeliveryAt] = useState("");
   const [poItems, setPoItems] = useState<PoItemForm[]>([emptyItem(1)]);
   const [nextKey, setNextKey] = useState(2);
 
@@ -45,8 +56,9 @@ export function POModal({isOpen, onClose, suppliers, items, restockItemId = null
   useEffect(() => {
     if (!isOpen) return;
 
-    setSupplierId("");
+    setSupplierId(initialSupplierId || "");
     setNotes("");
+    setExpectedDeliveryAt("");
     setError(null);
     setNextKey(2);
 
@@ -62,7 +74,7 @@ export function POModal({isOpen, onClose, suppliers, items, restockItemId = null
     } else {
       setPoItems([emptyItem(1)]);
     }
-  }, [isOpen, restockItemId, restockQuantity]);
+  }, [isOpen, initialSupplierId, restockItemId, restockQuantity]);
 
   if (!isOpen) return null;
 
@@ -93,6 +105,22 @@ export function POModal({isOpen, onClose, suppliers, items, restockItemId = null
     if (!supplierId) {
       setError("Supplier wajib dipilih.");
       return;
+    }
+
+    if (expectedDeliveryAt) {
+      const expected = new Date(expectedDeliveryAt);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (Number.isNaN(expected.getTime())) {
+        setError("Format tanggal estimasi tidak valid.");
+        return;
+      }
+
+      if (expected < today) {
+        setError("Tanggal estimasi tidak boleh sebelum hari ini.");
+        return;
+      }
     }
 
     for (const item of poItems) {
@@ -135,6 +163,9 @@ export function POModal({isOpen, onClose, suppliers, items, restockItemId = null
         body: JSON.stringify({
           supplierId,
           notes: notes.trim() || undefined,
+          expectedDeliveryAt: expectedDeliveryAt
+            ? new Date(expectedDeliveryAt).toISOString()
+            : undefined,
           items: poItems.map((item) => ({
             itemId: item.itemId,
             quantity: Number(item.quantity),
@@ -163,11 +194,11 @@ export function POModal({isOpen, onClose, suppliers, items, restockItemId = null
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl w-full max-w-4xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
-        <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-white">
-          <div>
-            <h2 className="text-xl font-bold text-slate-900">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-3 sm:p-4">
+      <div className="bg-white rounded-2xl w-full max-w-4xl shadow-xl overflow-hidden flex flex-col max-h-[95vh] sm:max-h-[90vh]">
+        <div className="px-4 py-4 sm:px-6 border-b border-slate-200 flex justify-between items-center bg-white gap-3">
+          <div className="min-w-0">
+            <h2 className="text-base sm:text-xl font-bold text-slate-900">
               Buat Purchase Order Baru
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
@@ -177,25 +208,24 @@ export function POModal({isOpen, onClose, suppliers, items, restockItemId = null
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 transition-colors"
+            className="text-slate-400 hover:text-slate-600 transition-colors shrink-0"
+            aria-label="Tutup modal"
           >
-            <X className="h-6 w-6" />
+            <X className="h-5 w-5 sm:h-6 sm:w-6" />
           </button>
         </div>
 
-        <div className="p-6 space-y-8 overflow-y-auto">
+        <div className="p-4 sm:p-6 space-y-6 sm:space-y-8 overflow-y-auto">
           {restockItemId && restockQuantity > 0 && (
             <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-              <p className="font-semibold">
-                Restock Barang
-              </p>
+              <p className="font-semibold">Restock Barang</p>
               <p className="mt-1">
                 Barang dan jumlah pesanan telah diisi berdasarkan kebutuhan stok
                 maksimum. Silakan pilih supplier dan masukkan harga satuan.
               </p>
             </div>
           )}
-          <div className="grid grid-cols-2 gap-6 p-5 border border-slate-200 rounded-xl bg-slate-50/50">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 p-4 sm:p-5 border border-slate-200 rounded-xl bg-slate-50/50">
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-600">
                 Pilih Supplier
@@ -215,6 +245,18 @@ export function POModal({isOpen, onClose, suppliers, items, restockItemId = null
             </div>
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-600">
+                Tgl. Estimasi Datang (Opsional)
+              </label>
+              <input
+                type="date"
+                value={expectedDeliveryAt}
+                min={new Date().toISOString().split("T")[0]}
+                onChange={(e) => setExpectedDeliveryAt(e.target.value)}
+                className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-slate-600">
                 Catatan (Opsional)
               </label>
               <input
@@ -228,117 +270,120 @@ export function POModal({isOpen, onClose, suppliers, items, restockItemId = null
           </div>
 
           <div>
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center mb-4">
               <h3 className="font-bold text-slate-900">
                 Daftar Pesanan Barang
               </h3>
               <button
                 onClick={handleAddItem}
-                className="text-emerald-600 text-sm font-semibold hover:text-emerald-700 flex items-center gap-1"
+                className="text-emerald-600 text-sm font-semibold hover:text-emerald-700 flex items-center gap-1 self-start sm:self-auto"
               >
                 <Plus className="h-4 w-4" /> Tambah Item
               </button>
             </div>
 
             <div className="border border-slate-200 rounded-xl overflow-hidden">
-              <table className="w-full text-left">
-                <thead className="bg-slate-50 border-b border-slate-200 text-xs uppercase font-bold text-slate-600">
-                  <tr>
-                    <th className="p-4">Barang</th>
-                    <th className="p-4 w-40 text-center">Qty Pesanan</th>
-                    <th className="p-4 w-36 text-right">Harga Satuan (Rp)</th>
-                    <th className="p-4 w-40 text-right">Subtotal</th>
-                    <th className="p-4 text-center w-14">#</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {poItems.map((item) => {
-                    const selectedItem = items.find(
-                      (i) => i.id === item.itemId,
-                    );
-                    const subtotal =
-                      Number(item.quantity || 0) * Number(item.unitPrice || 0);
+              <div className="overflow-x-auto">
+                <table className="w-full text-left min-w-[640px]">
+                  <thead className="bg-slate-50 border-b border-slate-200 text-xs uppercase font-bold text-slate-600">
+                    <tr>
+                      <th className="p-4">Barang</th>
+                      <th className="p-4 w-40 text-center">Qty Pesanan</th>
+                      <th className="p-4 w-36 text-right">Harga Satuan (Rp)</th>
+                      <th className="p-4 w-40 text-right">Subtotal</th>
+                      <th className="p-4 text-center w-14">#</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {poItems.map((item) => {
+                      const selectedItem = items.find(
+                        (i) => i.id === item.itemId,
+                      );
+                      const subtotal =
+                        Number(item.quantity || 0) *
+                        Number(item.unitPrice || 0);
 
-                    return (
-                      <tr key={item.key} className="bg-white">
-                        <td className="p-4">
-                          <select
-                            value={item.itemId}
-                            onChange={(e) =>
-                              handleItemChange(
-                                item.key,
-                                "itemId",
-                                e.target.value,
-                              )
-                            }
-                            className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                          >
-                            <option value="">-- Pilih Barang --</option>
-                            {items.map((itm) => (
-                              <option key={itm.id} value={itm.id}>
-                                {itm.name} ({itm.unit})
-                              </option>
-                            ))}
-                          </select>
-                        </td>
-                        <td className="p-4">
-                          <div className="flex shadow-sm rounded-lg">
-                            <input
-                              type="number"
-                              min={1}
-                              placeholder="0"
-                              value={item.quantity}
+                      return (
+                        <tr key={item.key} className="bg-white">
+                          <td className="p-4">
+                            <select
+                              value={item.itemId}
                               onChange={(e) =>
                                 handleItemChange(
                                   item.key,
-                                  "quantity",
+                                  "itemId",
                                   e.target.value,
                                 )
                               }
-                              className="w-full border border-slate-200 rounded-l-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 z-10"
+                              className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            >
+                              <option value="">-- Pilih Barang --</option>
+                              {items.map((itm) => (
+                                <option key={itm.id} value={itm.id}>
+                                  {itm.name} ({itm.unit})
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+                          <td className="p-4">
+                            <div className="flex shadow-sm rounded-lg">
+                              <input
+                                type="number"
+                                min={1}
+                                placeholder="0"
+                                value={item.quantity}
+                                onChange={(e) =>
+                                  handleItemChange(
+                                    item.key,
+                                    "quantity",
+                                    e.target.value,
+                                  )
+                                }
+                                className="w-full border border-slate-200 rounded-l-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 z-10"
+                              />
+                              <span className="bg-slate-50 border-y border-r border-slate-200 text-slate-500 text-sm px-3 py-2.5 rounded-r-lg whitespace-nowrap">
+                                {selectedItem?.unit || "-"}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <input
+                              type="number"
+                              min={0}
+                              step="0.01"
+                              placeholder="0"
+                              value={item.unitPrice}
+                              onChange={(e) =>
+                                handleItemChange(
+                                  item.key,
+                                  "unitPrice",
+                                  e.target.value,
+                                )
+                              }
+                              className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-right focus:outline-none focus:ring-2 focus:ring-emerald-500"
                             />
-                            <span className="bg-slate-50 border-y border-r border-slate-200 text-slate-500 text-sm px-3 py-2.5 rounded-r-lg whitespace-nowrap">
-                              {selectedItem?.unit || "-"}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="p-4">
-                          <input
-                            type="number"
-                            min={0}
-                            step="0.01"
-                            placeholder="0"
-                            value={item.unitPrice}
-                            onChange={(e) =>
-                              handleItemChange(
-                                item.key,
-                                "unitPrice",
-                                e.target.value,
-                              )
-                            }
-                            className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-right focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                          />
-                        </td>
-                        <td className="p-4 text-right text-sm font-semibold text-slate-700 whitespace-nowrap">
-                          Rp{subtotal.toLocaleString("id-ID")}
-                        </td>
-                        <td className="p-4 text-center">
-                          <button
-                            onClick={() => handleRemoveItem(item.key)}
-                            disabled={poItems.length === 1}
-                            className="text-red-500 hover:text-red-600 transition-colors p-2 hover:bg-red-50 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed"
-                          >
-                            <Trash2 className="h-5 w-5" />
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                          </td>
+                          <td className="p-4 text-right text-sm font-semibold text-slate-700 whitespace-nowrap">
+                            Rp{subtotal.toLocaleString("id-ID")}
+                          </td>
+                          <td className="p-4 text-center">
+                            <button
+                              onClick={() => handleRemoveItem(item.key)}
+                              disabled={poItems.length === 1}
+                              className="text-red-500 hover:text-red-600 transition-colors p-2 hover:bg-red-50 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed"
+                            >
+                              <Trash2 className="h-5 w-5" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
 
-            <div className="flex justify-end mt-4 pr-2">
+            <div className="flex justify-end mt-4 sm:pr-2">
               <div className="text-sm font-bold text-slate-900">
                 Total:{" "}
                 <span className="text-emerald-600">
@@ -358,35 +403,33 @@ export function POModal({isOpen, onClose, suppliers, items, restockItemId = null
           </div>
         </div>
 
-        <div className="px-6 py-4 border-t border-slate-200 flex flex-col sm:flex-row justify-end items-center gap-3 bg-white">
+        <div className="px-4 py-4 sm:px-6 border-t border-slate-200 flex flex-col-reverse sm:flex-row sm:justify-end items-stretch sm:items-center gap-3 bg-white">
           {error && (
-            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600 w-full sm:w-auto sm:flex-1">
+            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600 sm:flex-1">
               {error}
             </div>
           )}
 
-          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-            <button
-              onClick={onClose}
-              className="px-6 py-2.5 border border-slate-300 text-slate-700 rounded-xl font-medium hover:bg-slate-50 transition-colors w-full"
-            >
-              Batal
-            </button>
-            <button
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              className="px-6 py-2.5 bg-emerald-500 text-white rounded-xl font-medium hover:bg-emerald-600 transition-colors w-40"
-            >
-              {isSubmitting ? (
-                <span className="flex items-center justify-center gap-2">
-                  <Loader2 className="animate-spin h-5 w-5" />
-                  Menyimpan...
-                </span>
-              ) : (
-                "Simpan"
-              )}
-            </button>
-          </div>
+          <button
+            onClick={onClose}
+            className="px-6 py-2.5 border border-slate-300 text-slate-700 rounded-xl font-medium hover:bg-slate-50 transition-colors w-full sm:w-auto"
+          >
+            Batal
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            className="px-6 py-2.5 bg-emerald-500 text-white rounded-xl font-medium hover:bg-emerald-600 transition-colors w-full sm:w-40"
+          >
+            {isSubmitting ? (
+              <span className="flex items-center justify-center gap-2">
+                <Loader2 className="animate-spin h-5 w-5" />
+                Menyimpan...
+              </span>
+            ) : (
+              "Simpan"
+            )}
+          </button>
         </div>
       </div>
     </div>

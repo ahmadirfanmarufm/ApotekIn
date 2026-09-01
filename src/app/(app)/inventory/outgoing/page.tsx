@@ -181,26 +181,26 @@ export default function OutgoingStockPage() {
 
   return (
     <div className="space-y-6 relative">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Stok Keluar</h1>
           <p className="text-slate-500 mt-1">Riwayat pengurangan stok</p>
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-semibold flex items-center gap-2 hover:bg-emerald-600 transition-colors shadow-sm cursor-pointer"
+          className="bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-emerald-600 transition-colors shadow-sm cursor-pointer w-full sm:w-auto"
         >
           <Plus className="h-5 w-5" />
           Catat Stok Keluar
         </button>
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col items-center justify-center shadow-sm">
-          <p className="text-sm font-semibold text-slate-600 mb-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6">
+        <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 flex flex-col items-center justify-center shadow-sm">
+          <p className="text-sm font-semibold text-slate-600 mb-2 text-center">
             Total Transaksi Keluar
           </p>
-          <h2 className="text-2xl font-bold text-slate-900">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 text-center">
             {isLoading ? (
               <Loader2 className="animate-spin h-5 w-5" />
             ) : (
@@ -208,11 +208,11 @@ export default function OutgoingStockPage() {
             )}
           </h2>
         </div>
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col items-center justify-center shadow-sm">
-          <p className="text-sm font-semibold text-slate-600 mb-2">
+        <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 flex flex-col items-center justify-center shadow-sm">
+          <p className="text-sm font-semibold text-slate-600 mb-2 text-center">
             Total Unit Keluar
           </p>
-          <h2 className="text-2xl font-bold text-slate-900">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 text-center">
             {isLoading ? (
               <Loader2 className="animate-spin h-5 w-5" />
             ) : (
@@ -220,11 +220,11 @@ export default function OutgoingStockPage() {
             )}
           </h2>
         </div>
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col items-center justify-center shadow-sm">
-          <p className="text-sm font-semibold text-slate-600 mb-2">
+        <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 flex flex-col items-center justify-center shadow-sm">
+          <p className="text-sm font-semibold text-slate-600 mb-2 text-center">
             Total Nilai Pengeluaran (Rp)
           </p>
-          <h2 className="text-2xl font-bold text-slate-900">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 text-center">
             {isLoading ? (
               <Loader2 className="animate-spin h-5 w-5" />
             ) : (
@@ -234,9 +234,9 @@ export default function OutgoingStockPage() {
         </div>
       </div>
 
-      <div className="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+      <div className="flex flex-col gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-3 w-full sm:w-auto">
+          <span className="text-sm font-semibold text-slate-700 flex items-center gap-2 shrink-0">
             <Filter className="h-4 w-4" />
             Filter:
           </span>
@@ -246,7 +246,7 @@ export default function OutgoingStockPage() {
               setPeriodFilter(e.target.value);
               setCurrentPage(1);
             }}
-            className="border border-slate-200 rounded-lg px-4 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 min-w-37.5 cursor-pointer"
+            className="border border-slate-200 rounded-lg px-3 sm:px-4 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 w-full sm:min-w-37.5 cursor-pointer"
           >
             <option value="today">Hari Ini</option>
             <option value="this-week">Minggu Ini</option>
@@ -260,7 +260,7 @@ export default function OutgoingStockPage() {
               setReasonFilter(e.target.value);
               setCurrentPage(1);
             }}
-            className="border border-slate-200 rounded-lg px-4 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 min-w-37.5 cursor-pointer"
+            className="border border-slate-200 rounded-lg px-3 sm:px-4 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 w-full sm:min-w-37.5 cursor-pointer"
           >
             <option value="all">Semua Alasan</option>
             {Object.entries(STOCK_OUT_REASON_LABEL).map(([value, label]) => (
@@ -273,92 +273,96 @@ export default function OutgoingStockPage() {
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-        <table className="w-full text-left">
-          <thead className="bg-slate-50 border-b border-slate-200">
-            <tr className="text-xs font-bold text-slate-600">
-              <th className="px-5 py-3.5 text-center">Tanggal Keluar</th>
-              <th className="px-5 py-3.5">No. Referensi</th>
-              <th className="px-5 py-3.5">Alasan</th>
-              <th className="px-5 py-3.5">Dicatat Oleh</th>
-              <th className="px-5 py-3.5 text-center">Total Item</th>
-              <th className="px-5 py-3.5 text-right">Nilai</th>
-              <th className="px-5 py-3.5 text-center">Aksi</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {filteredStockOuts.length === 0 && !isLoading && (
-              <tr>
-                <td colSpan={7} className="p-5 text-center text-slate-500">
-                  {stockOuts.length === 0
-                    ? "Tidak ada data stok keluar."
-                    : "Tidak ada transaksi yang cocok dengan filter."}
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left min-w-[720px]">
+            <thead className="bg-slate-50 border-b border-slate-200">
+              <tr className="text-xs font-bold text-slate-600">
+                <th className="px-5 py-3.5 text-center">Tanggal Keluar</th>
+                <th className="px-5 py-3.5">No. Referensi</th>
+                <th className="px-5 py-3.5">Alasan</th>
+                <th className="px-5 py-3.5">Dicatat Oleh</th>
+                <th className="px-5 py-3.5 text-center">Total Item</th>
+                <th className="px-5 py-3.5 text-right">Nilai</th>
+                <th className="px-5 py-3.5 text-center">Aksi</th>
               </tr>
-            )}
-            {isLoading && (
-              <tr>
-                <td colSpan={7} className="p-5 text-center">
-                  <Loader2 className="h-6 w-6 animate-spin text-emerald-500 mx-auto" />
-                </td>
-              </tr>
-            )}
-            {paginatedStockOuts.map((row) => {
-              const totalQty = row.items.reduce(
-                (acc, item) => acc + item.quantity,
-                0,
-              );
-              const rowValue = row.items.reduce(
-                (acc, item) =>
-                  acc + Number(item.quantity) * Number(item.unitPrice ?? 0),
-                0,
-              );
-
-              return (
-                <tr
-                  key={row.id}
-                  className="text-sm text-slate-700 hover:bg-slate-50/50 transition-colors"
-                >
-                  <td className="px-5 py-3 text-center whitespace-nowrap">
-                    {formatDate(row.createdAt)}
-                  </td>
-                  <td className="px-5 py-3 font-medium">{row.referenceNo}</td>
-                  <td className="px-5 py-3">
-                    <span
-                      className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold border whitespace-nowrap ${REASON_BADGE_CLASS[row.reason]}`}
-                    >
-                      {STOCK_OUT_REASON_LABEL[row.reason] ?? row.reason}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3 text-slate-500">
-                    {row.createdBy.fullName}
-                  </td>
-                  <td className="px-5 py-3 text-center font-bold text-red-500">
-                    -{totalQty} {row.items[0]?.batch.item.unit ?? "Unit"}
-                  </td>
-                  <td className="px-5 py-3 text-right whitespace-nowrap">
-                    {formatCurrency(rowValue)}
-                  </td>
-                  <td className="px-5 py-3 text-center flex justify-center">
-                    <button
-                      onClick={() => setDetailStockOut(row)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-xs font-semibold hover:bg-red-100 transition-colors border cursor-pointer border-red-200"
-                    >
-                      <Eye className="h-3.5 w-3.5" /> Detail
-                    </button>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {filteredStockOuts.length === 0 && !isLoading && (
+                <tr>
+                  <td colSpan={7} className="p-5 text-center text-slate-500">
+                    {filteredStockOuts.length === 0
+                      ? "Tidak ada data stok keluar."
+                      : "Tidak ada transaksi yang cocok dengan filter."}
                   </td>
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
+              )}
+              {isLoading && (
+                <tr>
+                  <td colSpan={7} className="p-5 text-center">
+                    <Loader2 className="h-6 w-6 animate-spin text-emerald-500 mx-auto" />
+                  </td>
+                </tr>
+              )}
+              {paginatedStockOuts.map((row) => {
+                const totalQty = row.items.reduce(
+                  (acc, item) => acc + item.quantity,
+                  0,
+                );
+                const rowValue = row.items.reduce(
+                  (acc, item) =>
+                    acc + Number(item.quantity) * Number(item.unitPrice ?? 0),
+                  0,
+                );
 
-        <div className="px-5 py-3.5 border-t border-slate-200 bg-slate-50/50 flex justify-between items-center text-xs text-slate-500 font-medium">
-          <p>
+                return (
+                  <tr
+                    key={row.id}
+                    className="text-sm text-slate-700 hover:bg-slate-50/50 transition-colors"
+                  >
+                    <td className="px-5 py-3 text-center whitespace-nowrap">
+                      {formatDate(row.createdAt)}
+                    </td>
+                    <td className="px-5 py-3 font-medium">{row.referenceNo}</td>
+                    <td className="px-5 py-3">
+                      <span
+                        className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold border whitespace-nowrap ${REASON_BADGE_CLASS[row.reason]}`}
+                      >
+                        {STOCK_OUT_REASON_LABEL[row.reason] ?? row.reason}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3 text-slate-500">
+                      {row.createdBy.fullName}
+                    </td>
+                    <td className="px-5 py-3 text-center font-bold text-red-500">
+                      -{totalQty} {row.items[0]?.batch.item.unit ?? "Unit"}
+                    </td>
+                    <td className="px-5 py-3 text-right whitespace-nowrap">
+                      {formatCurrency(rowValue)}
+                    </td>
+                    <td className="px-5 py-3 text-center">
+                      <div className="flex justify-center">
+                        <button
+                          onClick={() => setDetailStockOut(row)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-xs font-semibold hover:bg-red-100 transition-colors border cursor-pointer border-red-200"
+                        >
+                          <Eye className="h-3.5 w-3.5" /> Detail
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="px-5 py-3.5 border-t border-slate-200 bg-slate-50/50 flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center text-xs text-slate-500 font-medium">
+          <p className="text-center sm:text-left">
             {totalTransactions === 0
               ? "Menampilkan 0 transaksi"
               : `Menampilkan ${(safeCurrentPage - 1) * PAGE_SIZE + 1}-${Math.min(safeCurrentPage * PAGE_SIZE, totalTransactions)} dari ${totalTransactions} transaksi`}
           </p>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 justify-center">
             <button
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               className="w-7 h-7 flex items-center justify-center rounded border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-50 cursor-pointer"

@@ -16,6 +16,7 @@ import {
   EmployeesResponse,
   EmployeeFormData,
 } from "@/types/employee";
+import Swal from "sweetalert2";
 
 const DEFAULT_FORM_DATA: EmployeeFormData = {
   fullName: "",
@@ -174,11 +175,20 @@ export default function UserManagementPage() {
   };
 
   const handleDeleteUser = async (id: string) => {
-    const confirmed = window.confirm(
-      "Apakah Anda yakin ingin menghapus karyawan ini?",
-    );
+    const { isConfirmed } = await Swal.fire({
+      title: "Konfirmasi Hapus",
+      text: "Apakah Anda yakin ingin menghapus karyawan ini?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#64748b",
+      confirmButtonText: "Ya, hapus",
+      cancelButtonText: "Batal",
+      reverseButtons: true,
+      focusCancel: true,
+    });
 
-    if (!confirmed) {
+    if (!isConfirmed) {
       return;
     }
 
@@ -190,14 +200,32 @@ export default function UserManagementPage() {
       const json = (await response.json()) as EmployeesResponse;
 
       if (!response.ok || !json.success) {
-        window.alert(json.message ?? "Gagal menghapus karyawan.");
+        await Swal.fire({
+          title: "Gagal",
+          text: json.message ?? "Gagal menghapus karyawan.",
+          icon: "error",
+          confirmButtonColor: "#059669",
+        });
         return;
       }
+
+      await Swal.fire({
+        title: "Berhasil",
+        text: "Data karyawan berhasil dihapus.",
+        icon: "success",
+        timer: 1500,
+        showConfirmButton: false,
+      });
 
       setRefreshKey((previous) => previous + 1);
     } catch (error) {
       console.error("Failed to delete employee:", error);
-      window.alert("Terjadi kesalahan saat menghapus karyawan.");
+      await Swal.fire({
+        title: "Terjadi Kesalahan",
+        text: "Terjadi kesalahan saat menghapus karyawan.",
+        icon: "error",
+        confirmButtonColor: "#059669",
+      });
     }
   };
 
@@ -253,7 +281,7 @@ export default function UserManagementPage() {
 
   return (
     <div className="relative space-y-6 font-inter text-slate-800">
-      <div className="flex flex-row items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="font-manrope text-2xl font-bold text-slate-950">
             Manajemen Karyawan
@@ -264,10 +292,10 @@ export default function UserManagementPage() {
           </p>
         </div>
 
-        <div>
+        <div className="w-full sm:w-auto">
           <Button
             onClick={handleOpenCreateModal}
-            className="flex items-center gap-2"
+            className="flex items-center justify-center gap-2 w-full sm:w-auto"
           >
             <Plus className="h-4 w-4" />
             Tambah Karyawan

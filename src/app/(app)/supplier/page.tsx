@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Plus, Loader2 } from "lucide-react";
@@ -13,6 +14,7 @@ import { SupplierSearch } from "@/components/supplier/supplier-search";
 const SEARCH_DEBOUNCE_MS = 300;
 
 export default function SupplierPage() {
+  const router = useRouter();
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [searchInput, setSearchInput] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -22,7 +24,6 @@ export default function SupplierPage() {
   );
 
   const [isLoading, setIsLoading] = useState(true);
-
   const [refreshKey, setRefreshKey] = useState(0);
 
   const refresh = useCallback(() => {
@@ -99,6 +100,10 @@ export default function SupplierPage() {
     setIsDialogOpen(true);
   };
 
+  const handleCreatePo = (supplier: Supplier) => {
+    router.push(`/purchase-order?supplierId=${supplier.id}`);
+  };
+
   const totalDelivered = suppliers.reduce(
     (acc, item) => acc + item.Delivered,
     0,
@@ -106,7 +111,7 @@ export default function SupplierPage() {
 
   return (
     <div className="relative space-y-6 font-inter text-slate-800">
-      <div className="flex flex-row items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="font-manrope text-2xl font-bold text-slate-950">
             Manajemen Supplier
@@ -116,7 +121,7 @@ export default function SupplierPage() {
 
         <Button
           onClick={handleOpenAddDialog}
-          className="flex items-center gap-2"
+          className="flex items-center justify-center gap-2 w-full sm:w-auto"
         >
           <Plus className="h-4 w-4" />
           Tambah Supplier
@@ -193,6 +198,7 @@ export default function SupplierPage() {
                 key={supplier.id}
                 supplier={supplier}
                 onEdit={handleOpenEditDialog}
+                onCreatePo={handleCreatePo}
                 onRefresh={refresh}
               />
             ))}

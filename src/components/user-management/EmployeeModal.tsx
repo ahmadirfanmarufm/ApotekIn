@@ -64,9 +64,7 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
             />
 
             {formErrors.fullName && (
-              <p className="mt-1 text-xs text-red-500">
-                {formErrors.fullName}
-              </p>
+              <p className="mt-1 text-xs text-red-500">{formErrors.fullName}</p>
             )}
           </div>
 
@@ -204,12 +202,13 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
             </div>
           </div>
 
-          <div className="flex justify-end space-x-3 border-t border-slate-100 pt-4">
+          <div className="flex flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end sm:space-x-3">
             <Button
               type="button"
               variant="outline"
               onClick={onClose}
               disabled={isSubmitLoading}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
@@ -217,7 +216,7 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
             <Button
               type="submit"
               disabled={isSubmitLoading}
-              className="min-w-30 bg-emerald-600 text-white hover:bg-emerald-700"
+              className="min-w-30 bg-emerald-600 text-white hover:bg-emerald-700 w-full sm:w-auto"
             >
               {isSubmitLoading ? (
                 <Loader2 className="mx-auto h-4 w-4 animate-spin" />

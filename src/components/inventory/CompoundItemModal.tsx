@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import type { CompoundBatch, CompoundFormData } from "@/types/inventory";
 import { CompoundBatchModal } from "./CompoundBatchModal";
+import Swal from "sweetalert2";
 
 type CompoundItem = {
   id?: string;
@@ -228,11 +229,20 @@ export function CompoundItemModal({ open, onOpenChange, item }: CompoundItemModa
   const handleDeleteBatch = async (batchId: string) => {
     if (!item?.id) return;
 
-    const confirmed = window.confirm(
-      "Apakah Anda yakin ingin menghapus batch ini?",
-    );
+    const { isConfirmed } = await Swal.fire({
+      title: "Konfirmasi Hapus",
+      text: "Apakah Anda yakin ingin menghapus batch ini?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#64748b",
+      confirmButtonText: "Ya, hapus",
+      cancelButtonText: "Batal",
+      reverseButtons: true,
+      focusCancel: true,
+    });
 
-    if (!confirmed) return;
+    if (!isConfirmed) return;
 
     try {
       const response = await fetch(
@@ -248,13 +258,26 @@ export function CompoundItemModal({ open, onOpenChange, item }: CompoundItemModa
         throw new Error(data.message || "Gagal menghapus batch.");
       }
 
+      await Swal.fire({
+        title: "Berhasil",
+        text: "Batch berhasil dihapus.",
+        icon: "success",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+
       window.location.reload();
     } catch (error) {
-      alert(
-        error instanceof Error
-          ? error.message
-          : "Terjadi kesalahan saat menghapus batch.",
-      );
+      console.error("Failed to delete batch:", error);
+      await Swal.fire({
+        title: "Gagal",
+        text:
+          error instanceof Error
+            ? error.message
+            : "Terjadi kesalahan saat menghapus batch.",
+        icon: "error",
+        confirmButtonColor: "#059669",
+      });
     }
   };
 

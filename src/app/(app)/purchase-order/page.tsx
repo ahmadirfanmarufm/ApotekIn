@@ -26,7 +26,9 @@ const PAGE_SIZE = 10;
 
 export default function PurchaseOrderPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrderListItem[]>([],);
+  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrderListItem[]>(
+    [],
+  );
   const [suppliers, setSuppliers] = useState<
     Array<{ id: string; code: string; name: string }>
   >([]);
@@ -42,18 +44,44 @@ export default function PurchaseOrderPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
+  const targetSupplierId = searchParams.get("supplierId");
   const restockItemId = searchParams.get("itemId");
   const restockMode = searchParams.get("mode") === "restock";
 
   const parsedRestockQuantity = Number(searchParams.get("quantity") ?? 0);
-
-  const restockQuantity = Number.isFinite(parsedRestockQuantity) && parsedRestockQuantity > 0 ? parsedRestockQuantity : 0;
+  const restockQuantity =
+    Number.isFinite(parsedRestockQuantity) && parsedRestockQuantity > 0
+      ? parsedRestockQuantity
+      : 0;
 
   useEffect(() => {
-    if (!isLoading && restockMode && restockItemId && restockQuantity > 0 && items.some((item) => item.id === restockItemId)) {
+    if (
+      !isLoading &&
+      targetSupplierId &&
+      suppliers.some((s) => s.id === targetSupplierId)
+    ) {
+      setIsModalOpen(true);
+      return;
+    }
+
+    if (
+      !isLoading &&
+      restockMode &&
+      restockItemId &&
+      restockQuantity > 0 &&
+      items.some((item) => item.id === restockItemId)
+    ) {
       setIsModalOpen(true);
     }
-  }, [isLoading, items, restockMode, restockItemId, restockQuantity]);
+  }, [
+    isLoading,
+    suppliers,
+    items,
+    targetSupplierId,
+    restockMode,
+    restockItemId,
+    restockQuantity,
+  ]);
 
   const loadPurchaseOrders = useCallback(async () => {
     try {
@@ -153,7 +181,7 @@ export default function PurchaseOrderPage() {
 
   return (
     <div className="space-y-6 relative">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">
             Purchase Order (PO)
@@ -164,23 +192,23 @@ export default function PurchaseOrderPage() {
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-semibold flex items-center gap-2 hover:bg-emerald-600 transition-colors shadow-sm"
+          className="bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-emerald-600 transition-colors shadow-sm w-full sm:w-auto"
         >
           <Plus className="h-5 w-5" />
           Buat PO Baru
         </button>
       </div>
 
-      <div className="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+      <div className="flex flex-col gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <span className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+          <span className="text-sm font-semibold text-slate-700 flex items-center gap-2 shrink-0">
             <Filter className="h-4 w-4" />
             Filter:
           </span>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="border border-slate-200 rounded-lg px-4 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 min-w-37.5"
+            className="border border-slate-200 rounded-lg px-3 sm:px-4 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 w-full sm:min-w-37.5"
           >
             <option value="">Semua Status</option>
             <option value="PENDING">Pending</option>
@@ -189,107 +217,112 @@ export default function PurchaseOrderPage() {
             <option value="CANCELLED">Dibatalkan</option>
           </select>
         </div>
-        <div className="relative">
+        <div className="relative w-full sm:w-80">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <input
             type="text"
             placeholder="Cari No. PO atau Supplier"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            className="border border-slate-200 rounded-lg pl-9 pr-4 py-2 text-sm w-80 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="border border-slate-200 rounded-lg pl-9 pr-4 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-        <table className="w-full text-left">
-          <thead className="bg-slate-50 border-b border-slate-200">
-            <tr className="text-xs font-bold text-slate-600">
-              <th className="px-5 py-3.5 text-center">Tanggal PO</th>
-              <th className="px-5 py-3.5">No. PO</th>
-              <th className="px-5 py-3.5">Supplier</th>
-              <th className="px-5 py-3.5 text-center">Jumlah Item</th>
-              <th className="px-5 py-3.5 text-center">Status</th>
-              <th className="px-5 py-3.5 text-center">Aksi</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {paginatedOrders.length === 0 && (
-              <tr>
-                <td colSpan={6} className="p-5 text-center text-slate-500">
-                  {isLoading ? (
-                    <div className="flex justify-center items-center gap-2">
-                      <Loader2 className="animate-spin h-5 w-5 text-emerald-500" />
-                      Memuat data...
-                    </div>
-                  ) : (
-                    "Tidak ada data purchase order."
-                  )}
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left min-w-[640px]">
+            <thead className="bg-slate-50 border-b border-slate-200">
+              <tr className="text-xs font-bold text-slate-600">
+                <th className="px-5 py-3.5 text-center">Tanggal PO</th>
+                <th className="px-5 py-3.5">No. PO</th>
+                <th className="px-5 py-3.5">Supplier</th>
+                <th className="px-5 py-3.5 text-center">Jumlah Item</th>
+                <th className="px-5 py-3.5 text-center">Status</th>
+                <th className="px-5 py-3.5 text-center">Aksi</th>
               </tr>
-            )}
-            {paginatedOrders.map((po) => {
-              const totalOrdered = po.items.reduce(
-                (acc, item) => acc + (Number(item.quantity) || 0),
-                0,
-              );
-              const totalReceived = po.items.reduce(
-                (acc, item) => acc + (Number(item.receivedQty) || 0),
-                0,
-              );
-
-              return (
-                <tr
-                  key={po.id}
-                  className="text-sm text-slate-700 hover:bg-slate-50/50 transition-colors"
-                >
-                  <td className="px-5 py-3 text-center whitespace-nowrap">
-                    {new Intl.DateTimeFormat("id-ID").format(
-                      new Date(po.createdAt),
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {paginatedOrders.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="p-5 text-center text-slate-500">
+                    {isLoading ? (
+                      <div className="flex justify-center items-center gap-2">
+                        <Loader2 className="animate-spin h-5 w-5 text-emerald-500" />
+                        Memuat data...
+                      </div>
+                    ) : (
+                      "Tidak ada data purchase order."
                     )}
-                  </td>
-                  <td className="px-5 py-3 font-medium">{po.poNumber}</td>
-                  <td className="px-5 py-3 font-bold text-slate-900">
-                    {po.supplier.name}
-                  </td>
-                  <td className="px-5 py-3 text-center">
-                    {po.items.length} Item
-                  </td>
-                  <td className="px-5 py-3 text-center">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold border ${
-                        po.status === "PENDING"
-                          ? "bg-orange-50 text-orange-600 border-orange-200"
-                          : po.status === "PARTIAL"
-                            ? "bg-blue-50 text-blue-600 border-blue-200"
-                            : po.status === "COMPLETED"
-                              ? "bg-emerald-50 text-emerald-600 border-emerald-200"
-                              : "bg-red-50 text-red-600 border-red-200"
-                      }`}
-                    >
-                      {STATUS_LABEL[po.status] ?? po.status}
-                    </span>
-                    {(po.status === "PARTIAL" || po.status === "COMPLETED") && (
-                      <span className="block text-[11px] text-slate-400 mt-1">
-                        {totalReceived}/{totalOrdered} diterima
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-5 py-5 text-center flex justify-center">
-                    <button
-                      onClick={() => setDetailPoId(po.id)}
-                      className="flex items-center gap-2 px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
-                    >
-                      <Eye className="h-4 w-4" /> Detail
-                    </button>
                   </td>
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
+              )}
+              {paginatedOrders.map((po) => {
+                const totalOrdered = po.items.reduce(
+                  (acc, item) => acc + (Number(item.quantity) || 0),
+                  0,
+                );
+                const totalReceived = po.items.reduce(
+                  (acc, item) => acc + (Number(item.receivedQty) || 0),
+                  0,
+                );
 
-        <div className="px-5 py-3.5 border-t border-slate-200 bg-slate-50/50 flex justify-between items-center text-xs text-slate-500 font-medium">
+                return (
+                  <tr
+                    key={po.id}
+                    className="text-sm text-slate-700 hover:bg-slate-50/50 transition-colors"
+                  >
+                    <td className="px-5 py-3 text-center whitespace-nowrap">
+                      {new Intl.DateTimeFormat("id-ID").format(
+                        new Date(po.createdAt),
+                      )}
+                    </td>
+                    <td className="px-5 py-3 font-medium">{po.poNumber}</td>
+                    <td className="px-5 py-3 font-bold text-slate-900">
+                      {po.supplier.name}
+                    </td>
+                    <td className="px-5 py-3 text-center">
+                      {po.items.length} Item
+                    </td>
+                    <td className="px-5 py-3 text-center">
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-semibold border ${
+                          po.status === "PENDING"
+                            ? "bg-orange-50 text-orange-600 border-orange-200"
+                            : po.status === "PARTIAL"
+                              ? "bg-blue-50 text-blue-600 border-blue-200"
+                              : po.status === "COMPLETED"
+                                ? "bg-emerald-50 text-emerald-600 border-emerald-200"
+                                : "bg-red-50 text-red-600 border-red-200"
+                        }`}
+                      >
+                        {STATUS_LABEL[po.status] ?? po.status}
+                      </span>
+                      {(po.status === "PARTIAL" ||
+                        po.status === "COMPLETED") && (
+                        <span className="block text-[11px] text-slate-400 mt-1">
+                          {totalReceived}/{totalOrdered} diterima
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-5 py-5 text-center">
+                      <div className="flex justify-center">
+                        <button
+                          onClick={() => setDetailPoId(po.id)}
+                          className="flex items-center gap-2 px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
+                        >
+                          <Eye className="h-4 w-4" /> Detail
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="px-5 py-3.5 border-t border-slate-200 bg-slate-50/50 flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center text-xs text-slate-500 font-medium">
           <p>
             {filteredOrders.length === 0
               ? "Menampilkan 0 PO"
@@ -298,10 +331,10 @@ export default function PurchaseOrderPage() {
                   filteredOrders.length,
                 )} dari ${filteredOrders.length} PO`}
           </p>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 justify-center sm:justify-end">
             <button
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              className="w-7 h-7 flex items-center justify-center rounded border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-50"
+              className="w-7 h-7 flex items-center justify-center rounded border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-50 cursor-pointer"
               disabled={currentPage === 1}
             >
               <ChevronLeft className="h-4 w-4" />
@@ -323,7 +356,7 @@ export default function PurchaseOrderPage() {
               onClick={() =>
                 setCurrentPage((prev) => Math.min(prev + 1, totalPages))
               }
-              className="w-7 h-7 flex items-center justify-center rounded border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-50"
+              className="w-7 h-7 flex items-center justify-center rounded border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-50 cursor-pointer"
               disabled={currentPage === totalPages}
             >
               <ChevronRight className="h-4 w-4" />
@@ -337,12 +370,13 @@ export default function PurchaseOrderPage() {
         onClose={() => {
           setIsModalOpen(false);
 
-          if (restockMode) {
+          if (restockMode || targetSupplierId) {
             router.replace("/purchase-order");
           }
         }}
         suppliers={suppliers}
         items={items}
+        initialSupplierId={targetSupplierId}
         restockItemId={restockMode ? restockItemId : null}
         restockQuantity={restockMode ? restockQuantity : 0}
         onSuccess={loadPurchaseOrders}

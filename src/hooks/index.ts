@@ -36,7 +36,7 @@ export function useDashboardData<T>(url: string): UseDashboardDataResult<T> {
     setError(null);
 
     try {
-      const res = await fetch(url, { cache: "no-store" });
+      const res = await fetch(url, { next: { revalidate: 300 } });
       const json = (await res.json()) as DashboardApiEnvelope<T>;
 
       if (requestId !== requestIdRef.current) return;

@@ -14,6 +14,11 @@ export const purchaseOrderItemSchema = z.object({
 export const createPurchaseOrderSchema = z.object({
   supplierId: z.string().min(1, "Supplier wajib dipilih"),
   notes: z.string().max(2000, "Catatan maksimal 2000 karakter").optional(),
+  expectedDeliveryAt: z
+    .string()
+    .datetime({ message: "Format tanggal estimasi tidak valid." })
+    .optional()
+    .or(z.literal("")),
   items: z
     .array(purchaseOrderItemSchema)
     .min(1, "Minimal harus ada 1 barang dalam PO"),

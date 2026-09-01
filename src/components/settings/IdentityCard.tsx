@@ -16,7 +16,7 @@ export function IdentityCard({ user }: IdentityCardProps) {
   const router = useRouter();
 
   const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string | null>(
-    user.avatarUrl
+    user.avatarUrl,
   );
   const [responseState, setResponseState] = useState<ApiResponse>({
     success: false,
@@ -27,6 +27,20 @@ export function IdentityCard({ user }: IdentityCardProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [selectedImageSrc, setSelectedImageSrc] = useState<string | null>(null);
+
+  const extractStoragePath = (url: string): string | null => {
+    try {
+      const urlObj = new URL(url);
+      const parts = urlObj.pathname.split("/").filter(Boolean);
+      const bucketIndex = parts.indexOf("avatars");
+      if (bucketIndex !== -1 && bucketIndex < parts.length - 1) {
+        return parts.slice(bucketIndex + 1).join("/");
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  };
 
   const handleSelectFile = () => {
     fileInputRef.current?.click();
@@ -99,6 +113,13 @@ export function IdentityCard({ user }: IdentityCardProps) {
 
     startTransition(async () => {
       try {
+        if (currentAvatarUrl && currentAvatarUrl.startsWith("http")) {
+          const storagePath = extractStoragePath(currentAvatarUrl);
+          if (storagePath) {
+            await supabase.storage.from("avatars").remove([storagePath]);
+          }
+        }
+
         const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.jpg`;
         const filePath = `avatars/${fileName}`;
 
@@ -111,7 +132,6 @@ export function IdentityCard({ user }: IdentityCardProps) {
           });
 
         if (error) {
-          console.error("Supabase Upload Error:", error);
           setResponseState({
             success: false,
             message: "Gagal mengunggah foto ke Supabase Storage.",
@@ -143,8 +163,7 @@ export function IdentityCard({ user }: IdentityCardProps) {
         });
 
         router.refresh();
-      } catch (err) {
-        console.error("Upload error:", err);
+      } catch {
         setResponseState({
           success: false,
           message: "Terjadi kesalahan saat mengunggah foto.",
@@ -171,12 +190,16 @@ export function IdentityCard({ user }: IdentityCardProps) {
 
     startTransition(async () => {
       try {
+        if (currentAvatarUrl && currentAvatarUrl.startsWith("http")) {
+          const storagePath = extractStoragePath(currentAvatarUrl);
+          if (storagePath) {
+            await supabase.storage.from("avatars").remove([storagePath]);
+          }
+        }
+
         const res = await fetch("/api/settings/avatar", {
           method: "DELETE",
         });
-
-        const fileName = currentAvatarUrl?.split("/").at(-1);
-        const filePath = `avatars/${fileName}`;
 
         const data: ApiResponse = await res.json();
         setResponseState(data);
@@ -190,8 +213,6 @@ export function IdentityCard({ user }: IdentityCardProps) {
           });
           return;
         }
-
-        await supabase.storage.from("avatars").remove([filePath]);
 
         setCurrentAvatarUrl(null);
 
@@ -210,9 +231,7 @@ export function IdentityCard({ user }: IdentityCardProps) {
         });
 
         router.refresh();
-      } catch (err) {
-        console.error("Remove error:", err);
-
+      } catch {
         setResponseState({
           success: false,
           message: "Terjadi kesalahan saat menghapus foto.",

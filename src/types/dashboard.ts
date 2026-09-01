@@ -98,7 +98,6 @@ export interface RecentActivityItem {
   relativeTime: string;
 }
 
-
 export interface DashboardData {
   health: InventoryHealthData;
   financial: FinancialChartData;
@@ -107,4 +106,36 @@ export interface DashboardData {
   topMoving: TopMovingItem[];
   suppliers: SupplierPerformanceItem[];
   activities: RecentActivityItem[];
+}
+
+export type NarrativeSeverity = "GOOD" | "WARNING" | "CRITICAL";
+
+export interface NarrativePayload {
+  headline: string;
+  insight: string;
+  recommendation: string;
+  severity: NarrativeSeverity;
+}
+
+export interface ExecutiveSummary {
+  healthScore: number;
+  totalSku: number;
+  criticalCount: number;
+  topCriticalItem: {
+    itemId: string;
+    itemName: string;
+    daysUntilExpiry: number | null;
+  } | null;
+  fastMovingName: string | null;
+  fastMovingQty: number;
+  fefoCompliancePct: number;
+  revenue30d: number;
+  expense30d: number;
+  marginPct: number;
+  pendingTasksCount: number;
+  onTimeSupplierPct: number;
+  lastActivity: { title: string; actor: string; relativeTime: string } | null;
+  narrative: NarrativePayload;
+  generatedAt: string;
+  cachedUntil: string;
 }

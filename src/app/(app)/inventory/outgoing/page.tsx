@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getUserPermissions } from "@/lib/permission";
 
-import IncomingClient from "@/components/inventory/IncomingStockClient";
+import OutgoingStockSection from "@/components/inventory/OutgoingStockSection";
 
 export default async function OutgoingPage() {
   const session = await auth();
@@ -18,5 +18,5 @@ export default async function OutgoingPage() {
     redirect("/not-permission");
   }
 
-  return <IncomingClient />;
+  return <OutgoingStockSection />;
 }

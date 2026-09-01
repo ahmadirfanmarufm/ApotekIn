@@ -126,10 +126,6 @@ export function NotificationsClient() {
     fetchNotifications();
   }, [fetchNotifications]);
 
-  useEffect(() => {
-    setSearchInput(search);
-  }, [search]);
-
   const navigateWith = useCallback(
     (overrides: Record<string, string | number | null>) => {
       const qs = buildQueryString(overrides);

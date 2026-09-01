@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Plus,
   Filter,
@@ -12,7 +12,10 @@ import {
 } from "lucide-react";
 import { POModal } from "@/components/purchase-order/POModal";
 import { PODetailModal } from "@/components/purchase-order/PODetailModal";
-import type { PurchaseOrderListItem } from "@/types/purchase-order";
+import type {
+  PurchaseOrderListItem,
+  PurchaseOrderPagination,
+} from "@/types/purchase-order";
 import { useRouter, useSearchParams } from "next/navigation";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -39,6 +42,12 @@ export default function PurchaseOrderPage() {
   const [statusFilter, setStatusFilter] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState<PurchaseOrderPagination>({
+    page: 1,
+    pageSize: PAGE_SIZE,
+    total: 0,
+    totalPages: 1,
+  });
   const [detailPoId, setDetailPoId] = useState<string | null>(null);
 
   const searchParams = useSearchParams();
@@ -54,23 +63,25 @@ export default function PurchaseOrderPage() {
       ? parsedRestockQuantity
       : 0;
 
-  useEffect(() => {
-    if (
-      !isLoading &&
-      targetSupplierId &&
-      suppliers.some((s) => s.id === targetSupplierId)
-    ) {
-      setIsModalOpen(true);
-      return;
-    }
+  // Guard agar auto-open modal hanya berjalan sekali per mount,
+  // walaupun deps (suppliers, items) reference berubah.
+  const autoOpenedRef = useRef(false);
 
-    if (
-      !isLoading &&
+  useEffect(() => {
+    if (autoOpenedRef.current) return;
+    if (isLoading) return;
+
+    const shouldOpenForSupplier =
+      !!targetSupplierId && suppliers.some((s) => s.id === targetSupplierId);
+
+    const shouldOpenForRestock =
       restockMode &&
-      restockItemId &&
+      !!restockItemId &&
       restockQuantity > 0 &&
-      items.some((item) => item.id === restockItemId)
-    ) {
+      items.some((item) => item.id === restockItemId);
+
+    if (shouldOpenForSupplier || shouldOpenForRestock) {
+      autoOpenedRef.current = true;
       setIsModalOpen(true);
     }
   }, [
@@ -105,9 +116,13 @@ export default function PurchaseOrderPage() {
       }
 
       setPurchaseOrders(data.data ?? []);
+      if (data.pagination) {
+        setPagination(data.pagination);
+      }
     } catch (error) {
       console.error("Failed to fetch purchase orders:", error);
       setPurchaseOrders([]);
+      setPagination((prev) => ({ ...prev, total: 0, totalPages: 1 }));
     }
   }, [statusFilter, searchInput, currentPage]);
 
@@ -145,27 +160,9 @@ export default function PurchaseOrderPage() {
     void loadPurchaseOrders();
   }, [loadPurchaseOrders]);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [statusFilter, searchInput]);
-
-  const filteredOrders = purchaseOrders.filter((po) => {
-    if (!searchInput.trim()) return true;
-
-    const keyword = searchInput.trim().toLowerCase();
-
-    return (
-      po.poNumber.toLowerCase().includes(keyword) ||
-      po.supplier.name.toLowerCase().includes(keyword)
-    );
-  });
-
-  const totalPages = Math.max(1, Math.ceil(filteredOrders.length / PAGE_SIZE));
-  const safeCurrentPage = Math.min(currentPage, totalPages);
-  const paginatedOrders = filteredOrders.slice(
-    (safeCurrentPage - 1) * PAGE_SIZE,
-    safeCurrentPage * PAGE_SIZE,
-  );
+  const totalPages = pagination.totalPages;
+  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+  const paginatedOrders = purchaseOrders;
 
   const getPageNumbers = (): number[] => {
     const pages: number[] = [];
@@ -207,7 +204,10 @@ export default function PurchaseOrderPage() {
           </span>
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setCurrentPage(1);
+            }}
             className="border border-slate-200 rounded-lg px-3 sm:px-4 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 w-full sm:min-w-37.5"
           >
             <option value="">Semua Status</option>
@@ -223,7 +223,10 @@ export default function PurchaseOrderPage() {
             type="text"
             placeholder="Cari No. PO atau Supplier"
             value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
+            onChange={(e) => {
+              setSearchInput(e.target.value);
+              setCurrentPage(1);
+            }}
             className="border border-slate-200 rounded-lg pl-9 pr-4 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
@@ -324,18 +327,18 @@ export default function PurchaseOrderPage() {
 
         <div className="px-5 py-3.5 border-t border-slate-200 bg-slate-50/50 flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center text-xs text-slate-500 font-medium">
           <p>
-            {filteredOrders.length === 0
+            {pagination.total === 0
               ? "Menampilkan 0 PO"
               : `Menampilkan ${(safeCurrentPage - 1) * PAGE_SIZE + 1}-${Math.min(
                   safeCurrentPage * PAGE_SIZE,
-                  filteredOrders.length,
-                )} dari ${filteredOrders.length} PO`}
+                  pagination.total,
+                )} dari ${pagination.total} PO`}
           </p>
           <div className="flex items-center gap-1 justify-center sm:justify-end">
             <button
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               className="w-7 h-7 flex items-center justify-center rounded border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-50 cursor-pointer"
-              disabled={currentPage === 1}
+              disabled={safeCurrentPage === 1}
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -357,7 +360,7 @@ export default function PurchaseOrderPage() {
                 setCurrentPage((prev) => Math.min(prev + 1, totalPages))
               }
               className="w-7 h-7 flex items-center justify-center rounded border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-50 cursor-pointer"
-              disabled={currentPage === totalPages}
+              disabled={safeCurrentPage === totalPages}
             >
               <ChevronRight className="h-4 w-4" />
             </button>

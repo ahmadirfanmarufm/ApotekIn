@@ -1,10 +1,9 @@
 # Healtech 2026
-Nama TIM: **Asik Asikin Aja CLAN**
-Daftar Anggota:
+### Nama TIM: **Asik Asikin Aja CLAN**
+### Daftar Anggota:
 - Damar Syahada Kusuma
 - Ahmad Irfan Ma'ruf
 - Raihan Yassar Tsaqib
-
 
 ---
 
@@ -19,8 +18,8 @@ Aplikasi manajemen inventaris dan operasional apotek berbasis web. Mendukung pel
 - **Inventaris & Batch Tracking:** Pelacakan item per batch (nomor batch, tanggal kedaluwarsa, HPP, harga jual) serta manajemen stok masuk, stok keluar, dan audit stok (*stock opname*).
 - **Purchase Order (PO):** Pengadaan barang ke supplier dengan status dinamis (`PENDING`, `PARTIAL`, `COMPLETED`, `CANCELLED`) dan penerimaan parsial.
 - **Role-Based Access Control (RBAC):** Otentikasi dan otorisasi multi-role (`ADMINISTRATOR`, `APOTEKER_PENANGGUNG_JAWAB`, `TENAGA_TEKNIS_KEFARMASIAN`, `ADMIN_LOGISTIK`, `OWNER`).
-- **Analitik & AI Insights:** Modul ringkasan operasional, prediksi kebutuhan stok, analisis stok kritis/overstock, serta rekomendasi supplier.
-- **Pelaporan:** Ekspor laporan operasional dan keuangan ke format PDF secara dinamis.
+- **Analitik & AI Insights:** Modul ringkasan operasional, prediksi kebutuhan stok, analisis stok kritis/overstock.
+- **Export PDF:** Generate PDF untuk Surat Pengajuan kepada Supplier.
 
 ---
 

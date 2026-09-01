@@ -205,7 +205,7 @@ export default function IncomingStockPage() {
 
   return (
     <div className="relative space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Stok Masuk</h1>
 
@@ -217,7 +217,7 @@ export default function IncomingStockPage() {
         <button
           type="button"
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 rounded-xl bg-emerald-500 px-5 py-2.5 font-semibold text-white shadow-sm transition-colors hover:bg-emerald-600"
+          className="flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-5 py-2.5 font-semibold text-white shadow-sm transition-colors hover:bg-emerald-600 w-full sm:w-auto"
         >
           <Plus className="h-5 w-5" />
           Tambah Stok Masuk
@@ -241,13 +241,13 @@ export default function IncomingStockPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-6">
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm">
           <p className="mb-2 text-sm font-semibold text-slate-600">
             Total Transaksi Masuk
           </p>
 
-          <h2 className="text-2xl font-bold text-slate-900">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 text-center">
             {isLoading ? (
               <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
@@ -256,12 +256,12 @@ export default function IncomingStockPage() {
           </h2>
         </div>
 
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm">
           <p className="mb-2 text-sm font-semibold text-slate-600">
             Nilai Pembelian (Rp)
           </p>
 
-          <h2 className="text-2xl font-bold text-slate-900">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 text-center">
             {isLoading ? (
               <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
@@ -273,9 +273,9 @@ export default function IncomingStockPage() {
         </div>
       </div>
 
-      <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="flex items-center gap-3">
-          <span className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+      <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-3 w-full sm:w-auto">
+          <span className="flex items-center gap-2 text-sm font-semibold text-slate-700 shrink-0">
             <Filter className="h-4 w-4" />
             Filter:
           </span>
@@ -286,7 +286,7 @@ export default function IncomingStockPage() {
               setPeriodFilter(e.target.value);
               setCurrentPage(1);
             }}
-            className="min-w-37.5 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full sm:min-w-37.5 rounded-lg border border-slate-200 bg-white px-3 sm:px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
           >
             <option value="today">Hari Ini</option>
             <option value="this-week">Minggu Ini</option>
@@ -301,7 +301,7 @@ export default function IncomingStockPage() {
               setSupplierFilter(e.target.value);
               setCurrentPage(1);
             }}
-            className="min-w-37.5 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full sm:min-w-37.5 rounded-lg border border-slate-200 bg-white px-3 sm:px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
           >
             <option value="all">Semua Supplier</option>
 
@@ -312,97 +312,89 @@ export default function IncomingStockPage() {
             ))}
           </select>
         </div>
-
-        <div className="flex gap-2">
-          <button
-            type="button"
-            className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-700"
-          ></button>
-
-          <button
-            type="button"
-            className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-700"
-          ></button>
-        </div>
       </div>
 
       <div className="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <table className="w-full text-left">
-          <thead className="border-b border-slate-200 bg-slate-50">
-            <tr className="text-xs font-bold text-slate-600">
-              <th className="px-5 py-3.5 text-center">Tanggal Masuk</th>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left min-w-[640px]">
+            <thead className="border-b border-slate-200 bg-slate-50">
+              <tr className="text-xs font-bold text-slate-600">
+                <th className="px-5 py-3.5 text-center">Tanggal Masuk</th>
 
-              <th className="px-5 py-3.5">No. Faktur</th>
+                <th className="px-5 py-3.5">No. Faktur</th>
 
-              <th className="px-5 py-3.5">No. PO Referensi</th>
+                <th className="px-5 py-3.5">No. PO Referensi</th>
 
-              <th className="px-5 py-3.5">Supplier</th>
+                <th className="px-5 py-3.5">Supplier</th>
 
-              <th className="px-5 py-3.5 text-center">Total Item</th>
+                <th className="px-5 py-3.5 text-center">Total Item</th>
 
-              <th className="px-5 py-3.5 text-center">Aksi</th>
-            </tr>
-          </thead>
-
-          <tbody className="divide-y divide-slate-100">
-            {receipts.length === 0 && !isLoading && (
-              <tr>
-                <td colSpan={6} className="p-5 text-center text-slate-500">
-                  Tidak ada data stok masuk.
-                </td>
+                <th className="px-5 py-3.5 text-center">Aksi</th>
               </tr>
-            )}
+            </thead>
 
-            {isLoading && (
-              <tr>
-                <td colSpan={6} className="p-5 text-center">
-                  <Loader2 className="mx-auto h-6 w-6 animate-spin text-emerald-500" />
-                </td>
-              </tr>
-            )}
+            <tbody className="divide-y divide-slate-100">
+              {receipts.length === 0 && !isLoading && (
+                <tr>
+                  <td colSpan={6} className="p-5 text-center text-slate-500">
+                    Tidak ada data stok masuk.
+                  </td>
+                </tr>
+              )}
 
-            {paginatedReceipts.map((row) => (
-              <tr
-                key={row.id}
-                className="text-sm text-slate-700 transition-colors hover:bg-slate-50/50"
-              >
-                <td className="whitespace-nowrap px-5 py-3 text-center">
-                  {formatDate(row.receivedAt)}
-                </td>
+              {isLoading && (
+                <tr>
+                  <td colSpan={6} className="p-5 text-center">
+                    <Loader2 className="mx-auto h-6 w-6 animate-spin text-emerald-500" />
+                  </td>
+                </tr>
+              )}
 
-                <td className="px-5 py-3 font-medium">
-                  {row.invoiceNumber || row.receiptNumber}
-                </td>
+              {paginatedReceipts.map((row) => (
+                <tr
+                  key={row.id}
+                  className="text-sm text-slate-700 transition-colors hover:bg-slate-50/50"
+                >
+                  <td className="whitespace-nowrap px-5 py-3 text-center">
+                    {formatDate(row.receivedAt)}
+                  </td>
 
-                <td className="px-5 py-3 text-slate-500">
-                  {row.purchaseOrder?.poNumber ?? "-"}
-                </td>
+                  <td className="px-5 py-3 font-medium">
+                    {row.invoiceNumber || row.receiptNumber}
+                  </td>
 
-                <td className="px-5 py-3 font-bold text-slate-900">
-                  {row.supplier.name}
-                </td>
+                  <td className="px-5 py-3 text-slate-500">
+                    {row.purchaseOrder?.poNumber ?? "-"}
+                  </td>
 
-                <td className="px-5 py-3 text-center font-bold text-emerald-500">
-                  +{row.items.reduce((acc, item) => acc + item.quantity, 0)}
-                </td>
+                  <td className="px-5 py-3 font-bold text-slate-900">
+                    {row.supplier.name}
+                  </td>
 
-                <td className="flex justify-center px-5 py-3 text-center">
-                  <button
-                    type="button"
-                    onClick={() => setDetailReceipt(row)}
-                    className="flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-600 transition-colors hover:bg-emerald-100"
-                  >
-                    <Eye className="h-3.5 w-3.5" />
-                    Detail
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                  <td className="px-5 py-3 text-center font-bold text-emerald-500">
+                    +{row.items.reduce((acc, item) => acc + item.quantity, 0)}
+                  </td>
 
-        <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50/50 px-5 py-3.5 text-xs font-medium text-slate-500">
-          <p>
+                  <td className="px-5 py-3 text-center">
+                    <div className="flex justify-center">
+                      <button
+                        type="button"
+                        onClick={() => setDetailReceipt(row)}
+                        className="flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-600 transition-colors hover:bg-emerald-100"
+                      >
+                        <Eye className="h-3.5 w-3.5" />
+                        Detail
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-t border-slate-200 bg-slate-50/50 px-5 py-3.5 text-xs font-medium text-slate-500">
+          <p className="text-center sm:text-left">
             {totalTransactions === 0
               ? "Menampilkan 0 transaksi"
               : `Menampilkan ${
@@ -413,11 +405,11 @@ export default function IncomingStockPage() {
                 )} dari ${totalTransactions} transaksi`}
           </p>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 justify-center">
             <button
               type="button"
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              className="flex h-7 w-7 items-center justify-center rounded border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-50"
+              className="flex h-7 w-7 items-center justify-center rounded border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-50 cursor-pointer"
               disabled={safeCurrentPage === 1}
             >
               <ChevronLeft className="h-4 w-4" />

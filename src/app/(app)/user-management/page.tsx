@@ -281,7 +281,7 @@ export default function UserManagementPage() {
 
   return (
     <div className="relative space-y-6 font-inter text-slate-800">
-      <div className="flex flex-row items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="font-manrope text-2xl font-bold text-slate-950">
             Manajemen Karyawan
@@ -292,10 +292,10 @@ export default function UserManagementPage() {
           </p>
         </div>
 
-        <div>
+        <div className="w-full sm:w-auto">
           <Button
             onClick={handleOpenCreateModal}
-            className="flex items-center gap-2"
+            className="flex items-center justify-center gap-2 w-full sm:w-auto"
           >
             <Plus className="h-4 w-4" />
             Tambah Karyawan

@@ -108,11 +108,11 @@ export function PODetailModal({ isOpen, poId, onClose }: PODetailModalProps) {
     });
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl w-full max-w-4xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
-        <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-white">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-3 sm:p-4">
+      <div className="bg-white rounded-2xl w-full max-w-4xl shadow-xl overflow-hidden flex flex-col max-h-[95vh] sm:max-h-[90vh]">
+        <div className="px-4 py-4 sm:px-6 border-b border-slate-200 flex justify-between items-center bg-white gap-3">
           <div className="min-w-0">
-            <h2 className="text-xl font-bold text-slate-900 truncate">
+            <h2 className="text-base sm:text-xl font-bold text-slate-900 truncate">
               {isLoading || !detail
                 ? "Detail Purchase Order"
                 : `${detail.poNumber} - ${detail.supplier.name}`}
@@ -127,13 +127,14 @@ export function PODetailModal({ isOpen, poId, onClose }: PODetailModalProps) {
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer shrink-0 ml-4"
+            className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer shrink-0"
+            aria-label="Tutup modal"
           >
-            <X className="h-6 w-6" />
+            <X className="h-5 w-5 sm:h-6 sm:w-6" />
           </button>
         </div>
 
-        <div className="p-6 space-y-6 overflow-y-auto">
+        <div className="p-4 sm:p-6 space-y-6 overflow-y-auto">
           {isLoading ? (
             <div className="flex justify-center items-center gap-2 py-16 text-sm text-slate-500">
               <Loader2 className="animate-spin h-5 w-5 text-emerald-500" />
@@ -241,96 +242,101 @@ export function PODetailModal({ isOpen, poId, onClose }: PODetailModalProps) {
                   Daftar Barang Diorder ({detail.items.length} Item)
                 </h3>
                 <div className="border border-slate-200 rounded-xl overflow-hidden">
-                  <table className="w-full text-left">
-                    <thead className="bg-slate-50 border-b border-slate-200 text-xs uppercase font-bold text-slate-600">
-                      <tr>
-                        <th className="px-4 py-3">Kode</th>
-                        <th className="px-4 py-3">Nama Barang</th>
-                        <th className="px-4 py-3 text-center">Qty Order</th>
-                        <th className="px-4 py-3 text-center">Diterima</th>
-                        <th className="px-4 py-3 text-center">Sisa</th>
-                        <th className="px-4 py-3 text-right">Harga Satuan</th>
-                        <th className="px-4 py-3 text-right">Subtotal</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {detail.items.length === 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left min-w-[640px]">
+                      <thead className="bg-slate-50 border-b border-slate-200 text-xs uppercase font-bold text-slate-600">
                         <tr>
-                          <td
-                            colSpan={7}
-                            className="p-8 text-center text-sm text-slate-400"
-                          >
-                            Tidak ada item pada purchase order ini.
-                          </td>
+                          <th className="px-4 py-3">Kode</th>
+                          <th className="px-4 py-3">Nama Barang</th>
+                          <th className="px-4 py-3 text-center">Qty Order</th>
+                          <th className="px-4 py-3 text-center">Diterima</th>
+                          <th className="px-4 py-3 text-center">Sisa</th>
+                          <th className="px-4 py-3 text-right">Harga Satuan</th>
+                          <th className="px-4 py-3 text-right">Subtotal</th>
                         </tr>
-                      ) : (
-                        detail.items.map((item) => (
-                          <tr key={item.id} className="text-sm text-slate-700">
-                            <td className="px-4 py-3 font-mono text-xs text-slate-500 whitespace-nowrap">
-                              {item.item.code}
-                            </td>
-                            <td className="px-4 py-3 font-medium text-slate-900">
-                              {item.item.name}
-                            </td>
-                            <td className="px-4 py-3 text-center whitespace-nowrap">
-                              <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 font-bold text-xs border border-slate-200">
-                                {item.orderedQty} {item.item.unit}
-                              </span>
-                            </td>
-                            <td className="px-4 py-3 text-center whitespace-nowrap">
-                              <span
-                                className={`inline-flex items-center px-2.5 py-1 rounded-lg font-bold text-xs border ${
-                                  item.receivedQty >= item.orderedQty
-                                    ? "bg-emerald-50 text-emerald-600 border-emerald-100"
-                                    : item.receivedQty > 0
-                                      ? "bg-blue-50 text-blue-600 border-blue-100"
-                                      : "bg-slate-50 text-slate-400 border-slate-200"
-                                }`}
-                              >
-                                {item.receivedQty} {item.item.unit}
-                              </span>
-                            </td>
-                            <td className="px-4 py-3 text-center whitespace-nowrap">
-                              <span
-                                className={`inline-flex items-center px-2.5 py-1 rounded-lg font-bold text-xs border ${
-                                  item.remainingQty === 0
-                                    ? "bg-emerald-50 text-emerald-600 border-emerald-100"
-                                    : item.receivedQty > 0
-                                      ? "bg-orange-50 text-orange-600 border-orange-100"
-                                      : "bg-slate-50 text-slate-400 border-slate-200"
-                                }`}
-                              >
-                                {item.remainingQty} {item.item.unit}
-                              </span>
-                            </td>
-                            <td className="px-4 py-3 text-right whitespace-nowrap">
-                              {formatCurrency(item.unitPrice)}
-                            </td>
-                            <td className="px-4 py-3 text-right font-bold text-slate-900 whitespace-nowrap">
-                              {formatCurrency(
-                                item.orderedQty * Number(item.unitPrice ?? 0),
-                              )}
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {detail.items.length === 0 ? (
+                          <tr>
+                            <td
+                              colSpan={7}
+                              className="p-8 text-center text-sm text-slate-400"
+                            >
+                              Tidak ada item pada purchase order ini.
                             </td>
                           </tr>
-                        ))
+                        ) : (
+                          detail.items.map((item) => (
+                            <tr
+                              key={item.id}
+                              className="text-sm text-slate-700"
+                            >
+                              <td className="px-4 py-3 font-mono text-xs text-slate-500 whitespace-nowrap">
+                                {item.item.code}
+                              </td>
+                              <td className="px-4 py-3 font-medium text-slate-900">
+                                {item.item.name}
+                              </td>
+                              <td className="px-4 py-3 text-center whitespace-nowrap">
+                                <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 font-bold text-xs border border-slate-200">
+                                  {item.orderedQty} {item.item.unit}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-center whitespace-nowrap">
+                                <span
+                                  className={`inline-flex items-center px-2.5 py-1 rounded-lg font-bold text-xs border ${
+                                    item.receivedQty >= item.orderedQty
+                                      ? "bg-emerald-50 text-emerald-600 border-emerald-100"
+                                      : item.receivedQty > 0
+                                        ? "bg-blue-50 text-blue-600 border-blue-100"
+                                        : "bg-slate-50 text-slate-400 border-slate-200"
+                                  }`}
+                                >
+                                  {item.receivedQty} {item.item.unit}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-center whitespace-nowrap">
+                                <span
+                                  className={`inline-flex items-center px-2.5 py-1 rounded-lg font-bold text-xs border ${
+                                    item.remainingQty === 0
+                                      ? "bg-emerald-50 text-emerald-600 border-emerald-100"
+                                      : item.receivedQty > 0
+                                        ? "bg-orange-50 text-orange-600 border-orange-100"
+                                        : "bg-slate-50 text-slate-400 border-slate-200"
+                                  }`}
+                                >
+                                  {item.remainingQty} {item.item.unit}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-right whitespace-nowrap">
+                                {formatCurrency(item.unitPrice)}
+                              </td>
+                              <td className="px-4 py-3 text-right font-bold text-slate-900 whitespace-nowrap">
+                                {formatCurrency(
+                                  item.orderedQty * Number(item.unitPrice ?? 0),
+                                )}
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                      {detail.items.length > 0 && (
+                        <tfoot className="bg-slate-50 border-t border-slate-200">
+                          <tr className="text-sm font-bold text-slate-900">
+                            <td colSpan={3} className="px-4 py-3">
+                              Total
+                            </td>
+                            <td className="px-4 py-3 text-center"></td>
+                            <td className="px-4 py-3" />
+                            <td className="px-4 py-3" />
+                            <td className="px-4 py-3 text-right whitespace-nowrap">
+                              {formatCurrency(detail.totalAmount)}
+                            </td>
+                          </tr>
+                        </tfoot>
                       )}
-                    </tbody>
-                    {detail.items.length > 0 && (
-                      <tfoot className="bg-slate-50 border-t border-slate-200">
-                        <tr className="text-sm font-bold text-slate-900">
-                          <td colSpan={3} className="px-4 py-3">
-                            Total
-                          </td>
-                          <td className="px-4 py-3 text-center"></td>
-                          <td className="px-4 py-3" />
-                          <td className="px-4 py-3" />
-                          <td className="px-4 py-3 text-right whitespace-nowrap">
-                            {formatCurrency(detail.totalAmount)}
-                          </td>
-                        </tr>
-                      </tfoot>
-                    )}
-                  </table>
+                    </table>
+                  </div>
                 </div>
               </div>
 
@@ -348,11 +354,11 @@ export function PODetailModal({ isOpen, poId, onClose }: PODetailModalProps) {
           ) : null}
         </div>
 
-        <div className="px-6 py-4 border-t border-slate-200 flex justify-between items-center gap-3 bg-white">
+        <div className="px-4 py-4 sm:px-6 border-t border-slate-200 flex flex-col-reverse sm:flex-row sm:justify-between items-stretch sm:items-center gap-3 bg-white">
           <button
             onClick={handlePrintSP}
             disabled={!detail || isPrinting}
-            className="flex items-center gap-2 px-5 py-2.5 bg-emerald-500 text-white rounded-xl font-semibold hover:bg-emerald-600 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            className="flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-500 text-white rounded-xl font-semibold hover:bg-emerald-600 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {isPrinting ? (
               <>

@@ -7,15 +7,15 @@ export function UserProfile() {
   const { data: session, status } = useSession();
 
   return (
-    <div className="flex items-center gap-3 border-l border-slate-200 pl-6">
-      <div className="text-right">
-        <p className="text-sm font-bold text-slate-900">
+    <div className="flex items-center gap-2 sm:gap-3 lg:border-l lg:border-slate-200 lg:pl-4 xl:pl-6">
+      <div className="hidden text-right md:block">
+        <p className="text-sm font-bold text-slate-900 truncate max-w-[140px]">
           {status === "loading"
             ? "Memuat akun..."
             : (session?.user?.name ?? "Pengguna")}
         </p>
 
-        <p className="text-xs text-slate-500 uppercase">
+        <p className="text-xs text-slate-500 uppercase truncate max-w-[140px]">
           {session?.user?.role ?? "BELUM LOGIN"}
         </p>
       </div>
@@ -25,7 +25,7 @@ export function UserProfile() {
         alt="Profile Picture"
         width={40}
         height={40}
-        className="h-10 w-10 rounded-full object-cover"
+        className="h-9 w-9 sm:h-10 sm:w-10 rounded-full object-cover border border-slate-200"
       />
     </div>
   );

@@ -1,6 +1,10 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+
 import { prisma } from "@/prisma/config";
 import { ItemCategory } from "@/prisma/config";
+import { auth } from "@/lib/auth";
+import { getUserPermissions } from "@/lib/permission";
+
 import { CompoundBatchDetail } from "@/components/inventory/CompoundBatchDetail";
 
 interface CompoundBatchDetailPageProps {
@@ -9,9 +13,22 @@ interface CompoundBatchDetailPageProps {
     }>;
 }
 
-export default async function CompoundBatchDetailPage({
-    params,
-}: CompoundBatchDetailPageProps) {
+export default async function CompoundBatchDetailPage({ params }: CompoundBatchDetailPageProps) {
+    const session = await auth();
+
+    if (!session?.user?.id || !session.user.role) {
+        redirect("/login");
+    }
+
+    const permissions = await getUserPermissions(
+        session.user.id,
+        session.user.role,
+    );
+
+    if (!permissions.includes("*") && !permissions.includes("inventory.view")) {
+        redirect("/not-permission");
+    }
+
     const { id } = await params;
 
     const item = await prisma.item.findFirst({
@@ -41,7 +58,6 @@ export default async function CompoundBatchDetailPage({
                     },
                 },
             },
-
             purchaseOrderItems: {
                 orderBy: {
                     createdAt: "desc",
@@ -92,10 +108,8 @@ export default async function CompoundBatchDetailPage({
                 createdAt: transaction.createdAt.toISOString(),
 
                 stockOut: {
-                    referenceNo:
-                        transaction.stockOut.referenceNo,
-                    createdAt:
-                        transaction.stockOut.createdAt.toISOString(),
+                    referenceNo: transaction.stockOut.referenceNo,
+                    createdAt: transaction.stockOut.createdAt.toISOString(),
                 },
             })),
         })),
@@ -104,11 +118,9 @@ export default async function CompoundBatchDetailPage({
             id: po.id,
             batchNumber: po.batchNumber ?? "-",
             quantity: po.quantity,
-
             expiryDate: po.expiryDate
                 ? po.expiryDate.toISOString()
                 : "",
-
             unitPrice: Number(po.unitPrice),
             createdAt: po.createdAt.toISOString(),
 
@@ -116,10 +128,8 @@ export default async function CompoundBatchDetailPage({
                 id: po.purchaseOrder.id,
                 poNumber: po.purchaseOrder.poNumber,
                 status: po.purchaseOrder.status,
-                receivedAt:
-                    po.purchaseOrder.receivedAt?.toISOString() ?? null,
-                createdAt:
-                    po.purchaseOrder.createdAt.toISOString(),
+                receivedAt: po.purchaseOrder.receivedAt?.toISOString() ?? null,
+                createdAt: po.purchaseOrder.createdAt.toISOString(),
 
                 supplier: {
                     id: po.purchaseOrder.supplier.id,

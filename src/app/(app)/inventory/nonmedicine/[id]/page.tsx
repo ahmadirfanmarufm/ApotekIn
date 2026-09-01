@@ -1,7 +1,9 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { prisma, ItemCategory } from "@/prisma/config";
 import { NonMedicineBatchDetail } from "@/components/inventory/NonMedicineBatchDetail";
+import { auth } from "@/lib/auth";
+import { getUserPermissions } from "@/lib/permission";
 
 interface NonMedicineBatchDetailPageProps {
   params: Promise<{
@@ -9,9 +11,19 @@ interface NonMedicineBatchDetailPageProps {
   }>;
 }
 
-export default async function NonMedicineBatchDetailPage({
-  params,
-}: NonMedicineBatchDetailPageProps) {
+export default async function NonMedicineBatchDetailPage({ params }: NonMedicineBatchDetailPageProps) {
+  const session = await auth();
+  
+  if (!session?.user?.id || !session.user.role) {
+      redirect("/login");
+  }
+
+  const permissions = await getUserPermissions(session.user.id, session.user.role);
+
+  if (!permissions.includes("*") && !permissions.includes("inventory.view")) {
+        redirect("/not-permission");
+    }
+
   const { id } = await params;
 
   const item = await prisma.item.findFirst({

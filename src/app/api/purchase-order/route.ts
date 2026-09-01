@@ -4,6 +4,7 @@ import { prisma } from "@/prisma/config";
 import { POStatus } from "@/prisma/config";
 import type { Prisma } from "@/prisma/config";
 import { createPurchaseOrderSchema } from "@/lib/validations/purchase-order";
+import { requirePermission } from "@/lib/authorize";
 
 async function generatePoNumber() {
   const now = new Date();
@@ -37,12 +38,10 @@ async function generatePoNumber() {
 }
 
 export async function GET(req: Request) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json(
-      { success: false, message: "Sesi tidak valid." },
-      { status: 401 },
-    );
+  const authorization = await requirePermission("purchase_order.view");
+
+  if(!authorization.authorized) {
+    return authorization.response;
   }
 
   try {
@@ -116,15 +115,14 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json(
-      { success: false, message: "Sesi tidak valid." },
-      { status: 401 },
-    );
+  const authorization = await requirePermission("purchase_order.create");
+
+  if(!authorization.authorized) {
+    return authorization.response;
   }
 
   try {
+    const { session } = authorization;
     const body = await req.json();
 
     const validatedFields = createPurchaseOrderSchema.safeParse(body);

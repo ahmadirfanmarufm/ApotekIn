@@ -12,7 +12,7 @@ export default async function StockAuditPage() {
 
   const permissions = await getUserPermissions(session.user.id, session.user.role);
 
-  if (!permissions.includes("audit_stock.view")) {
+  if (!permissions.includes("*") && !permissions.includes("audit_stock.view")) {
       redirect("/not-permission");
   }
 

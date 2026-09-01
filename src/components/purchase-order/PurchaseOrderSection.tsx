@@ -23,7 +23,7 @@ const STATUS_LABEL: Record<string, string> = {
 
 const PAGE_SIZE = 10;
 
-export default async function PurchaseOrderClient() {
+export default function PurchaseOrderClient() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrderListItem[]>([],);
   const [suppliers, setSuppliers] = useState<

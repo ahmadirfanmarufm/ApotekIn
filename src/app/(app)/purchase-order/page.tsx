@@ -12,10 +12,7 @@ export default async function SupplierPage() {
     redirect("/login");
   }
 
-  const permissions = await getUserPermissions(
-    session.user.id,
-    session.user.role
-  );
+  const permissions = await getUserPermissions(session.user.id, session.user.role);
 
   if (!permissions.includes("*") && !permissions.includes("purchase_order.view")) {
     redirect("/not-permission");

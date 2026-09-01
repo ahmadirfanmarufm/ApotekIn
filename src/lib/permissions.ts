@@ -42,6 +42,8 @@ export const ROLE_PERMISSIONS: Record<Role, string[]> = {
     "stock_out.create",
 
     "notifications.view",
+
+    "audit_stock.view",
   ],
 
   ADMIN_LOGISTIK: [

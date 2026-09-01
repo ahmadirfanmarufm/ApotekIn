@@ -10,21 +10,19 @@ import { SupplierMetrics } from "@/components/supplier/supplier-metrics";
 import { SupplierCard } from "@/components/supplier/supplier-card";
 import { SupplierDialog } from "@/components/supplier/supplier-dialog";
 import { SupplierSearch } from "@/components/supplier/supplier-search";
+import { useRouter } from "next/navigation";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
 export default function SupplierPageClient() {
+  const router = useRouter();
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [searchInput, setSearchInput] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedSupplier, setSelectedSupplier] =
-    useState<Supplier | null>(null);
-
-  // Supplier yang dipilih untuk membuat PO
-  const [selectedPoSupplier, setSelectedPoSupplier] =
-    useState<Supplier | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
+  const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(
+    null,
+  );
 
   const [isLoading, setIsLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -51,13 +49,11 @@ export default function SupplierPageClient() {
 
       try {
         const params = new URLSearchParams();
-
         if (debouncedSearch) {
           params.set("search", debouncedSearch);
         }
 
         const query = params.toString();
-
         const res = await fetch(
           query ? `/api/supplier?${query}` : "/api/supplier",
           {
@@ -70,17 +66,12 @@ export default function SupplierPageClient() {
         const json = await res.json();
 
         if (!res.ok || !json.success) {
-          throw new Error(
-            json.message ?? "Gagal mengambil data supplier.",
-          );
+          throw new Error(json.message ?? "Gagal mengambil data supplier.");
         }
 
         setSuppliers(json.data ?? []);
       } catch (error) {
-        if (
-          error instanceof DOMException &&
-          error.name === "AbortError"
-        ) {
+        if (error instanceof DOMException && error.name === "AbortError") {
           return;
         }
 
@@ -110,12 +101,8 @@ export default function SupplierPageClient() {
     setIsDialogOpen(true);
   };
 
-  /**
-   * Dipanggil ketika user menekan tombol "Buat PO"
-   * pada SupplierCard.
-   */
   const handleCreatePo = (supplier: Supplier) => {
-    setSelectedPoSupplier(supplier);
+    router.push(`/purchase-order?supplierId=${supplier.id}`);
   };
 
   const totalDelivered = suppliers.reduce(
@@ -125,20 +112,17 @@ export default function SupplierPageClient() {
 
   return (
     <div className="relative space-y-6 font-inter text-slate-800">
-      <div className="flex flex-row items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="font-manrope text-2xl font-bold text-slate-950">
             Manajemen Supplier
           </h1>
-
-          <p className="mt-1 text-slate-500">
-            Kelola supplier apotek
-          </p>
+          <p className="mt-1 text-slate-500">Kelola supplier apotek</p>
         </div>
 
         <Button
           onClick={handleOpenAddDialog}
-          className="flex items-center gap-2"
+          className="flex items-center justify-center gap-2 w-full sm:w-auto"
         >
           <Plus className="h-4 w-4" />
           Tambah Supplier
@@ -150,10 +134,7 @@ export default function SupplierPageClient() {
         totalDeliveredCount={totalDelivered}
       />
 
-      <SupplierSearch
-        value={searchInput}
-        onChange={setSearchInput}
-      />
+      <SupplierSearch value={searchInput} onChange={setSearchInput} />
 
       <SupplierDialog
         open={isDialogOpen}
@@ -161,23 +142,6 @@ export default function SupplierPageClient() {
         supplierToEdit={selectedSupplier}
         onSuccess={refresh}
       />
-
-      {/*
-        TODO / Integrasikan POModal di sini jika POModal
-        memang digunakan langsung dari halaman Supplier.
-        
-        Contoh konsep:
-        
-        <POModal
-          open={!!selectedPoSupplier}
-          onOpenChange={(open) => {
-            if (!open) {
-              setSelectedPoSupplier(null);
-            }
-          }}
-          supplier={selectedPoSupplier}
-        />
-      */}
 
       {isLoading ? (
         <div className="flex items-center justify-center gap-2 text-sm text-slate-500">
@@ -195,7 +159,6 @@ export default function SupplierPageClient() {
             >
               <div className="flex items-center gap-3">
                 <div className="h-14 w-14 shrink-0 rounded-xl bg-slate-200" />
-
                 <div className="flex-1 space-y-2">
                   <div className="h-4 w-3/4 rounded bg-slate-200" />
                   <div className="h-3 w-1/2 rounded bg-slate-100" />
@@ -220,9 +183,7 @@ export default function SupplierPageClient() {
       ) : suppliers.length === 0 ? (
         <EmptyState
           title={
-            debouncedSearch
-              ? "Supplier tidak ditemukan"
-              : "Belum ada supplier"
+            debouncedSearch ? "Supplier tidak ditemukan" : "Belum ada supplier"
           }
           description={
             debouncedSearch

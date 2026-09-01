@@ -11,19 +11,32 @@ import {
 } from "@/prisma/config";
 import { approveAuditSchema } from "@/lib/validations/audit";
 
-async function generateReferenceNo(prefix: string) {
+async function generateReferenceNo(tx: Prisma.TransactionClient, prefix: string) {
   const now = new Date();
+
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, "0");
   const day = String(now.getDate()).padStart(2, "0");
 
   const startsWith = `${prefix}${year}${month}${day}-`;
-  const outCount = await prisma.stockOutTransaction.count({
-    where: { referenceNo: { startsWith } },
-  });
-  const inCount = await prisma.stockInTransaction.count({
-    where: { referenceNo: { startsWith } },
-  });
+
+  const [outCount, inCount] = await Promise.all([
+    tx.stockOutTransaction.count({
+      where: {
+        referenceNo: {
+          startsWith,
+        },
+      },
+    }),
+
+    tx.stockInTransaction.count({
+      where: {
+        referenceNo: {
+          startsWith,
+        },
+      },
+    }),
+  ]);
 
   return `${startsWith}${String(outCount + inCount + 1).padStart(4, "0")}`;
 }
@@ -134,7 +147,7 @@ export async function POST(req: Request) {
       const adjustmentsIn = details.filter((d) => d.difference > 0);
 
       if (adjustmentsOut.length > 0) {
-        const referenceNo = await generateReferenceNo("SOU-AUD-");
+        const referenceNo = await generateReferenceNo(tx, "SOU-AUD-");
         const totalQty = adjustmentsOut.reduce(
           (acc, a) => acc + Math.abs(a.difference),
           0,
@@ -166,7 +179,7 @@ export async function POST(req: Request) {
       }
 
       if (adjustmentsIn.length > 0) {
-        const referenceNo = await generateReferenceNo("SIN-AUD-");
+        const referenceNo = await generateReferenceNo(tx, "SIN-AUD-");
         const totalQty = adjustmentsIn.reduce(
           (acc, a) => acc + a.difference,
           0,
@@ -215,6 +228,9 @@ export async function POST(req: Request) {
         ),
         batchCount: details.length,
       };
+    }, {
+      maxWait: 5000,
+      timeout: 15000,
     });
 
     return NextResponse.json({

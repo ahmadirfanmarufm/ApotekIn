@@ -12,7 +12,7 @@ export default async function ReportsPage() {
 
   const permissions = await getUserPermissions(session.user.id, session.user.role);
 
-  if (!permissions.includes("reports.view")) {
+  if (!permissions.includes("*") && !permissions.includes("reports.view")) {
       redirect("/not-permission");
   }
 

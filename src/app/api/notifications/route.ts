@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/prisma/config";
 import { endOfDay, nowPlusDays, toRelativeTime } from "@/lib/date";
-import { ItemCategory, NotificationPriority, NotificationType } from "@/prisma/config";
+import {
+  ItemCategory,
+  NotificationPriority,
+  NotificationType,
+} from "@/prisma/config";
 
 function getInventoryLink(itemId: string, category: ItemCategory): string {
   switch (category) {
@@ -62,6 +66,7 @@ async function buildCriticalStockDrafts(): Promise<GeneratedDraft[]> {
       id: true,
       code: true,
       name: true,
+      category: true,
       minStock: true,
       batches: {
         where: { quantity: { gt: 0 } },
@@ -81,7 +86,7 @@ async function buildCriticalStockDrafts(): Promise<GeneratedDraft[]> {
       priority: currentStock === 0 ? "HIGH" : "MEDIUM",
       title: `Stok ${item.name} mencapai batas minimum`,
       message: `Sisa stok ${currentStock} dari batas minimum ${item.minStock}. Segera lakukan pemesanan ulang.`,
-      actionLink: `/inventory?itemId=${item.id}`,
+      actionLink: getInventoryLink(item.id, item.category),
       actionLabel: "Lihat Inventaris",
       metadata: {
         itemId: item.id,

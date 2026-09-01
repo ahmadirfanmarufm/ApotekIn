@@ -1,8 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/prisma/config";
-import { nowPlusDays, startOfDay, toRelativeTime } from "@/lib/date";
-import { NotificationPriority, NotificationType } from "@/prisma/config";
+import { endOfDay, nowPlusDays, toRelativeTime } from "@/lib/date";
+import { ItemCategory, NotificationPriority, NotificationType } from "@/prisma/config";
+
+function getInventoryLink(itemId: string, category: ItemCategory): string {
+  switch (category) {
+    case "OBAT_OTC":
+      return `/inventory/otc/${itemId}`;
+    case "BAHAN_RACIKAN":
+      return `/inventory/compound/${itemId}`;
+    case "NON_OBAT":
+      return `/inventory/nonmedicine/${itemId}`;
+    default:
+      return `/inventory?itemId=${itemId}`;
+  }
+}
 
 export const dynamic = "force-dynamic";
 
@@ -84,7 +97,7 @@ async function buildCriticalStockDrafts(): Promise<GeneratedDraft[]> {
 }
 
 async function buildExpiryDrafts(): Promise<GeneratedDraft[]> {
-  const threshold = startOfDay(nowPlusDays(EXPIRY_WARNING_DAYS));
+  const threshold = endOfDay(nowPlusDays(EXPIRY_WARNING_DAYS));
 
   const items = await prisma.item.findMany({
     where: { isActive: true },
@@ -92,6 +105,7 @@ async function buildExpiryDrafts(): Promise<GeneratedDraft[]> {
       id: true,
       code: true,
       name: true,
+      category: true,
       batches: {
         where: {
           quantity: { gt: 0 },
@@ -124,7 +138,7 @@ async function buildExpiryDrafts(): Promise<GeneratedDraft[]> {
       priority,
       title: `${item.name} mendekati tanggal kedaluwarsa`,
       message: `Batch ${batch.batchNumber} akan kedaluwarsa dalam ${daysLeft} hari (${batch.quantity} pcs).`,
-      actionLink: `/inventory?itemId=${item.id}`,
+      actionLink: getInventoryLink(item.id, item.category),
       actionLabel: "Tinjau Batch",
       metadata: {
         itemId: item.id,
@@ -145,54 +159,97 @@ async function buildExpiryDrafts(): Promise<GeneratedDraft[]> {
 async function persistDraftsForAllUsers(
   drafts: GeneratedDraft[],
 ): Promise<void> {
-  if (drafts.length === 0) return;
-
   const userIds = await getAllActiveUserIds();
   if (userIds.length === 0) return;
 
+  // Build a map of dedupKey → draft for quick lookup
+  const draftByKey = new Map<string, GeneratedDraft>();
+  for (const d of drafts) draftByKey.set(d.dedupKey, d);
+
+  // Fetch all existing auto-generated notifications
   const existing = await prisma.notification.findMany({
     where: {
       userId: { in: userIds },
-      isRead: false,
       type: { in: ["CRITICAL_STOCK", "EXPIRED_WARNING"] },
     },
-    select: { userId: true, metadata: true },
+    select: { id: true, userId: true, metadata: true, actionLink: true },
   });
 
+  const staleIds: string[] = [];
   const existingKeysByUser = new Map<string, Set<string>>();
+  const toUpdate: { id: string; draft: GeneratedDraft }[] = [];
+
   for (const note of existing) {
     const meta = note.metadata as { dedupKey?: string } | null;
-    if (!meta?.dedupKey) continue;
+    const key = meta?.dedupKey;
+
+    if (!key || !draftByKey.has(key)) {
+      staleIds.push(note.id);
+      continue;
+    }
+
+    const draft = draftByKey.get(key)!;
+    // Queue update only if actionLink changed (fixes stale URL without new ID)
+    if (note.actionLink !== draft.actionLink) {
+      toUpdate.push({ id: note.id, draft });
+    }
+
     const set = existingKeysByUser.get(note.userId) ?? new Set<string>();
-    set.add(meta.dedupKey);
+    set.add(key);
     existingKeysByUser.set(note.userId, set);
   }
 
-  const createOps: ReturnType<typeof prisma.notification.create>[] = [];
+  // Build rows for new notifications only
+  const newRows: {
+    userId: string;
+    title: string;
+    message: string;
+    type: NotificationType;
+    priority: NotificationPriority;
+    actionLink: string;
+    actionLabel: string;
+    metadata: Record<string, unknown>;
+  }[] = [];
+
   for (const userId of userIds) {
     const existingKeys = existingKeysByUser.get(userId) ?? new Set<string>();
     for (const draft of drafts) {
       if (existingKeys.has(draft.dedupKey)) continue;
-      createOps.push(
-        prisma.notification.create({
-          data: {
-            userId,
-            title: draft.title,
-            message: draft.message,
-            type: draft.type,
-            priority: draft.priority,
-            actionLink: draft.actionLink,
-            actionLabel: draft.actionLabel,
-            metadata: draft.metadata as object,
-          },
-        }),
-      );
+      newRows.push({
+        userId,
+        title: draft.title,
+        message: draft.message,
+        type: draft.type,
+        priority: draft.priority,
+        actionLink: draft.actionLink,
+        actionLabel: draft.actionLabel,
+        metadata: { ...draft.metadata, dedupKey: draft.dedupKey },
+      });
     }
   }
 
-  if (createOps.length === 0) return;
+  // Run operations sequentially — avoids large transactions that cause P2028
+  if (staleIds.length > 0) {
+    await prisma.notification.deleteMany({ where: { id: { in: staleIds } } });
+  }
 
-  await prisma.$transaction(createOps);
+  // Update changed actionLinks individually (usually very few)
+  for (const { id, draft } of toUpdate) {
+    await prisma.notification.update({
+      where: { id },
+      data: {
+        actionLink: draft.actionLink,
+        title: draft.title,
+        message: draft.message,
+        priority: draft.priority,
+      },
+    });
+  }
+
+  // Bulk-insert new notifications in one query
+  if (newRows.length > 0) {
+    await prisma.notification.createMany({ data: newRows });
+  }
 }
 
 function serializeNotification(n: {
